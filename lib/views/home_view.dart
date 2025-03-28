@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:cryptosquare/controllers/home_controller.dart';
 import 'package:cryptosquare/theme/app_theme.dart';
 import 'package:cryptosquare/models/app_models.dart';
@@ -10,6 +9,21 @@ class HomeView extends StatelessWidget {
   final HomeController homeController = Get.find<HomeController>();
 
   HomeView({super.key});
+
+  String _getServiceIcon(String title) {
+    switch (title) {
+      case '在线课程':
+        return 'assets/images/online_course.png';
+      case '运营转型':
+        return 'assets/images/customize.png';
+      case '求职交流':
+        return 'assets/images/online_course.png';
+      case '1v1咨询':
+        return 'assets/images/online_course.png';
+      default:
+        return 'assets/images/online_course.png';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -173,7 +187,7 @@ class HomeView extends StatelessWidget {
             top: 12,
             right: 12,
             child: Image.asset(
-              'assets/images/online_course.png',
+              _getServiceIcon(service.title),
               width: 36,
               height: 36,
             ),
