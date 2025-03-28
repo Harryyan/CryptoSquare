@@ -6,6 +6,52 @@ part of 'rest_client.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
+BaseResponse<T> _$BaseResponseFromJson<T>(
+  Map<String, dynamic> json,
+  T Function(Object? json) fromJsonT,
+) => BaseResponse<T>(
+  message: json['message'] as String?,
+  code: (json['code'] as num?)?.toInt(),
+  data: _$nullableGenericFromJson(json['data'], fromJsonT),
+);
+
+Map<String, dynamic> _$BaseResponseToJson<T>(
+  BaseResponse<T> instance,
+  Object? Function(T value) toJsonT,
+) => <String, dynamic>{
+  'message': instance.message,
+  'code': instance.code,
+  'data': _$nullableGenericToJson(instance.data, toJsonT),
+};
+
+T? _$nullableGenericFromJson<T>(
+  Object? input,
+  T Function(Object? json) fromJson,
+) => input == null ? null : fromJson(input);
+
+Object? _$nullableGenericToJson<T>(
+  T? input,
+  Object? Function(T value) toJson,
+) => input == null ? null : toJson(input);
+
+FeaturedJobResponse _$FeaturedJobResponseFromJson(Map<String, dynamic> json) =>
+    FeaturedJobResponse(
+      message: json['message'] as String?,
+      code: (json['code'] as num?)?.toInt(),
+      data:
+          (json['data'] as List<dynamic>?)
+              ?.map((e) => JobData.fromJson(e as Map<String, dynamic>))
+              .toList(),
+    );
+
+Map<String, dynamic> _$FeaturedJobResponseToJson(
+  FeaturedJobResponse instance,
+) => <String, dynamic>{
+  'message': instance.message,
+  'code': instance.code,
+  'data': instance.data,
+};
+
 Task _$TaskFromJson(Map<String, dynamic> json) => Task(
   id: json['id'] as String?,
   name: json['name'] as String?,
@@ -20,6 +66,85 @@ Map<String, dynamic> _$TaskToJson(Task instance) => <String, dynamic>{
   'createdAt': instance.createdAt,
 };
 
+JobData _$JobDataFromJson(Map<String, dynamic> json) => JobData(
+  slug: json['slug'] as String?,
+  id: (json['id'] as num?)?.toInt(),
+  jobKey: json['job_key'] as String?,
+  jobTitle: json['job_title'] as String?,
+  jobPosition: json['job_position'] as String?,
+  createdAt: json['created_at'] as String?,
+  tags: json['tags'] as String?,
+  jobCompany: json['job_company'] as String?,
+  jobSalaryType: (json['job_salary_type'] as num?)?.toInt(),
+  jobSalaryUnit: json['job_salary_unit'] as String?,
+  jobSalaryCurrency: json['job_salary_currency'] as String?,
+  minSalary: (json['min_salary'] as num?)?.toInt(),
+  maxSalary: (json['max_salary'] as num?)?.toInt(),
+);
+
+Map<String, dynamic> _$JobDataToJson(JobData instance) => <String, dynamic>{
+  'slug': instance.slug,
+  'id': instance.id,
+  'job_key': instance.jobKey,
+  'job_title': instance.jobTitle,
+  'job_position': instance.jobPosition,
+  'created_at': instance.createdAt,
+  'tags': instance.tags,
+  'job_company': instance.jobCompany,
+  'job_salary_type': instance.jobSalaryType,
+  'job_salary_unit': instance.jobSalaryUnit,
+  'job_salary_currency': instance.jobSalaryCurrency,
+  'min_salary': instance.minSalary,
+  'max_salary': instance.maxSalary,
+};
+
+Banner _$BannerFromJson(Map<String, dynamic> json) => Banner(
+  id: (json['id'] as num?)?.toInt(),
+  title: json['title'] as String?,
+  img: json['img'] as String?,
+  link: json['link'] as String?,
+  orderid: (json['orderid'] as num?)?.toInt(),
+);
+
+Map<String, dynamic> _$BannerToJson(Banner instance) => <String, dynamic>{
+  'id': instance.id,
+  'title': instance.title,
+  'img': instance.img,
+  'link': instance.link,
+  'orderid': instance.orderid,
+};
+
+BannerData _$BannerDataFromJson(Map<String, dynamic> json) => BannerData(
+  h5:
+      (json['h5'] as List<dynamic>?)
+          ?.map((e) => Banner.fromJson(e as Map<String, dynamic>))
+          .toList(),
+  pc:
+      (json['pc'] as List<dynamic>?)
+          ?.map((e) => Banner.fromJson(e as Map<String, dynamic>))
+          .toList(),
+);
+
+Map<String, dynamic> _$BannerDataToJson(BannerData instance) =>
+    <String, dynamic>{'h5': instance.h5, 'pc': instance.pc};
+
+BannerResponse _$BannerResponseFromJson(Map<String, dynamic> json) =>
+    BannerResponse(
+      message: json['message'] as String?,
+      code: (json['code'] as num?)?.toInt(),
+      data:
+          json['data'] == null
+              ? null
+              : BannerData.fromJson(json['data'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$BannerResponseToJson(BannerResponse instance) =>
+    <String, dynamic>{
+      'message': instance.message,
+      'code': instance.code,
+      'data': instance.data,
+    };
+
 // **************************************************************************
 // RetrofitGenerator
 // **************************************************************************
@@ -28,7 +153,7 @@ Map<String, dynamic> _$TaskToJson(Task instance) => <String, dynamic>{
 
 class _RestClient implements RestClient {
   _RestClient(this._dio, {this.baseUrl, this.errorLogger}) {
-    baseUrl ??= 'https://5d42a6e2bc64f90014a56ca0.mockapi.io/api/v1/';
+    baseUrl ??= 'https://d3qx0f55wsubto.cloudfront.net/api/';
   }
 
   final Dio _dio;
@@ -38,12 +163,12 @@ class _RestClient implements RestClient {
   final ParseErrorLogger? errorLogger;
 
   @override
-  Future<List<Task>> getTasks() async {
+  Future<BaseResponse<List<Task>>> getTasks() async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
-    final _options = _setStreamType<List<Task>>(
+    final _options = _setStreamType<BaseResponse<List<Task>>>(
       Options(method: 'GET', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
@@ -53,13 +178,75 @@ class _RestClient implements RestClient {
           )
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
-    final _result = await _dio.fetch<List<dynamic>>(_options);
-    late List<Task> _value;
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late BaseResponse<List<Task>> _value;
     try {
-      _value =
-          _result.data!
-              .map((dynamic i) => Task.fromJson(i as Map<String, dynamic>))
-              .toList();
+      _value = BaseResponse<List<Task>>.fromJson(
+        _result.data!,
+        (json) =>
+            json is List<dynamic>
+                ? json
+                    .map<Task>((i) => Task.fromJson(i as Map<String, dynamic>))
+                    .toList()
+                : List.empty(),
+      );
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
+  Future<FeaturedJobResponse> getFeaturedJobs(String platform) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{r'PLATFORM': platform};
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<FeaturedJobResponse>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/job/index/jobhot',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late FeaturedJobResponse _value;
+    try {
+      _value = FeaturedJobResponse.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
+  Future<BannerResponse> getBanners(int lang, String platform) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'lang': lang,
+      r'PLATFORM': platform,
+    };
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<BannerResponse>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/job/index/banner_new',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late BannerResponse _value;
+    try {
+      _value = BannerResponse.fromJson(_result.data!);
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options);
       rethrow;
