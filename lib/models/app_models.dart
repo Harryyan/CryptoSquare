@@ -50,6 +50,7 @@ class JobPost {
   final String salary;
   final int timeAgo;
   final List<String> tags;
+  bool isFavorite;
 
   JobPost({
     required this.id,
@@ -59,6 +60,7 @@ class JobPost {
     required this.salary,
     required this.timeAgo,
     required this.tags,
+    this.isFavorite = false,
   });
 
   factory JobPost.fromJson(Map<String, dynamic> json) =>

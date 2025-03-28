@@ -130,7 +130,7 @@ class HomeController extends GetxController {
       news.value = [
         NewsItem(
           id: 1,
-          title: 'Web3技术最新发展趋势',
+          title: '美国财政部长贝森特：目前对政府效率部和财政部存在"大量不实的信息"',
           source: 'CryptoNews',
           timeAgo: 2,
           tags: ['Web3', 'Technology', 'Trend'],
@@ -166,5 +166,22 @@ class HomeController extends GetxController {
 
   void changeServiceTab(int index) {
     currentServiceTabIndex.value = index;
+  }
+
+  void toggleFavorite(int jobId) {
+    final index = jobs.indexWhere((job) => job.id == jobId);
+    if (index != -1) {
+      final job = jobs[index];
+      jobs[index] = JobPost(
+        id: job.id,
+        title: job.title,
+        company: job.company,
+        location: job.location,
+        salary: job.salary,
+        timeAgo: job.timeAgo,
+        tags: job.tags,
+        isFavorite: !job.isFavorite,
+      );
+    }
   }
 }

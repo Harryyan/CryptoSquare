@@ -96,15 +96,23 @@ class HomeView extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(width: 40, height: 1, color: Colors.grey[300]),
+              Image.asset(
+                'assets/images/service_left.png',
+                width: 40,
+                height: 20,
+              ),
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 8),
                 child: const Text(
-                  '• 专业服务 •',
+                  '专业服务',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ),
-              Container(width: 40, height: 1, color: Colors.grey[300]),
+              Image.asset(
+                'assets/images/service_right.png',
+                width: 40,
+                height: 20,
+              ),
             ],
           ),
           const SizedBox(height: 8),
@@ -144,7 +152,10 @@ class HomeView extends StatelessWidget {
       height: 120,
       margin: const EdgeInsets.only(right: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        image: const DecorationImage(
+          image: AssetImage('assets/images/service_bg.png'),
+          fit: BoxFit.cover,
+        ),
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
@@ -157,15 +168,14 @@ class HomeView extends StatelessWidget {
       ),
       child: Stack(
         children: [
-          // 蓝色图标（右上角）
+          // 右上角图标
           Positioned(
-            top: 0,
-            right: 0,
-            child: SvgPicture.asset(
-              'assets/images/service_icon.svg',
-              width: 24,
-              height: 24,
-              color: AppTheme.primaryColor,
+            top: 12,
+            right: 12,
+            child: Image.asset(
+              'assets/images/online_course.png',
+              width: 36,
+              height: 36,
             ),
           ),
           // 内容
@@ -179,16 +189,14 @@ class HomeView extends StatelessWidget {
                   service.title,
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    fontSize: 18,
+                    color: Colors.black,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   service.description,
-                  style: const TextStyle(
-                    color: AppTheme.subtitleColor,
-                    fontSize: 12,
-                  ),
+                  style: const TextStyle(color: Colors.black, fontSize: 14),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -223,35 +231,39 @@ class HomeView extends StatelessWidget {
         const SizedBox(height: 16),
         Obx(() {
           return homeController.currentServiceTabIndex.value == 0
-              ? _buildJobList()
+              ? Column(
+                children: [
+                  _buildJobList(),
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: GestureDetector(
+                      onTap: () {
+                        // 跳转到Web3工作Tab
+                        homeController.changeTab(1);
+                      },
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Text(
+                            '更多岗位',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Icon(
+                            Icons.arrow_forward_ios,
+                            size: 14,
+                            color: AppTheme.primaryColor,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              )
               : _buildNewsList();
         }),
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: GestureDetector(
-            onTap: () {
-              // 跳转到Web3工作Tab
-              homeController.changeTab(1);
-            },
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                Text(
-                  '更多岗位',
-                  style: TextStyle(
-                    color: AppTheme.primaryColor,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Icon(
-                  Icons.arrow_forward_ios,
-                  size: 14,
-                  color: AppTheme.primaryColor,
-                ),
-              ],
-            ),
-          ),
-        ),
       ],
     );
   }
@@ -331,9 +343,10 @@ class HomeView extends StatelessWidget {
               children: [
                 Text(
                   'Finance',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: AppTheme.primaryColor,
+                    fontSize: 16,
+                    color: Colors.black,
                   ),
                 ),
                 Text(
@@ -346,30 +359,51 @@ class HomeView extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            Text(
-              '${job.company} ${job.timeAgo}分钟前发布',
-              style: const TextStyle(
-                color: AppTheme.subtitleColor,
-                fontSize: 12,
-              ),
-            ),
-            const SizedBox(height: 8),
             Row(
               children: [
-                _buildJobTag('全职'),
-                const SizedBox(width: 8),
-                _buildJobTag('远程'),
-                const SizedBox(width: 8),
-                _buildJobTag('本科'),
-                const SizedBox(width: 8),
-                _buildJobTag('需要英语'),
+                Text(
+                  job.company,
+                  style: const TextStyle(
+                    color: Colors.black,
+                    fontSize: 14,
+                    fontWeight: FontWeight.normal,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  '${job.timeAgo}分钟前发布',
+                  style: TextStyle(color: Colors.grey[500], fontSize: 14),
+                ),
               ],
             ),
             const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: job.tags.map((tag) => _buildSkillTag(tag)).toList(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Row(
+                    children: [
+                      _buildJobTag('全职'),
+                      const SizedBox(width: 8),
+                      _buildJobTag('远程'),
+                      const SizedBox(width: 8),
+                      _buildJobTag('本科'),
+                      const SizedBox(width: 8),
+                      _buildJobTag('需要英语'),
+                    ],
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () => homeController.toggleFavorite(job.id),
+                  child: Image.asset(
+                    job.isFavorite
+                        ? 'assets/images/star_fill.png'
+                        : 'assets/images/star.png',
+                    width: 20,
+                    height: 20,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -399,7 +433,10 @@ class HomeView extends StatelessWidget {
         borderRadius: BorderRadius.circular(4),
         border: Border.all(color: Colors.grey[300]!),
       ),
-      child: Text(tag, style: TextStyle(color: Colors.grey[700], fontSize: 12)),
+      child: Text(
+        '#$tag',
+        style: TextStyle(color: Colors.grey[700], fontSize: 12),
+      ),
     );
   }
 
@@ -445,23 +482,18 @@ class HomeView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              newsItem.title,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '${newsItem.source} ${newsItem.timeAgo}小时前',
+              '01:49', // 使用固定格式的时间，实际应用中应该转换newsItem.timeAgo为小时:分钟格式
               style: const TextStyle(
                 color: AppTheme.subtitleColor,
                 fontSize: 12,
               ),
             ),
             const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children:
-                  newsItem.tags.map((tag) => _buildSkillTag(tag)).toList(),
+            Text(
+              newsItem.title,
+              style: const TextStyle(fontSize: 16),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
