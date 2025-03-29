@@ -98,7 +98,7 @@ Map<String, dynamic> _$JobDataToJson(JobData instance) => <String, dynamic>{
   'max_salary': instance.maxSalary,
 };
 
-Banner _$BannerFromJson(Map<String, dynamic> json) => Banner(
+BannerItem _$BannerItemFromJson(Map<String, dynamic> json) => BannerItem(
   id: (json['id'] as num?)?.toInt(),
   title: json['title'] as String?,
   img: json['img'] as String?,
@@ -106,22 +106,23 @@ Banner _$BannerFromJson(Map<String, dynamic> json) => Banner(
   orderid: (json['orderid'] as num?)?.toInt(),
 );
 
-Map<String, dynamic> _$BannerToJson(Banner instance) => <String, dynamic>{
-  'id': instance.id,
-  'title': instance.title,
-  'img': instance.img,
-  'link': instance.link,
-  'orderid': instance.orderid,
-};
+Map<String, dynamic> _$BannerItemToJson(BannerItem instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'title': instance.title,
+      'img': instance.img,
+      'link': instance.link,
+      'orderid': instance.orderid,
+    };
 
 BannerData _$BannerDataFromJson(Map<String, dynamic> json) => BannerData(
   h5:
       (json['h5'] as List<dynamic>?)
-          ?.map((e) => Banner.fromJson(e as Map<String, dynamic>))
+          ?.map((e) => BannerItem.fromJson(e as Map<String, dynamic>))
           .toList(),
   pc:
       (json['pc'] as List<dynamic>?)
-          ?.map((e) => Banner.fromJson(e as Map<String, dynamic>))
+          ?.map((e) => BannerItem.fromJson(e as Map<String, dynamic>))
           .toList(),
 );
 

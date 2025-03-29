@@ -355,12 +355,16 @@ class HomeView extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Finance',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: Colors.black,
+                Expanded(
+                  child: Text(
+                    job.getFormattedTitle(),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: Colors.black,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
                 ),
                 Text(
@@ -385,7 +389,7 @@ class HomeView extends StatelessWidget {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  '${job.timeAgo}分钟前发布',
+                  job.getFormattedTime(),
                   style: TextStyle(color: Colors.grey[500], fontSize: 14),
                 ),
               ],
@@ -394,19 +398,21 @@ class HomeView extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded(
+                Flexible(
                   child: Row(
                     children: [
-                      _buildJobTag('全职'),
+                      _buildJobTag(job.location),
                       const SizedBox(width: 8),
-                      _buildJobTag('远程'),
-                      const SizedBox(width: 8),
-                      _buildJobTag('本科'),
-                      const SizedBox(width: 8),
-                      _buildJobTag('需要英语'),
+                      ...job.tags.take(2).map((tag) {
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: _buildJobTag(tag),
+                        );
+                      }).toList(),
                     ],
                   ),
                 ),
+                const SizedBox(width: 16), // 添加固定间隔
                 GestureDetector(
                   onTap: () => homeController.toggleFavorite(job.id),
                   child: Image.asset(

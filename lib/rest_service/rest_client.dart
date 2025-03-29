@@ -154,10 +154,11 @@ class JobData {
 }
 
 @JsonSerializable()
-class Banner {
-  const Banner({this.id, this.title, this.img, this.link, this.orderid});
+class BannerItem {
+  const BannerItem({this.id, this.title, this.img, this.link, this.orderid});
 
-  factory Banner.fromJson(Map<String, dynamic> json) => _$BannerFromJson(json);
+  factory BannerItem.fromJson(Map<String, dynamic> json) =>
+      _$BannerItemFromJson(json);
 
   @JsonKey(name: 'id')
   final int? id;
@@ -174,7 +175,7 @@ class Banner {
   @JsonKey(name: 'orderid')
   final int? orderid;
 
-  Map<String, dynamic> toJson() => _$BannerToJson(this);
+  Map<String, dynamic> toJson() => _$BannerItemToJson(this);
 }
 
 @JsonSerializable()
@@ -185,17 +186,17 @@ class BannerData {
     return BannerData(
       h5:
           (json['h5'] as List<dynamic>?)
-              ?.map((e) => Banner.fromJson(e as Map<String, dynamic>))
+              ?.map((e) => BannerItem.fromJson(e as Map<String, dynamic>))
               .toList(),
       pc:
           (json['pc'] as List<dynamic>?)
-              ?.map((e) => Banner.fromJson(e as Map<String, dynamic>))
+              ?.map((e) => BannerItem.fromJson(e as Map<String, dynamic>))
               .toList(),
     );
   }
 
-  final List<Banner>? h5;
-  final List<Banner>? pc;
+  final List<BannerItem>? h5;
+  final List<BannerItem>? pc;
 
   Map<String, dynamic> toJson() => <String, dynamic>{'h5': h5, 'pc': pc};
 }
@@ -218,5 +219,9 @@ class BannerResponse extends BaseResponse<BannerData> {
 
   @override
   Map<String, dynamic> toJson(Object? Function(BannerData) toJsonT) =>
-      <String, dynamic>{'message': message, 'code': code, 'data': data};
+      <String, dynamic>{
+        'message': message,
+        'code': code,
+        'data': data != null ? toJsonT(data as BannerData) : null,
+      };
 }
