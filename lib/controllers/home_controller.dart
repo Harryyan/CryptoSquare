@@ -14,6 +14,7 @@ class HomeController extends GetxController {
   final RxList<NewsItem> news = <NewsItem>[].obs;
   final RxInt currentTabIndex = 0.obs;
   final RxInt currentServiceTabIndex = 0.obs;
+  final RxInt currentBannerIndex = 0.obs;
 
   @override
   void onInit() {
@@ -250,6 +251,7 @@ class HomeController extends GetxController {
         location: job.location,
         salary: job.salary,
         timeAgo: job.timeAgo,
+        createdAt: job.createdAt,
         tags: job.tags,
         isFavorite: !job.isFavorite,
       );

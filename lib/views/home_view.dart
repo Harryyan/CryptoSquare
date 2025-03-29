@@ -4,6 +4,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cryptosquare/controllers/home_controller.dart';
 import 'package:cryptosquare/theme/app_theme.dart';
 import 'package:cryptosquare/models/app_models.dart';
+import 'package:intl/intl.dart';
 
 class HomeView extends StatelessWidget {
   final HomeController homeController = Get.find<HomeController>();
@@ -48,55 +49,85 @@ class HomeView extends StatelessWidget {
         );
       }
 
-      return CarouselSlider(
-        options: CarouselOptions(
-          height: 150,
-          viewportFraction: 0.9,
-          autoPlay: true,
-          enlargeCenterPage: true,
-          autoPlayInterval: const Duration(seconds: 3),
-        ),
-        items:
-            homeController.banners.map((banner) {
-              return Builder(
-                builder: (BuildContext context) {
+      return Column(
+        children: [
+          const SizedBox(height: 16),
+          CarouselSlider(
+            options: CarouselOptions(
+              height: 160,
+              viewportFraction: 0.9,
+              autoPlay: true,
+              enlargeCenterPage: true,
+              autoPlayInterval: const Duration(seconds: 3),
+              onPageChanged: (index, reason) {
+                homeController.currentBannerIndex.value = index;
+              },
+            ),
+            items:
+                homeController.banners.map((banner) {
+                  return Builder(
+                    builder: (BuildContext context) {
+                      return Container(
+                        width: MediaQuery.of(context).size.width,
+                        margin: const EdgeInsets.symmetric(
+                          horizontal: 5.0,
+                          vertical: 5.0,
+                        ),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          image: DecorationImage(
+                            image: NetworkImage(banner.imageUrl),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.transparent,
+                                Colors.black.withOpacity(0.7),
+                              ],
+                            ),
+                          ),
+                          padding: const EdgeInsets.all(12),
+                          alignment: Alignment.bottomLeft,
+                          child: Text(
+                            banner.title,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                }).toList(),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children:
+                homeController.banners.asMap().entries.map((entry) {
                   return Container(
-                    width: MediaQuery.of(context).size.width,
-                    margin: const EdgeInsets.symmetric(horizontal: 5.0),
+                    width: 8.0,
+                    height: 8.0,
+                    margin: const EdgeInsets.symmetric(horizontal: 4.0),
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      image: DecorationImage(
-                        image: NetworkImage(banner.imageUrl),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.transparent,
-                            Colors.black.withOpacity(0.7),
-                          ],
-                        ),
-                      ),
-                      padding: const EdgeInsets.all(16),
-                      alignment: Alignment.bottomLeft,
-                      child: Text(
-                        banner.title,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      shape: BoxShape.circle,
+                      color:
+                          homeController.currentBannerIndex.value == entry.key
+                              ? AppTheme.primaryColor
+                              : Colors.grey.withOpacity(0.5),
                     ),
                   );
-                },
-              );
-            }).toList(),
+                }).toList(),
+          ),
+        ],
       );
     });
   }
@@ -482,6 +513,15 @@ class HomeView extends StatelessWidget {
   }
 
   Widget _buildNewsItem(NewsItem newsItem) {
+    // 将timeAgo（分钟）转换为DateTime对象
+    final DateTime newsTime = DateTime.now().subtract(
+      Duration(minutes: newsItem.timeAgo),
+    );
+    // 使用DateFormat格式化为指定格式
+    final String formattedTime = DateFormat(
+      'yyyy-MM-dd HH:mm',
+    ).format(newsTime);
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
@@ -502,7 +542,7 @@ class HomeView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '01:49', // 使用固定格式的时间，实际应用中应该转换newsItem.timeAgo为小时:分钟格式
+              formattedTime,
               style: const TextStyle(
                 color: AppTheme.subtitleColor,
                 fontSize: 12,
