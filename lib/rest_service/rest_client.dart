@@ -74,6 +74,9 @@ abstract class RestClient {
     @Query('lang') int lang,
     @Query('PLATFORM') String platform,
   );
+
+  @GET('/v3/index/topbanner')
+  Future<BaseResponse<List<HomeServiceItem>>> getHomeServices();
 }
 
 @JsonSerializable()
@@ -224,4 +227,73 @@ class BannerResponse extends BaseResponse<BannerData> {
         'code': code,
         'data': data != null ? toJsonT(data as BannerData) : null,
       };
+}
+
+@JsonSerializable()
+class TopBannerPop {
+  const TopBannerPop({this.title, this.intro, this.img, this.tips});
+
+  factory TopBannerPop.fromJson(Map<String, dynamic> json) =>
+      _$TopBannerPopFromJson(json);
+
+  @JsonKey(name: 'title')
+  final String? title;
+
+  @JsonKey(name: 'intro')
+  final dynamic intro;
+
+  @JsonKey(name: 'img')
+  final String? img;
+
+  @JsonKey(name: 'tips')
+  final dynamic tips;
+
+  Map<String, dynamic> toJson() => _$TopBannerPopToJson(this);
+}
+
+@JsonSerializable()
+class HomeServiceItem {
+  const HomeServiceItem({
+    this.id,
+    this.icon,
+    this.title,
+    this.intro,
+    this.redirectMsg,
+    this.redirectColor,
+    this.redirectType,
+    this.redirectLink,
+    this.pop,
+  });
+
+  factory HomeServiceItem.fromJson(Map<String, dynamic> json) =>
+      _$HomeServiceItemFromJson(json);
+
+  @JsonKey(name: 'id')
+  final int? id;
+
+  @JsonKey(name: 'icon')
+  final String? icon;
+
+  @JsonKey(name: 'title')
+  final String? title;
+
+  @JsonKey(name: 'intro')
+  final String? intro;
+
+  @JsonKey(name: 'redirect_msg')
+  final String? redirectMsg;
+
+  @JsonKey(name: 'redirect_color')
+  final String? redirectColor;
+
+  @JsonKey(name: 'redirect_type')
+  final String? redirectType;
+
+  @JsonKey(name: 'redirect_link')
+  final String? redirectLink;
+
+  @JsonKey(name: 'pop')
+  final TopBannerPop? pop;
+
+  Map<String, dynamic> toJson() => _$HomeServiceItemToJson(this);
 }

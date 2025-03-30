@@ -28,25 +28,30 @@ class HomeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildBannerSlider(),
-          _buildServiceSection(),
-          _buildJobNewsSection(),
-        ],
-      ),
-    );
+    return Obx(() {
+      // 使用全局loading状态
+      if (homeController.isLoading.value) {
+        return const Center(child: CircularProgressIndicator());
+      }
+
+      return SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildBannerSlider(),
+            _buildServiceSection(),
+            _buildJobNewsSection(),
+          ],
+        ),
+      );
+    });
   }
 
   Widget _buildBannerSlider() {
     return Obx(() {
+      // 不再需要单独的loading指示器，因为我们有全局loading
       if (homeController.banners.isEmpty) {
-        return const SizedBox(
-          height: 150,
-          child: Center(child: CircularProgressIndicator()),
-        );
+        return const SizedBox(height: 150);
       }
 
       return Column(
@@ -168,10 +173,7 @@ class HomeView extends StatelessWidget {
           const SizedBox(height: 16),
           Obx(() {
             if (homeController.services.isEmpty) {
-              return const SizedBox(
-                height: 120,
-                child: Center(child: CircularProgressIndicator()),
-              );
+              return const SizedBox(height: 120);
             }
 
             return SizedBox(
@@ -217,11 +219,7 @@ class HomeView extends StatelessWidget {
           Positioned(
             top: 12,
             right: 12,
-            child: Image.asset(
-              _getServiceIcon(service.title),
-              width: 36,
-              height: 36,
-            ),
+            child: Image.network(service.iconUrl, width: 36, height: 36),
           ),
           // 内容
           Padding(
@@ -345,10 +343,7 @@ class HomeView extends StatelessWidget {
   Widget _buildJobList() {
     return Obx(() {
       if (homeController.jobs.isEmpty) {
-        return const SizedBox(
-          height: 200,
-          child: Center(child: CircularProgressIndicator()),
-        );
+        return const SizedBox(height: 200);
       }
 
       return ListView.builder(
@@ -494,10 +489,7 @@ class HomeView extends StatelessWidget {
   Widget _buildNewsList() {
     return Obx(() {
       if (homeController.news.isEmpty) {
-        return const SizedBox(
-          height: 200,
-          child: Center(child: CircularProgressIndicator()),
-        );
+        return const SizedBox(height: 200);
       }
 
       return ListView.builder(

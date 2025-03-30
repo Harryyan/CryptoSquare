@@ -15,19 +15,33 @@ class HomeController extends GetxController {
   final RxInt currentTabIndex = 0.obs;
   final RxInt currentServiceTabIndex = 0.obs;
   final RxInt currentBannerIndex = 0.obs;
+  final RxBool isLoading = true.obs;
 
   @override
   void onInit() {
     super.onInit();
-    fetchBanners();
-    fetchServices();
-    fetchJobs();
-    fetchNews();
+    isLoading.value = true;
+
+    // 使用Future.wait等待所有数据加载完成
+    Future.wait([
+          _fetchBannersAsync(),
+          _fetchServicesAsync(),
+          _fetchJobsAsync(),
+          _fetchNewsAsync(),
+        ])
+        .then((_) {
+          isLoading.value = false;
+        })
+        .catchError((error) {
+          print('数据加载出错: $error');
+          isLoading.value = false;
+        });
   }
 
-  void fetchBanners() {
+  // 原来的方法保留，但改为私有，并返回Future
+  Future<void> _fetchBannersAsync() {
     // 从API获取Banner数据
-    _restClient
+    return _restClient
         .getBanners(0, 'h5')
         .then((response) {
           if (response.data?.h5 != null && response.data!.h5!.isNotEmpty) {
@@ -59,45 +73,72 @@ class HomeController extends GetxController {
         });
   }
 
-  void fetchServices() {
-    // 模拟网络请求获取服务项目数据
-    Future.delayed(const Duration(milliseconds: 700), () {
-      services.value = [
-        ServiceItem(
-          id: 1,
-          title: '在线课程',
-          description: '学习最前沿的Web3开发技术',
-          iconUrl: 'https://via.placeholder.com/50?text=Course',
-          link: '/courses',
-        ),
-        ServiceItem(
-          id: 2,
-          title: '运营转型',
-          description: '为你的团队提供专业的转型服务',
-          iconUrl: 'https://via.placeholder.com/50?text=Transform',
-          link: '/transform',
-        ),
-        ServiceItem(
-          id: 3,
-          title: '求职交流',
-          description: '与行业专家交流求职经验',
-          iconUrl: 'https://via.placeholder.com/50?text=Job',
-          link: '/job-exchange',
-        ),
-        ServiceItem(
-          id: 4,
-          title: '1v1咨询',
-          description: '获取个性化的职业规划建议',
-          iconUrl: 'https://via.placeholder.com/50?text=Consult',
-          link: '/consultation',
-        ),
-      ];
-    });
+  // 保留公共方法用于手动刷新
+  void fetchBanners() {
+    _fetchBannersAsync();
   }
 
+  Future<void> _fetchServicesAsync() {
+    // 从API获取服务项目数据
+    return _restClient
+        .getHomeServices()
+        .then((response) {
+          if (response.data != null && response.data!.isNotEmpty) {
+            final apiServices = response.data!;
+            services.value =
+                apiServices
+                    .map(
+                      (apiService) => ServiceItem(
+                        id: apiService.id ?? 0,
+                        title: apiService.title ?? '',
+                        description: apiService.intro ?? '',
+                        iconUrl: apiService.icon ?? '',
+                        link: apiService.redirectLink ?? '',
+                      ),
+                    )
+                    .toList();
+          }
+        })
+        .catchError((error) {
+          print('获取服务项目数据失败: $error');
+          // 加载失败时使用默认数据
+          services.value = [
+            ServiceItem(
+              id: 1,
+              title: '在线课程',
+              description: '学习最前沿的Web3开发技术',
+              iconUrl: 'https://via.placeholder.com/50?text=Course',
+              link: '/courses',
+            ),
+            ServiceItem(
+              id: 2,
+              title: '运营转型',
+              description: '为你的团队提供专业的转型服务',
+              iconUrl: 'https://via.placeholder.com/50?text=Transform',
+              link: '/transform',
+            ),
+          ];
+        });
+  }
+
+  // 保留公共方法用于手动刷新
+  void fetchServices() {
+    _fetchServicesAsync();
+  }
+
+  // 保留公共方法用于手动刷新
   void fetchJobs() {
+    _fetchJobsAsync();
+  }
+
+  // 保留公共方法用于手动刷新
+  void fetchNews() {
+    _fetchNewsAsync();
+  }
+
+  Future<void> _fetchJobsAsync() {
     // 从API获取岗位数据
-    _restClient
+    return _restClient
         .getFeaturedJobs('h5')
         .then((response) {
           if (response.data != null && response.data!.isNotEmpty) {
@@ -168,9 +209,19 @@ class HomeController extends GetxController {
         });
   }
 
-  void fetchNews() {
+  // 保留公共方法用于手动刷新
+  // void fetchNews() {
+  //   _fetchNewsAsync();
+  // }
+
+  // // 保留公共方法用于手动刷新
+  // void fetchJobs() {
+  //   _fetchJobsAsync();
+  // }
+
+  Future<void> _fetchNewsAsync() {
     // 从Bitpush API获取Web3动态数据
-    _bitpushClient
+    return _bitpushClient
         .getTagnews()
         .then((response) {
           if (response.data != null && response.data!.isNotEmpty) {
@@ -231,6 +282,16 @@ class HomeController extends GetxController {
           ];
         });
   }
+
+  // 保留公共方法用于手动刷新
+  // void fetchNews() {
+  //   _fetchNewsAsync();
+  // }
+
+  // // 保留公共方法用于手动刷新
+  // void fetchJobs() {
+  //   _fetchJobsAsync();
+  // }
 
   void changeTab(int index) {
     currentTabIndex.value = index;

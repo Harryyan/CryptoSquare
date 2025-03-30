@@ -146,6 +146,50 @@ Map<String, dynamic> _$BannerResponseToJson(BannerResponse instance) =>
       'data': instance.data,
     };
 
+TopBannerPop _$TopBannerPopFromJson(Map<String, dynamic> json) => TopBannerPop(
+  title: json['title'] as String?,
+  intro: json['intro'],
+  img: json['img'] as String?,
+  tips: json['tips'],
+);
+
+Map<String, dynamic> _$TopBannerPopToJson(TopBannerPop instance) =>
+    <String, dynamic>{
+      'title': instance.title,
+      'intro': instance.intro,
+      'img': instance.img,
+      'tips': instance.tips,
+    };
+
+HomeServiceItem _$HomeServiceItemFromJson(Map<String, dynamic> json) =>
+    HomeServiceItem(
+      id: (json['id'] as num?)?.toInt(),
+      icon: json['icon'] as String?,
+      title: json['title'] as String?,
+      intro: json['intro'] as String?,
+      redirectMsg: json['redirect_msg'] as String?,
+      redirectColor: json['redirect_color'] as String?,
+      redirectType: json['redirect_type'] as String?,
+      redirectLink: json['redirect_link'] as String?,
+      pop:
+          json['pop'] == null
+              ? null
+              : TopBannerPop.fromJson(json['pop'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$HomeServiceItemToJson(HomeServiceItem instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'icon': instance.icon,
+      'title': instance.title,
+      'intro': instance.intro,
+      'redirect_msg': instance.redirectMsg,
+      'redirect_color': instance.redirectColor,
+      'redirect_type': instance.redirectType,
+      'redirect_link': instance.redirectLink,
+      'pop': instance.pop,
+    };
+
 // **************************************************************************
 // RetrofitGenerator
 // **************************************************************************
@@ -248,6 +292,44 @@ class _RestClient implements RestClient {
     late BannerResponse _value;
     try {
       _value = BannerResponse.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
+  Future<BaseResponse<List<HomeServiceItem>>> getHomeServices() async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<BaseResponse<List<HomeServiceItem>>>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/v3/index/topbanner',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late BaseResponse<List<HomeServiceItem>> _value;
+    try {
+      _value = BaseResponse<List<HomeServiceItem>>.fromJson(
+        _result.data!,
+        (json) =>
+            json is List<dynamic>
+                ? json
+                    .map<HomeServiceItem>(
+                      (i) =>
+                          HomeServiceItem.fromJson(i as Map<String, dynamic>),
+                    )
+                    .toList()
+                : List.empty(),
+      );
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options);
       rethrow;
