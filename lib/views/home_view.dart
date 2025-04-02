@@ -67,14 +67,20 @@ class HomeView extends StatelessWidget {
         );
       }
 
-      return SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildBannerSlider(),
-            _buildServiceSection(),
-            _buildJobNewsSection(),
-          ],
+      return RefreshIndicator(
+        onRefresh: () async {
+          homeController.loadAllData();
+        },
+        color: AppTheme.primaryColor,
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildBannerSlider(),
+              _buildServiceSection(),
+              _buildJobNewsSection(),
+            ],
+          ),
         ),
       );
     });

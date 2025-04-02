@@ -28,16 +28,36 @@ class HomeController extends GetxController {
     isLoading.value = true;
     isNetworkError.value = false;
 
-    // 使用Future.wait等待所有数据加载完成
+    // 使用Future.wait等待所有数据加载完成，但允许部分失败
     Future.wait([
-          _fetchBannersAsync(),
-          _fetchServicesAsync(),
-          _fetchJobsAsync(),
-          _fetchNewsAsync(),
+          _fetchBannersAsync().catchError((error) {
+            print('Banner加载失败: $error');
+            return null; // 返回null而不是重新抛出错误
+          }),
+          _fetchServicesAsync().catchError((error) {
+            print('Services加载失败: $error');
+            return null;
+          }),
+          _fetchJobsAsync().catchError((error) {
+            print('Jobs加载失败: $error');
+            return null;
+          }),
+          _fetchNewsAsync().catchError((error) {
+            print('News加载失败: $error');
+            return null;
+          }),
         ])
-        .then((_) {
+        .then((results) {
+          // 检查是否所有请求都失败了
+          // 注意：我们的_fetchXxxAsync方法即使在出错时也会返回Future.value()而不是null
+          // 所以我们需要检查是否有任何成功的数据加载
+          bool anyDataLoaded =
+              banners.isNotEmpty ||
+              services.isNotEmpty ||
+              jobs.isNotEmpty ||
+              news.isNotEmpty;
+          isNetworkError.value = !anyDataLoaded;
           isLoading.value = false;
-          isNetworkError.value = false;
         })
         .catchError((error) {
           print('数据加载出错: $error');
@@ -78,7 +98,8 @@ class HomeController extends GetxController {
               link: '/community',
             ),
           ];
-          throw error; // 重新抛出错误，让上层catchError捕获
+          // 不再抛出错误，而是返回成功，这样即使这个请求失败，其他请求仍然可以继续
+          return Future.value();
         });
   }
 
@@ -127,7 +148,8 @@ class HomeController extends GetxController {
               link: '/transform',
             ),
           ];
-          throw error; // 重新抛出错误，让上层catchError捕获
+          // 不再抛出错误，而是返回成功
+          return Future.value();
         });
   }
 
@@ -216,19 +238,12 @@ class HomeController extends GetxController {
               tags: ['AWS', 'Development', 'React', 'UI/UX'],
             ),
           ];
-          throw error; // 重新抛出错误，让上层catchError捕获
+          // 不再抛出错误，而是返回成功，这样即使这个请求失败，其他请求仍然可以继续
+          return Future.value();
         });
   }
 
-  // 保留公共方法用于手动刷新
-  // void fetchNews() {
-  //   _fetchNewsAsync();
-  // }
-
-  // // 保留公共方法用于手动刷新
-  // void fetchJobs() {
-  //   _fetchJobsAsync();
-  // }
+  // 这里不需要重复的方法声明，已在上方定义
 
   Future<void> _fetchNewsAsync() {
     // 从Bitpush API获取Web3动态数据
@@ -291,19 +306,12 @@ class HomeController extends GetxController {
               tags: ['Blockchain', 'Finance', 'Application'],
             ),
           ];
-          throw error; // 重新抛出错误，让上层catchError捕获
+          // 不再抛出错误，而是返回成功，这样即使这个请求失败，其他请求仍然可以继续
+          return Future.value();
         });
   }
 
-  // 保留公共方法用于手动刷新
-  // void fetchNews() {
-  //   _fetchNewsAsync();
-  // }
-
-  // // 保留公共方法用于手动刷新
-  // void fetchJobs() {
-  //   _fetchJobsAsync();
-  // }
+  // 这里不需要重复的方法声明，已在上方定义
 
   void changeTab(int index) {
     currentTabIndex.value = index;
