@@ -16,11 +16,17 @@ class HomeController extends GetxController {
   final RxInt currentServiceTabIndex = 0.obs;
   final RxInt currentBannerIndex = 0.obs;
   final RxBool isLoading = true.obs;
+  final RxBool isNetworkError = false.obs;
 
   @override
   void onInit() {
     super.onInit();
+    loadAllData();
+  }
+
+  void loadAllData() {
     isLoading.value = true;
+    isNetworkError.value = false;
 
     // 使用Future.wait等待所有数据加载完成
     Future.wait([
@@ -31,10 +37,12 @@ class HomeController extends GetxController {
         ])
         .then((_) {
           isLoading.value = false;
+          isNetworkError.value = false;
         })
         .catchError((error) {
           print('数据加载出错: $error');
           isLoading.value = false;
+          isNetworkError.value = true;
         });
   }
 
@@ -70,6 +78,7 @@ class HomeController extends GetxController {
               link: '/community',
             ),
           ];
+          throw error; // 重新抛出错误，让上层catchError捕获
         });
   }
 
@@ -118,6 +127,7 @@ class HomeController extends GetxController {
               link: '/transform',
             ),
           ];
+          throw error; // 重新抛出错误，让上层catchError捕获
         });
   }
 
@@ -206,6 +216,7 @@ class HomeController extends GetxController {
               tags: ['AWS', 'Development', 'React', 'UI/UX'],
             ),
           ];
+          throw error; // 重新抛出错误，让上层catchError捕获
         });
   }
 
@@ -280,6 +291,7 @@ class HomeController extends GetxController {
               tags: ['Blockchain', 'Finance', 'Application'],
             ),
           ];
+          throw error; // 重新抛出错误，让上层catchError捕获
         });
   }
 
