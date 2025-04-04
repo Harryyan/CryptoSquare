@@ -539,6 +539,14 @@ class HomeView extends StatelessWidget {
     );
     final pop = homeService?.pop;
 
+    // 处理title，当pop.title为空时使用service.title
+    String titleText = '';
+    if (pop?.title != null && pop!.title!.isNotEmpty) {
+      titleText = pop.title!;
+    } else {
+      titleText = service.title;
+    }
+
     // 处理intro数组，每个元素之间添加两个换行，增加段落间距
     String introText = '';
     if (pop?.intro != null) {
@@ -559,6 +567,12 @@ class HomeView extends StatelessWidget {
           service.description.isNotEmpty
               ? service.description
               : '由行业资深从业者，TOP 交易所主管等组成的专家团队，解答您在 Web3 求职与工作过程中遇到的各种问题。例如：社区运营及用户画像、内容运营与品牌建设、用户增长与裂变策略、活动运营及合作推广、数据分析等。';
+    }
+
+    // 检查introText是否只包含空格，如果是则提供默认文本
+    if (introText.trim().isEmpty) {
+      introText =
+          '由行业资深从业者，TOP 交易所主管等组成的专家团队，解答您在 Web3 求职与工作过程中遇到的各种问题。例如：社区运营及用户画像、内容运营与品牌建设、用户增长与裂变策略、活动运营及合作推广、数据分析等。';
     }
 
     // 处理tips数组，每个元素之间添加换行，最后一个不加
@@ -649,7 +663,7 @@ class HomeView extends StatelessWidget {
                         ),
                     const SizedBox(width: 8),
                     Text(
-                      pop?.title ?? service.title,
+                      titleText,
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -670,9 +684,10 @@ class HomeView extends StatelessWidget {
               introText,
               style: const TextStyle(
                 fontSize: 14,
-                height: 1.8, // 增加行高
-                letterSpacing: 0.5, // 增加字间距
+                height: 1.5, // 调整行高，使段落内文本更紧凑
+                letterSpacing: 0.3, // 调整字间距
               ),
+              textAlign: TextAlign.justify, // 两端对齐，提高可读性
             ),
 
             // 删除这里的tips显示
