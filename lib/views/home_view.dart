@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cryptosquare/controllers/home_controller.dart';
+import 'package:cryptosquare/controllers/service_controller.dart';
 import 'package:cryptosquare/theme/app_theme.dart';
 import 'package:cryptosquare/models/app_models.dart';
+import 'package:cryptosquare/rest_service/rest_client.dart';
 import 'package:intl/intl.dart';
 
 class HomeView extends StatelessWidget {
   final HomeController homeController = Get.find<HomeController>();
+  final ServiceController serviceController = Get.put(ServiceController());
 
   HomeView({super.key});
 
@@ -233,59 +236,62 @@ class HomeView extends StatelessWidget {
   }
 
   Widget _buildServiceItem(ServiceItem service) {
-    return Container(
-      width: 180,
-      height: 120,
-      margin: const EdgeInsets.only(right: 16),
-      decoration: BoxDecoration(
-        image: const DecorationImage(
-          image: AssetImage('assets/images/service_bg.png'),
-          fit: BoxFit.cover,
-        ),
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 3,
-            offset: const Offset(0, 1),
+    return GestureDetector(
+      onTap: () => _showServiceDetailBottomSheet(service),
+      child: Container(
+        width: 180,
+        height: 120,
+        margin: const EdgeInsets.only(right: 16),
+        decoration: BoxDecoration(
+          image: const DecorationImage(
+            image: AssetImage('assets/images/service_bg.png'),
+            fit: BoxFit.cover,
           ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          // 右上角图标
-          Positioned(
-            top: 12,
-            right: 12,
-            child: Image.network(service.iconUrl, width: 36, height: 36),
-          ),
-          // 内容
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  service.title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                    color: Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  service.description,
-                  style: const TextStyle(color: Colors.black, fontSize: 14),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.1),
+              spreadRadius: 1,
+              blurRadius: 3,
+              offset: const Offset(0, 1),
             ),
-          ),
-        ],
+          ],
+        ),
+        child: Stack(
+          children: [
+            // 右上角图标
+            Positioned(
+              top: 12,
+              right: 12,
+              child: Image.network(service.iconUrl, width: 36, height: 36),
+            ),
+            // 内容
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    service.title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    service.description,
+                    style: const TextStyle(color: Colors.black, fontSize: 14),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -522,6 +528,230 @@ class HomeView extends StatelessWidget {
         '#$tag',
         style: TextStyle(color: Colors.grey[700], fontSize: 12),
       ),
+    );
+  }
+
+  // 显示服务详情底部弹窗
+  void _showServiceDetailBottomSheet(ServiceItem service) {
+    // 根据ServiceItem的标题查找对应的HomeServiceItem
+    final homeService = serviceController.findHomeServiceItemByTitle(
+      service.title,
+    );
+    final pop = homeService?.pop;
+
+    // 处理intro数组，每个元素之间添加两个换行，增加段落间距
+    String introText = '';
+    if (pop?.intro != null) {
+      if (pop!.intro is List) {
+        final introList = pop.intro as List;
+        for (int i = 0; i < introList.length; i++) {
+          introText += introList[i].toString();
+          if (i < introList.length - 1) {
+            introText += '\n'; // 使用一个换行符作为段落间距
+          }
+        }
+      } else {
+        introText = pop!.intro.toString();
+      }
+    } else {
+      // 如果pop.intro为空，使用service.description作为默认值
+      introText =
+          service.description.isNotEmpty
+              ? service.description
+              : '由行业资深从业者，TOP 交易所主管等组成的专家团队，解答您在 Web3 求职与工作过程中遇到的各种问题。例如：社区运营及用户画像、内容运营与品牌建设、用户增长与裂变策略、活动运营及合作推广、数据分析等。';
+    }
+
+    // 处理tips数组，每个元素之间添加换行，最后一个不加
+    String tipsText = '';
+    if (pop?.tips != null) {
+      if (pop!.tips is List) {
+        final tipsList = pop.tips as List;
+        for (int i = 0; i < tipsList.length; i++) {
+          tipsText += tipsList[i].toString();
+          if (i < tipsList.length - 1) {
+            tipsText += '\n';
+          }
+        }
+      } else {
+        tipsText = pop!.tips.toString();
+      }
+    }
+    // 如果pop.tips为空，提供一个默认值
+    if (tipsText.isEmpty) {
+      tipsText = '扫码添加客服，获取更多服务';
+    }
+
+    // 确定二维码图片路径
+    String qrCodeImagePath = 'assets/images/qr-code.png';
+    if (pop?.img != null && pop!.img!.isNotEmpty) {
+      qrCodeImagePath = pop.img!;
+    }
+
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(24.0),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(16),
+            topRight: Radius.circular(16),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // 标题栏
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    homeService?.icon != null && homeService!.icon!.isNotEmpty
+                        ? Container(
+                          width: 24,
+                          height: 24,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Image.network(
+                            homeService.icon!,
+                            width: 16,
+                            height: 16,
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.blue[50],
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: const Icon(
+                                  Icons.person,
+                                  color: Colors.blue,
+                                  size: 16,
+                                ),
+                              );
+                            },
+                          ),
+                        )
+                        : Container(
+                          width: 24,
+                          height: 24,
+                          decoration: BoxDecoration(
+                            color: Colors.blue[50],
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Icon(
+                            Icons.person,
+                            color: Colors.blue,
+                            size: 16,
+                          ),
+                        ),
+                    const SizedBox(width: 8),
+                    Text(
+                      pop?.title ?? service.title,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                GestureDetector(
+                  onTap: () => Get.back(),
+                  child: const Icon(Icons.close, size: 24),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+
+            // 服务详情描述
+            Text(
+              introText,
+              style: const TextStyle(
+                fontSize: 14,
+                height: 1.8, // 增加行高
+                letterSpacing: 0.5, // 增加字间距
+              ),
+            ),
+
+            // 删除这里的tips显示
+            const SizedBox(height: 32),
+
+            // 二维码部分
+            Center(
+              child: Column(
+                children: [
+                  Container(
+                    width: 180,
+                    height: 180,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.blue, width: 2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.all(8),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child:
+                          qrCodeImagePath.startsWith('http') ||
+                                  qrCodeImagePath.startsWith('https')
+                              ? Image.network(
+                                qrCodeImagePath,
+                                width: 160,
+                                height: 160,
+                                fit: BoxFit.contain,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Image.asset(
+                                    'assets/images/qr-code.png',
+                                    width: 160,
+                                    height: 160,
+                                    fit: BoxFit.contain,
+                                  );
+                                },
+                              )
+                              : Image.asset(
+                                qrCodeImagePath,
+                                width: 160,
+                                height: 160,
+                                fit: BoxFit.contain,
+                              ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // const Text(
+                  //   '扫描识别二维码',
+                  //   style: TextStyle(color: Colors.blue, fontSize: 14),
+                  // ),
+                  // const SizedBox(height: 4),
+                  // Text(
+                  //   '添加求职助手微信咨询',
+                  //   style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                  // ),
+
+                  // 如果有tips，在二维码下方显示tips
+                  if (tipsText.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    Text(
+                      tipsText,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        height: 1.5,
+                        color: Colors.grey,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      elevation: 0,
     );
   }
 
