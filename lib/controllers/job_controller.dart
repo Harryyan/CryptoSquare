@@ -23,11 +23,11 @@ class JobController extends GetxController {
 
   // 筛选选项
   final RxList<String> jobTypes =
-      <String>['长期全职', '长期兼职', '短期兼职', '无薪实习', '全职/兼职均可'].obs;
+      <String>['长期全职', '长期兼职', '短期兼职', '无薪实习', '全职/兼职'].obs;
 
   final RxList<String> workModes = <String>['远程办公', '实地办公'].obs;
 
-  final RxList<String> languages = <String>['中文', '英文', '中英双语'].obs;
+  final RxList<String> languages = <String>['中文', '英文'].obs;
 
   @override
   void onInit() {

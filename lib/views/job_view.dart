@@ -13,24 +13,22 @@ class JobView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Obx(() {
-        if (jobController.isLoading.value) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        return Column(
-          children: [
-            _buildSearchBar(),
-            _buildFilterSection(),
-            Expanded(
-              child:
-                  jobController.noResults.value
-                      ? _buildEmptyState()
-                      : _buildJobList(),
-            ),
-          ],
-        );
-      }),
+      body: Column(
+        children: [
+          _buildSearchBar(),
+          _buildFilterSection(),
+          Expanded(
+            child: Obx(() {
+              if (jobController.isLoading.value) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              return jobController.noResults.value
+                  ? _buildEmptyState()
+                  : _buildJobList();
+            }),
+          ),
+        ],
+      ),
     );
   }
 
@@ -213,6 +211,7 @@ class JobView extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     // 重置按钮
                     Expanded(
@@ -248,25 +247,30 @@ class JobView extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 20),
                     // 立即搜索按钮
                     Expanded(
                       flex: 2,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          jobController.applyFilters();
-                          Get.back();
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.primaryColor,
-                          minimumSize: const Size(double.infinity, 48),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        margin: const EdgeInsets.only(right: 16),
+                        child: ElevatedButton(
+                          onPressed: () {
+                            // 在这里应用筛选条件并刷新工作列表
+                            jobController.applyFilters();
+                            Get.back();
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.primaryColor,
+                            minimumSize: const Size(double.infinity, 40),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
                           ),
-                        ),
-                        child: const Text(
-                          '立即搜索',
-                          style: TextStyle(color: Colors.white, fontSize: 16),
+                          child: const Text(
+                            '立即搜索',
+                            style: TextStyle(color: Colors.white, fontSize: 14),
+                          ),
                         ),
                       ),
                     ),
@@ -296,7 +300,7 @@ class JobView extends StatelessWidget {
           padding: const EdgeInsets.only(left: 16, top: 16, bottom: 8),
           child: Row(
             children: [
-              Icon(Icons.list, size: 20, color: Colors.grey[700]),
+              Image.asset('assets/images/menu.png', width: 16, height: 16),
               const SizedBox(width: 8),
               Text(
                 title,
@@ -310,94 +314,97 @@ class JobView extends StatelessWidget {
           ),
         ),
 
-        // 不限选项
-        GestureDetector(
-          onTap: () {
-            selectedValue.value = '';
-            jobController.applyFilters();
-          },
-          child: Container(
-            margin: const EdgeInsets.only(left: 16, bottom: 8),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color:
-                  selectedValue.isEmpty
-                      ? AppTheme.primaryColor.withOpacity(0.1)
-                      : Colors.grey[100],
-              borderRadius: BorderRadius.circular(4),
-              border: Border.all(
-                color:
-                    selectedValue.isEmpty
-                        ? AppTheme.primaryColor
-                        : Colors.grey[300]!,
-                width: 1,
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Obx(
-                  () =>
-                      selectedValue.isEmpty
-                          ? Icon(
-                            Icons.check,
-                            color: AppTheme.primaryColor,
-                            size: 16,
-                          )
-                          : const SizedBox(width: 0),
-                ),
-                SizedBox(width: selectedValue.isEmpty ? 4 : 0),
-                const Text('不限', style: TextStyle(fontSize: 14)),
-              ],
-            ),
-          ),
-        ),
-
         // 选项列表
-        Wrap(
-          spacing: 8,
-          children:
-              options
+        Padding(
+          padding: const EdgeInsets.only(left: 16, right: 16),
+          child: Wrap(
+            spacing: 8, // 水平间距
+            runSpacing: 8, // 垂直间距
+            children: [
+              // 不限选项
+              GestureDetector(
+                onTap: () {
+                  selectedValue.value = '';
+                  // 不再立即应用筛选，而是等待用户点击立即搜索按钮
+                },
+                child: Obx(
+                  () => Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color:
+                          selectedValue.value.isEmpty
+                              ? const Color(0xFF2164EB)
+                              : const Color(0xFFF4F7FD),
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(
+                        color:
+                            selectedValue.value.isEmpty
+                                ? const Color(0xFF2164EB)
+                                : const Color(0xFFF4F7FD),
+                        width: 1,
+                      ),
+                    ),
+                    child: Text(
+                      '不限',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color:
+                            selectedValue.value.isEmpty
+                                ? Colors.white
+                                : Colors.grey[700],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              // 其他选项
+              ...options
                   .map(
                     (option) => GestureDetector(
                       onTap: () {
                         selectedValue.value = option;
-                        jobController.applyFilters();
+                        // 不再立即应用筛选，而是等待用户点击立即搜索按钮
                       },
-                      child: Container(
-                        margin: const EdgeInsets.only(left: 16, bottom: 8),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color:
-                              selectedValue.value == option
-                                  ? AppTheme.primaryColor.withOpacity(0.1)
-                                  : Colors.grey[100],
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(
-                            color:
-                                selectedValue.value == option
-                                    ? AppTheme.primaryColor
-                                    : Colors.grey[300]!,
-                            width: 1,
+                      child: Obx(
+                        () => Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
                           ),
-                        ),
-                        child: Text(
-                          option,
-                          style: TextStyle(
-                            fontSize: 14,
+                          decoration: BoxDecoration(
                             color:
                                 selectedValue.value == option
-                                    ? AppTheme.primaryColor
-                                    : Colors.grey[700],
+                                    ? const Color(0xFF2164EB)
+                                    : const Color(0xFFF4F7FD),
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(
+                              color:
+                                  selectedValue.value == option
+                                      ? const Color(0xFF2164EB)
+                                      : const Color(0xFFF4F7FD),
+                              width: 1,
+                            ),
+                          ),
+                          child: Text(
+                            option,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color:
+                                  selectedValue.value == option
+                                      ? Colors.white
+                                      : Colors.grey[700],
+                            ),
                           ),
                         ),
                       ),
                     ),
                   )
                   .toList(),
+            ],
+          ),
         ),
         const SizedBox(height: 8),
       ],
@@ -438,20 +445,19 @@ class JobView extends StatelessWidget {
   }
 
   Widget _buildJobList() {
-    return Obx(() {
-      if (jobController.jobs.isEmpty) {
-        return const Center(child: Text('暂无工作信息'));
-      }
+    // 移除Obx包装，因为已经在外层使用了Obx
+    if (jobController.jobs.isEmpty) {
+      return const Center(child: Text('暂无工作信息'));
+    }
 
-      return ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: jobController.jobs.length,
-        itemBuilder: (context, index) {
-          final job = jobController.jobs[index];
-          return _buildJobItem(job);
-        },
-      );
-    });
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: jobController.jobs.length,
+      itemBuilder: (context, index) {
+        final job = jobController.jobs[index];
+        return _buildJobItem(job);
+      },
+    );
   }
 
   Widget _buildJobItem(JobPost job) {
