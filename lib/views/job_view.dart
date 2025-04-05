@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:cryptosquare/controllers/job_controller.dart';
 import 'package:cryptosquare/theme/app_theme.dart';
 import 'package:cryptosquare/models/app_models.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class JobView extends StatelessWidget {
   final JobController jobController = Get.put(JobController());
@@ -88,105 +89,9 @@ class JobView extends StatelessWidget {
   }
 
   Widget _buildFilterButton(String title, int filterType) {
-    return PopupMenuButton<String>(
-      onSelected: (String value) {
-        switch (filterType) {
-          case 0:
-            jobController.selectedJobType.value = value;
-            break;
-          case 1:
-            jobController.selectedWorkMode.value = value;
-            break;
-          case 2:
-            jobController.selectedLanguage.value = value;
-            break;
-        }
-        jobController.applyFilters();
-      },
-      offset: const Offset(0, 40),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-      itemBuilder: (BuildContext context) {
-        RxList<String> options;
-        RxString selectedValue;
-
-        switch (filterType) {
-          case 0:
-            options = jobController.jobTypes;
-            selectedValue = jobController.selectedJobType;
-            break;
-          case 1:
-            options = jobController.workModes;
-            selectedValue = jobController.selectedWorkMode;
-            break;
-          case 2:
-            options = jobController.languages;
-            selectedValue = jobController.selectedLanguage;
-            break;
-          default:
-            options = RxList<String>([]);
-            selectedValue = RxString('');
-        }
-
-        List<PopupMenuItem<String>> menuItems = [];
-
-        // 添加重置选项
-        menuItems.add(
-          PopupMenuItem<String>(
-            value: '',
-            child: Row(
-              children: [
-                Icon(Icons.refresh, color: Colors.grey[600], size: 16),
-                const SizedBox(width: 8),
-                const Text('重置', style: TextStyle(color: Colors.black)),
-              ],
-            ),
-          ),
-        );
-
-        // 添加分隔线
-        menuItems.add(
-          PopupMenuItem<String>(
-            enabled: false,
-            height: 1,
-            padding: EdgeInsets.zero,
-            child: Divider(height: 1, color: Colors.grey[300]),
-          ),
-        );
-
-        // 添加选项
-        for (var option in options) {
-          menuItems.add(
-            PopupMenuItem<String>(
-              value: option,
-              child: Obx(() {
-                final isSelected = selectedValue.value == option;
-                return Row(
-                  children: [
-                    isSelected
-                        ? Icon(
-                          Icons.check,
-                          color: AppTheme.primaryColor,
-                          size: 16,
-                        )
-                        : const SizedBox(width: 16),
-                    const SizedBox(width: 8),
-                    Text(
-                      option,
-                      style: TextStyle(
-                        color:
-                            isSelected ? AppTheme.primaryColor : Colors.black,
-                        fontWeight:
-                            isSelected ? FontWeight.bold : FontWeight.normal,
-                      ),
-                    ),
-                  ],
-                );
-              }),
-            ),
-          );
-        }
-
-        return menuItems;
+    return GestureDetector(
+      onTap: () {
+        _showFilterBottomSheet(title, filterType);
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -236,18 +141,282 @@ class JobView extends StatelessWidget {
     );
   }
 
-  // 移除底部弹出菜单方法，改为使用PopupMenuButton实现下拉菜单
+  // 底部弹出筛选菜单
+  void _showFilterBottomSheet(String title, int filterType) {
+    Get.bottomSheet(
+      Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(16),
+            topRight: Radius.circular(16),
+          ),
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 顶部标题栏
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(color: Colors.grey[200]!, width: 1),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const SizedBox(width: 40),
+                    Text(
+                      '筛选条件',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => Get.back(),
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 16),
+                        child: Icon(Icons.close, color: Colors.grey[700]),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // 工作类型筛选
+              _buildFilterOptionSection(
+                '工作类型',
+                jobController.jobTypes,
+                jobController.selectedJobType,
+              ),
+
+              // 办公方式筛选
+              _buildFilterOptionSection(
+                '办公方式',
+                jobController.workModes,
+                jobController.selectedWorkMode,
+              ),
+
+              // 语言要求筛选
+              _buildFilterOptionSection(
+                '语言要求',
+                jobController.languages,
+                jobController.selectedLanguage,
+              ),
+
+              // 底部按钮区域
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  children: [
+                    // 重置按钮
+                    Expanded(
+                      flex: 1,
+                      child: GestureDetector(
+                        onTap: () {
+                          jobController.resetFilters();
+                        },
+                        child: Container(
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.refresh,
+                                color: Colors.grey[700],
+                                size: 18,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '重置',
+                                style: TextStyle(
+                                  color: Colors.grey[700],
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    // 立即搜索按钮
+                    Expanded(
+                      flex: 2,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          jobController.applyFilters();
+                          Get.back();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.primaryColor,
+                          minimumSize: const Size(double.infinity, 48),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: const Text(
+                          '立即搜索',
+                          style: TextStyle(color: Colors.white, fontSize: 16),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+    );
+  }
+
+  // 构建筛选选项部分
+  Widget _buildFilterOptionSection(
+    String title,
+    RxList<String> options,
+    RxString selectedValue,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 筛选类别标题
+        Padding(
+          padding: const EdgeInsets.only(left: 16, top: 16, bottom: 8),
+          child: Row(
+            children: [
+              Icon(Icons.list, size: 20, color: Colors.grey[700]),
+              const SizedBox(width: 8),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey[800],
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // 不限选项
+        GestureDetector(
+          onTap: () {
+            selectedValue.value = '';
+            jobController.applyFilters();
+          },
+          child: Container(
+            margin: const EdgeInsets.only(left: 16, bottom: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color:
+                  selectedValue.isEmpty
+                      ? AppTheme.primaryColor.withOpacity(0.1)
+                      : Colors.grey[100],
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(
+                color:
+                    selectedValue.isEmpty
+                        ? AppTheme.primaryColor
+                        : Colors.grey[300]!,
+                width: 1,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Obx(
+                  () =>
+                      selectedValue.isEmpty
+                          ? Icon(
+                            Icons.check,
+                            color: AppTheme.primaryColor,
+                            size: 16,
+                          )
+                          : const SizedBox(width: 0),
+                ),
+                SizedBox(width: selectedValue.isEmpty ? 4 : 0),
+                const Text('不限', style: TextStyle(fontSize: 14)),
+              ],
+            ),
+          ),
+        ),
+
+        // 选项列表
+        Wrap(
+          spacing: 8,
+          children:
+              options
+                  .map(
+                    (option) => GestureDetector(
+                      onTap: () {
+                        selectedValue.value = option;
+                        jobController.applyFilters();
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.only(left: 16, bottom: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color:
+                              selectedValue.value == option
+                                  ? AppTheme.primaryColor.withOpacity(0.1)
+                                  : Colors.grey[100],
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(
+                            color:
+                                selectedValue.value == option
+                                    ? AppTheme.primaryColor
+                                    : Colors.grey[300]!,
+                            width: 1,
+                          ),
+                        ),
+                        child: Text(
+                          option,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color:
+                                selectedValue.value == option
+                                    ? AppTheme.primaryColor
+                                    : Colors.grey[700],
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                  .toList(),
+        ),
+        const SizedBox(height: 8),
+      ],
+    );
+  }
 
   Widget _buildEmptyState() {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Image.asset(
-            'assets/images/job.png',
+          SvgPicture.asset(
+            'assets/images/job.svg',
             width: 120,
             height: 120,
-            color: Colors.grey[400],
+            colorFilter: ColorFilter.mode(
+              Colors.grey[400] ?? Colors.grey,
+              BlendMode.srcIn,
+            ),
           ),
           const SizedBox(height: 16),
           Text(
