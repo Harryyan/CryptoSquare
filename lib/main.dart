@@ -4,6 +4,7 @@ import 'package:cryptosquare/views/main_view.dart';
 import 'package:cryptosquare/controllers/home_controller.dart';
 import 'package:cryptosquare/controllers/user_controller.dart';
 import 'package:cryptosquare/controllers/service_controller.dart';
+import 'package:cryptosquare/controllers/job_controller.dart';
 import 'package:cryptosquare/theme/app_theme.dart';
 import 'package:cryptosquare/l10n/translation.dart';
 
@@ -20,6 +21,7 @@ class MyApp extends StatelessWidget {
     Get.put(HomeController());
     Get.put(UserController());
     Get.put(ServiceController());
+    Get.put(JobController());
 
     return GetMaterialApp(
       title: 'CryptoSquare',

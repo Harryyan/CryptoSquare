@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:cryptosquare/controllers/home_controller.dart';
 import 'package:cryptosquare/controllers/user_controller.dart';
 import 'package:cryptosquare/views/home_view.dart';
+import 'package:cryptosquare/views/job_view.dart';
 import 'package:cryptosquare/theme/app_theme.dart';
 
 class MainView extends StatefulWidget {
@@ -58,7 +59,7 @@ class _MainViewState extends State<MainView>
                   case 0:
                     return HomeView();
                   case 1:
-                    return const Center(child: Text('Web3工作页面'));
+                    return JobView();
                   case 2:
                     return const Center(child: Text('求职服务页面'));
                   case 3:
