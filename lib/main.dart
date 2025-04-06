@@ -7,8 +7,13 @@ import 'package:cryptosquare/controllers/service_controller.dart';
 import 'package:cryptosquare/controllers/job_controller.dart';
 import 'package:cryptosquare/theme/app_theme.dart';
 import 'package:cryptosquare/l10n/translation.dart';
+import 'package:cryptosquare/util/environment_config.dart';
 
 void main() {
+  // 默认使用正式环境
+  // 如需切换到测试环境，取消下面这行注释
+  EnvironmentConfig.switchToTest();
+
   runApp(const MyApp());
 }
 

@@ -3,9 +3,11 @@ import 'package:get/get.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cryptosquare/controllers/home_controller.dart';
 import 'package:cryptosquare/controllers/service_controller.dart';
-import 'package:cryptosquare/theme/app_theme.dart';
+import 'package:cryptosquare/controllers/user_controller.dart';
 import 'package:cryptosquare/models/app_models.dart';
-import 'package:cryptosquare/rest_service/rest_client.dart';
+import 'package:cryptosquare/theme/app_theme.dart';
+import 'package:cryptosquare/views/job_view.dart';
+import 'package:cryptosquare/util/qr_border_painter.dart';
 import 'package:intl/intl.dart';
 
 class HomeView extends StatelessWidget {
@@ -596,7 +598,7 @@ class HomeView extends StatelessWidget {
     }
 
     // 确定二维码图片路径
-    String qrCodeImagePath = 'assets/images/qr-code.png';
+    String qrCodeImagePath = 'assets/images/qr-code.jpg';
     if (pop?.img != null && pop!.img!.isNotEmpty) {
       qrCodeImagePath = pop.img!;
     }
@@ -697,39 +699,79 @@ class HomeView extends StatelessWidget {
             Center(
               child: Column(
                 children: [
-                  Container(
+                  SizedBox(
                     width: 180,
                     height: 180,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.blue, width: 2),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    padding: const EdgeInsets.all(8),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child:
-                          qrCodeImagePath.startsWith('http') ||
-                                  qrCodeImagePath.startsWith('https')
-                              ? Image.network(
-                                qrCodeImagePath,
-                                width: 160,
-                                height: 160,
-                                fit: BoxFit.contain,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Image.asset(
-                                    'assets/images/qr-code.png',
-                                    width: 160,
-                                    height: 160,
-                                    fit: BoxFit.contain,
-                                  );
-                                },
-                              )
-                              : Image.asset(
-                                qrCodeImagePath,
-                                width: 160,
-                                height: 160,
-                                fit: BoxFit.contain,
-                              ),
+                    child: Stack(
+                      children: [
+                        // 边框图片
+                        Center(
+                          child: Image.asset(
+                            'assets/images/qr-box.png',
+                            width: 180,
+                            height: 180,
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                        // 二维码图片
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child:
+                                  qrCodeImagePath.startsWith('http') ||
+                                          qrCodeImagePath.startsWith('https')
+                                      ? Image.network(
+                                        qrCodeImagePath,
+                                        width: 160,
+                                        height: 160,
+                                        fit: BoxFit.contain,
+                                        loadingBuilder: (
+                                          context,
+                                          child,
+                                          loadingProgress,
+                                        ) {
+                                          if (loadingProgress == null)
+                                            return child;
+                                          return Center(
+                                            child: CircularProgressIndicator(
+                                              value:
+                                                  loadingProgress
+                                                              .expectedTotalBytes !=
+                                                          null
+                                                      ? loadingProgress
+                                                              .cumulativeBytesLoaded /
+                                                          loadingProgress
+                                                              .expectedTotalBytes!
+                                                      : null,
+                                              color: AppTheme.primaryColor,
+                                            ),
+                                          );
+                                        },
+                                        errorBuilder: (
+                                          context,
+                                          error,
+                                          stackTrace,
+                                        ) {
+                                          return Image.asset(
+                                            'assets/images/qr-code.jpg',
+                                            width: 160,
+                                            height: 160,
+                                            fit: BoxFit.contain,
+                                          );
+                                        },
+                                      )
+                                      : Image.asset(
+                                        qrCodeImagePath,
+                                        width: 160,
+                                        height: 160,
+                                        fit: BoxFit.contain,
+                                      ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 16),

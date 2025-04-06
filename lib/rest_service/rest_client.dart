@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:retrofit/retrofit.dart';
+import 'package:cryptosquare/util/environment_config.dart';
 
 part 'rest_client.g.dart';
 
@@ -57,9 +58,16 @@ class FeaturedJobResponse extends BaseResponse<List<JobData>> {
       <String, dynamic>{'message': message, 'code': code, 'data': data};
 }
 
-@RestApi(baseUrl: 'https://d3qx0f55wsubto.cloudfront.net/api/')
+// 使用环境配置类管理baseUrl
+@RestApi(baseUrl: '')
 abstract class RestClient {
   factory RestClient(Dio dio, {String? baseUrl}) = _RestClient;
+
+  /// 创建一个使用当前环境配置的RestClient实例
+  static RestClient create() {
+    final dio = Dio();
+    return RestClient(dio, baseUrl: EnvironmentConfig.baseUrl);
+  }
 
   @GET('/tasks')
   Future<BaseResponse<List<Task>>> getTasks();

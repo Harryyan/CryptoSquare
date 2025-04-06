@@ -5,7 +5,7 @@ import 'package:cryptosquare/rest_service/bitpush_client.dart';
 import 'package:dio/dio.dart';
 
 class HomeController extends GetxController {
-  final RestClient _restClient = RestClient(Dio());
+  final RestClient _restClient = RestClient.create();
   final BitpushClient _bitpushClient = BitpushClient(Dio());
   // 使用自定义的BitpushClient实现，处理字符串响应
   final RxList<Banner> banners = <Banner>[].obs;

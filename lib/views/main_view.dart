@@ -84,6 +84,7 @@ class _MainViewState extends State<MainView>
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Image.asset('assets/images/logo.png', height: 20),
+          // 用户头像
           GestureDetector(
             onTap: () {
               // 处理头像点击事件，例如跳转到个人中心或登录页面
