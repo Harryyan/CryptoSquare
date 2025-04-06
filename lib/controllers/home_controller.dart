@@ -89,15 +89,9 @@ class HomeController extends GetxController {
         })
         .catchError((error) {
           print('获取Banner数据失败: $error');
-          // 加载失败时使用默认数据
-          banners.value = [
-            Banner(
-              id: 1,
-              imageUrl: 'https://via.placeholder.com/800x200?text=Banner+1',
-              title: 'Web3 开发者社区',
-              link: '/community',
-            ),
-          ];
+          // 网络错误时不加载默认数据，保持列表为空
+          banners.value = [];
+          throw error; // 重新抛出错误，让上层知道这个请求失败了
           // 不再抛出错误，而是返回成功，这样即使这个请求失败，其他请求仍然可以继续
           return Future.value();
         });
@@ -131,23 +125,9 @@ class HomeController extends GetxController {
         })
         .catchError((error) {
           print('获取服务项目数据失败: $error');
-          // 加载失败时使用默认数据
-          services.value = [
-            ServiceItem(
-              id: 1,
-              title: '在线课程',
-              description: '学习最前沿的Web3开发技术',
-              iconUrl: 'https://via.placeholder.com/50?text=Course',
-              link: '/courses',
-            ),
-            ServiceItem(
-              id: 2,
-              title: '运营转型',
-              description: '为你的团队提供专业的转型服务',
-              iconUrl: 'https://via.placeholder.com/50?text=Transform',
-              link: '/transform',
-            ),
-          ];
+          // 网络错误时不加载默认数据，保持列表为空
+          services.value = [];
+          throw error; // 重新抛出错误，让上层知道这个请求失败了
           // 不再抛出错误，而是返回成功
           return Future.value();
         });
@@ -226,18 +206,9 @@ class HomeController extends GetxController {
         })
         .catchError((error) {
           print('获取岗位数据失败: $error');
-          // 加载失败时使用默认数据
-          jobs.value = [
-            JobPost(
-              id: 1,
-              title: 'Web3 开发工程师',
-              company: 'Gate.io',
-              location: '远程',
-              salary: '\$1,500-2,500',
-              timeAgo: 37,
-              tags: ['AWS', 'Development', 'React', 'UI/UX'],
-            ),
-          ];
+          // 网络错误时不加载默认数据，保持列表为空
+          jobs.value = [];
+          throw error; // 重新抛出错误，让上层知道这个请求失败了
           // 不再抛出错误，而是返回成功，这样即使这个请求失败，其他请求仍然可以继续
           return Future.value();
         });
@@ -289,23 +260,9 @@ class HomeController extends GetxController {
         })
         .catchError((error) {
           print('获取Web3动态数据失败: $error');
-          // 加载失败时使用默认数据
-          news.value = [
-            NewsItem(
-              id: 1,
-              title: '美国财政部长贝森特：目前对政府效率部和财政部存在"大量不实的信息"',
-              source: 'CryptoNews',
-              timeAgo: 2,
-              tags: ['Web3', 'Technology', 'Trend'],
-            ),
-            NewsItem(
-              id: 2,
-              title: '区块链在金融领域的应用',
-              source: 'BlockchainDaily',
-              timeAgo: 5,
-              tags: ['Blockchain', 'Finance', 'Application'],
-            ),
-          ];
+          // 网络错误时不加载默认数据，保持列表为空
+          news.value = [];
+          throw error; // 重新抛出错误，让上层知道这个请求失败了
           // 不再抛出错误，而是返回成功，这样即使这个请求失败，其他请求仍然可以继续
           return Future.value();
         });
