@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:cryptosquare/controllers/user_controller.dart';
@@ -22,14 +23,21 @@ class _ProfileViewState extends State<ProfileView>
 
   late TabController _tabController;
   final RxInt currentTabIndex = 0.obs;
+  final RxInt postTabIndex = 0.obs; // 新增变量用于岗位和帖子标签
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(
+      length: 4,
+      vsync: this,
+      initialIndex: 2,
+    ); // 默认选中"岗位"标签
+    currentTabIndex.value = 0; // 默认选中"我的发布"标签
+    postTabIndex.value = 2; // 默认选中"岗位"标签
     _tabController.addListener(() {
       if (_tabController.indexIsChanging) {
-        currentTabIndex.value = _tabController.index;
+        postTabIndex.value = _tabController.index;
       }
     });
   }
@@ -241,57 +249,115 @@ class _ProfileViewState extends State<ProfileView>
   Widget _buildTabBar() {
     return Container(
       decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
+        image: DecorationImage(
+          image: AssetImage('assets/images/profile_header.png'),
+          fit: BoxFit.cover,
+          alignment: Alignment.topCenter,
         ),
       ),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.only(top: 15, left: 15, right: 15),
-            child: Row(
-              children: [
-                _buildTabItem('我的发布', 0),
-                const SizedBox(width: 15),
-                _buildTabItem('我的收藏', 1),
-                const Spacer(),
-                _buildTabItem('岗位', 2),
-                const SizedBox(width: 15),
-                _buildTabItem('帖子', 3),
-              ],
-            ),
+      child: Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
           ),
-          const SizedBox(height: 15),
-          Container(height: 1, color: Colors.grey.withOpacity(0.2)),
-        ],
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.only(top: 15, left: 15, right: 15),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      _buildTabItem('我的发布', 0),
+                      const SizedBox(width: 15),
+                      _buildTabItem('我的收藏', 1),
+                    ],
+                  ),
+                  // 使用CupertinoSegmentedControl替换岗位和帖子选项
+                  Container(
+                    width: 160, // 设置宽度与原来保持一致
+                    child: CupertinoSegmentedControl<int>(
+                      children: {
+                        2: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 8,
+                          ),
+                          child: Text(
+                            '岗位',
+                            style: TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        3: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 8,
+                          ),
+                          child: Text(
+                            '帖子',
+                            style: TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      },
+                      onValueChanged: (int value) {
+                        setState(() {
+                          postTabIndex.value = value;
+                        });
+                      },
+                      groupValue: postTabIndex.value,
+                      selectedColor: const Color(0xFF2563EB),
+                      unselectedColor: Colors.grey[100]!,
+                      borderColor: Colors.transparent,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 15),
+            Container(height: 1, color: Colors.grey.withOpacity(0.2)),
+          ],
+        ),
       ),
     );
   }
 
+  // 修改后的_buildTabItem方法，只处理左侧的"我的发布"和"我的收藏"标签
   Widget _buildTabItem(String text, int index) {
     return Obx(() {
       final isSelected = currentTabIndex.value == index;
+
       return GestureDetector(
         onTap: () {
           currentTabIndex.value = index;
           _tabController.animateTo(index);
         },
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Text(
               text,
               style: TextStyle(
                 color: isSelected ? AppTheme.primaryColor : Colors.grey,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                fontSize: 15,
+                fontSize: 17, // 增大字体
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 5),
             Container(
               height: 3,
-              width: 30,
+              width: 70,
               decoration: BoxDecoration(
                 color: isSelected ? AppTheme.primaryColor : Colors.transparent,
                 borderRadius: BorderRadius.circular(1.5),
@@ -304,17 +370,20 @@ class _ProfileViewState extends State<ProfileView>
   }
 
   Widget _buildTabContent() {
-    switch (currentTabIndex.value) {
-      case 0:
-        return _buildMyPostsTab();
-      case 1:
-        return _buildMyFavoritesTab();
-      case 2:
-        return _buildJobsTab();
-      case 3:
-        return _buildForumPostsTab();
-      default:
-        return _buildMyPostsTab();
+    // 首先检查是否选择了左侧标签（我的发布/我的收藏）
+    if (currentTabIndex.value == 0) {
+      return _buildMyPostsTab();
+    } else if (currentTabIndex.value == 1) {
+      return _buildMyFavoritesTab();
+    }
+
+    // 如果没有选择左侧标签，则根据右侧标签（岗位/帖子）显示内容
+    if (postTabIndex.value == 2) {
+      return _buildJobsTab();
+    } else if (postTabIndex.value == 3) {
+      return _buildForumPostsTab();
+    } else {
+      return _buildMyPostsTab(); // 默认显示我的发布
     }
   }
 
@@ -364,6 +433,7 @@ class _ProfileViewState extends State<ProfileView>
       }
 
       return ListView.builder(
+        padding: const EdgeInsets.only(top: 10),
         itemCount: jobController.jobs.length,
         itemBuilder: (context, index) {
           final job = jobController.jobs[index];
