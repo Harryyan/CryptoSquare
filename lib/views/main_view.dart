@@ -5,6 +5,7 @@ import 'package:cryptosquare/controllers/home_controller.dart';
 import 'package:cryptosquare/controllers/user_controller.dart';
 import 'package:cryptosquare/views/home_view.dart';
 import 'package:cryptosquare/views/job_view.dart';
+import 'package:cryptosquare/views/profile_view.dart';
 import 'package:cryptosquare/theme/app_theme.dart';
 
 class MainView extends StatefulWidget {
@@ -87,7 +88,8 @@ class _MainViewState extends State<MainView>
           // 用户头像
           GestureDetector(
             onTap: () {
-              // 处理头像点击事件，例如跳转到个人中心或登录页面
+              // 处理头像点击事件，跳转到个人资料页面
+              Get.to(() => const ProfileView());
             },
             child: Obx(() {
               if (userController.isLoggedIn &&
