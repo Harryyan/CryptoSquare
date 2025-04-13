@@ -8,6 +8,9 @@ import 'package:cryptosquare/controllers/job_controller.dart';
 import 'package:cryptosquare/theme/app_theme.dart';
 import 'package:cryptosquare/models/app_models.dart';
 
+// 请确保 GStorage 类已在项目中实现，其 getLanguageCN() 方法返回 true 表示中文界面
+// import 'package:cryptosquare/utils/gstorage.dart';
+
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
 
@@ -22,22 +25,29 @@ class _ProfileViewState extends State<ProfileView>
   final JobController jobController = Get.find<JobController>();
 
   late TabController _tabController;
+  // 左侧大类：0 - 我的发布，1 - 我的收藏
   final RxInt currentTabIndex = 0.obs;
-  final RxInt postTabIndex = 0.obs; // 新增变量用于岗位和帖子标签
+  // 右侧小分类：2 - 岗位，3 - 帖子；初始值默认为 2（岗位）
+  final RxInt postTabIndex = 2.obs;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(
-      length: 4,
-      vsync: this,
-      initialIndex: 2,
-    ); // 默认选中"岗位"标签
-    currentTabIndex.value = 0; // 默认选中"我的发布"标签
-    postTabIndex.value = 2; // 默认选中"岗位"标签
+    // TabController 长度设置为 4（0、1 对应左侧，大于等于2对应右侧）
+    _tabController = TabController(length: 4, vsync: this, initialIndex: 2);
+    currentTabIndex.value = 0;
+    postTabIndex.value = 2;
+
+    // 当 TabController 的 index 改变时同步更新 postTabIndex
     _tabController.addListener(() {
       if (_tabController.indexIsChanging) {
-        postTabIndex.value = _tabController.index;
+        int idx = _tabController.index;
+        // 仅允许 2 或 3
+        if (idx != 2 && idx != 3) {
+          postTabIndex.value = 2;
+        } else {
+          postTabIndex.value = idx;
+        }
       }
     });
   }
@@ -48,7 +58,7 @@ class _ProfileViewState extends State<ProfileView>
     super.dispose();
   }
 
-  // 格式化用户名，保留两端，中间用...替代
+  // 格式化用户名，中间用 ... 替代（保留头尾各 4 个字符）
   String _formatUserName(String name) {
     if (name.length <= 20) return name;
     return name.substring(0, 4) + '...' + name.substring(name.length - 4);
@@ -58,11 +68,12 @@ class _ProfileViewState extends State<ProfileView>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
-      appBar: null, // 移除AppBar，我们将在自定义头部中添加返回按钮和菜单
+      appBar: null, // 头部在 _buildHeaderWithAppBar 中自定义实现
       body: Column(
         children: [
-          _buildHeaderWithAppBar(), // 新的方法，包含AppBar和用户信息
+          _buildHeaderWithAppBar(),
           _buildTabBar(),
+          // 下方内容区域，由 Obx 包裹，依赖 currentTabIndex 和 postTabIndex 变化更新列表
           Expanded(
             child: Container(
               color: Colors.grey[100],
@@ -77,7 +88,7 @@ class _ProfileViewState extends State<ProfileView>
 
   Widget _buildHeaderWithAppBar() {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         image: DecorationImage(
           image: AssetImage('assets/images/profile_header.png'),
           fit: BoxFit.cover,
@@ -85,7 +96,7 @@ class _ProfileViewState extends State<ProfileView>
       ),
       child: Column(
         children: [
-          // AppBar部分
+          // AppBar 部分
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -113,20 +124,6 @@ class _ProfileViewState extends State<ProfileView>
           ),
         ],
       ),
-    );
-  }
-
-  // 此方法已被_buildHeaderWithAppBar替代，保留以防其他地方引用
-  Widget _buildProfileHeader() {
-    return Container(
-      decoration: BoxDecoration(
-        image: DecorationImage(
-          image: AssetImage('assets/images/profile_header.png'),
-          fit: BoxFit.cover,
-        ),
-      ),
-      padding: const EdgeInsets.only(left: 20, right: 20, bottom: 20),
-      child: _buildUserInfo(),
     );
   }
 
@@ -185,7 +182,7 @@ class _ProfileViewState extends State<ProfileView>
                     () => Text(
                       userController.isLoggedIn
                           ? _formatUserName(userController.user.name)
-                          : _formatUserName('Harryyan1238'),
+                          : '未登录',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 16,
@@ -212,7 +209,6 @@ class _ProfileViewState extends State<ProfileView>
                 ],
               ),
             ),
-            // 使用Align组件使签到按钮与积分信息垂直居中对齐
             Align(
               alignment: Alignment.center,
               child: Container(
@@ -271,6 +267,7 @@ class _ProfileViewState extends State<ProfileView>
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
+                  // 左侧大类：“我的发布” 和 “我的收藏”
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
@@ -279,48 +276,56 @@ class _ProfileViewState extends State<ProfileView>
                       _buildTabItem('我的收藏', 1),
                     ],
                   ),
-                  // 使用CupertinoSegmentedControl替换岗位和帖子选项
+                  // 右侧小分类：岗位与帖子 segment
                   Container(
-                    width: 160, // 设置宽度与原来保持一致
-                    child: CupertinoSegmentedControl<int>(
-                      children: {
-                        2: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 8,
-                          ),
-                          child: Text(
-                            '岗位',
-                            style: TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.bold,
+                    width: 160,
+                    child: Obx(() {
+                      // 确保 postTabIndex 仅为 2 或 3
+                      int segValue = postTabIndex.value;
+                      if (segValue != 2 && segValue != 3) {
+                        segValue = 2;
+                        postTabIndex.value = 2;
+                      }
+                      return CupertinoSegmentedControl<int>(
+                        children: {
+                          2: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 8,
+                            ),
+                            child: Text(
+                              '岗位',
+                              style: const TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
-                        ),
-                        3: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 8,
-                          ),
-                          child: Text(
-                            '帖子',
-                            style: TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.bold,
+                          3: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 8,
+                            ),
+                            child: Text(
+                              '帖子',
+                              style: const TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
-                        ),
-                      },
-                      onValueChanged: (int value) {
-                        setState(() {
+                        },
+                        groupValue: segValue,
+                        onValueChanged: (int value) {
                           postTabIndex.value = value;
-                        });
-                      },
-                      groupValue: postTabIndex.value,
-                      selectedColor: const Color(0xFF2563EB),
-                      unselectedColor: Colors.grey[100]!,
-                      borderColor: Colors.transparent,
-                    ),
+                          // 如需要同步更新 TabController，也可调用：
+                          // _tabController.animateTo(value);
+                        },
+                        selectedColor: const Color(0xFF2563EB),
+                        unselectedColor: Colors.grey[100]!,
+                        borderColor: Colors.transparent,
+                      );
+                    }),
                   ),
                 ],
               ),
@@ -333,11 +338,10 @@ class _ProfileViewState extends State<ProfileView>
     );
   }
 
-  // 修改后的_buildTabItem方法，只处理左侧的"我的发布"和"我的收藏"标签
+  /// 左侧大类标签构建
   Widget _buildTabItem(String text, int index) {
     return Obx(() {
       final isSelected = currentTabIndex.value == index;
-
       return GestureDetector(
         onTap: () {
           currentTabIndex.value = index;
@@ -349,9 +353,9 @@ class _ProfileViewState extends State<ProfileView>
             Text(
               text,
               style: TextStyle(
-                color: isSelected ? AppTheme.primaryColor : Colors.grey,
+                color: isSelected ? Colors.blue : Colors.grey,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                fontSize: 17, // 增大字体
+                fontSize: 17,
               ),
             ),
             const SizedBox(height: 5),
@@ -359,7 +363,7 @@ class _ProfileViewState extends State<ProfileView>
               height: 3,
               width: 70,
               decoration: BoxDecoration(
-                color: isSelected ? AppTheme.primaryColor : Colors.transparent,
+                color: isSelected ? Colors.blue : Colors.transparent,
                 borderRadius: BorderRadius.circular(1.5),
               ),
             ),
@@ -369,248 +373,71 @@ class _ProfileViewState extends State<ProfileView>
     });
   }
 
+  /// 根据大类和小分类返回对应内容
   Widget _buildTabContent() {
-    // 首先检查是否选择了左侧标签（我的发布/我的收藏）
+    print(
+      "Rebuild _buildTabContent: currentTabIndex = ${currentTabIndex.value}, postTabIndex = ${postTabIndex.value}",
+    );
     if (currentTabIndex.value == 0) {
-      return _buildMyPostsTab();
+      // 我的发布下根据小分类显示内容
+      if (postTabIndex.value == 2) {
+        return _buildMyPostsJobsTab();
+      } else if (postTabIndex.value == 3) {
+        return _buildMyPostsForumTab();
+      }
     } else if (currentTabIndex.value == 1) {
-      return _buildMyFavoritesTab();
+      // 我的收藏下
+      if (postTabIndex.value == 2) {
+        return _buildMyFavoritesJobsTab();
+      } else if (postTabIndex.value == 3) {
+        return _buildMyFavoritesForumTab();
+      }
     }
-
-    // 如果没有选择左侧标签，则根据右侧标签（岗位/帖子）显示内容
-    if (postTabIndex.value == 2) {
-      return _buildJobsTab();
-    } else if (postTabIndex.value == 3) {
-      return _buildForumPostsTab();
-    } else {
-      return _buildMyPostsTab(); // 默认显示我的发布
-    }
+    return Container();
   }
 
-  Widget _buildMyPostsTab() {
-    // 示例数据
-    final List<Map<String, dynamic>> posts = [
-      {
-        'title': '从技术到应用：普通人的 Web3 学习手册',
-        'image': 'https://via.placeholder.com/150',
-        'time': '1小时前',
-        'comments': 10,
-      },
-      {
-        'title': '从技术到应用：普通人的 Web3 学习手册',
-        'image': 'https://via.placeholder.com/150',
-        'time': '1小时前',
-        'comments': 10,
-      },
-      {
-        'title': '从技术到应用：普通人的 Web3 学习手册',
-        'image': 'https://via.placeholder.com/150',
-        'time': '1小时前',
-        'comments': 10,
-      },
-    ];
-
+  /// 我的发布 - 岗位列表
+  Widget _buildMyPostsJobsTab() {
+    // 这里用示例数据替代，实际可替换为真实数据
     return ListView.builder(
       padding: const EdgeInsets.only(top: 16, bottom: 16),
-      itemCount: posts.length,
+      itemCount: 3,
       itemBuilder: (context, index) {
-        final post = posts[index];
-        return _buildPostItem(post);
+        return ListTile(title: Text("我的发布 - 岗位 第${index + 1}项"));
       },
     );
   }
 
-  Widget _buildMyFavoritesTab() {
-    // 与我的发布类似，但显示收藏的内容
-    return _buildMyPostsTab(); // 暂时复用相同的UI
-  }
-
-  Widget _buildJobsTab() {
-    // 显示岗位列表
-    return Obx(() {
-      if (jobController.jobs.isEmpty) {
-        return const Center(child: Text('暂无岗位信息'));
-      }
-
-      return ListView.builder(
-        padding: const EdgeInsets.only(top: 10),
-        itemCount: jobController.jobs.length,
-        itemBuilder: (context, index) {
-          final job = jobController.jobs[index];
-          return _buildJobItem(job);
-        },
-      );
-    });
-  }
-
-  Widget _buildForumPostsTab() {
-    // 显示论坛帖子
-    return _buildMyPostsTab(); // 暂时复用相同的UI
-  }
-
-  Widget _buildPostItem(Map<String, dynamic> post) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            post['title'],
-            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 12),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Text(
-                  '美国SEC前官员John Reed Stark认为，SEC对Coinbase的诉讼可能会胜诉中，因为该监管机构新成立的加密货币工作组正在寻求解决此前...',
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: Colors.grey[700],
-                    height: 1.3,
-                  ),
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              const SizedBox(width: 12),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  post['image'],
-                  width: 80,
-                  height: 80,
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 15),
-          Row(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: Image.network(
-                  userController.user.avatarUrl ??
-                      'https://via.placeholder.com/20',
-                  width: 20,
-                  height: 20,
-                  fit: BoxFit.cover,
-                ),
-              ),
-              const SizedBox(width: 5),
-              const Text(
-                '我不是游客',
-                style: TextStyle(fontSize: 12, color: Colors.grey),
-              ),
-              const SizedBox(width: 10),
-              Text(
-                post['time'],
-                style: const TextStyle(fontSize: 12, color: Colors.grey),
-              ),
-              const Spacer(),
-              const Icon(Icons.comment_outlined, size: 14, color: Colors.grey),
-              const SizedBox(width: 5),
-              Text(
-                '${post['comments']}条评论',
-                style: const TextStyle(fontSize: 12, color: Colors.grey),
-              ),
-            ],
-          ),
-        ],
-      ),
+  /// 我的发布 - 帖子列表
+  Widget _buildMyPostsForumTab() {
+    return ListView.builder(
+      padding: const EdgeInsets.only(top: 16, bottom: 16),
+      itemCount: 3,
+      itemBuilder: (context, index) {
+        return ListTile(title: Text("我的发布 - 帖子 第${index + 1}项"));
+      },
     );
   }
 
-  Widget _buildJobItem(JobPost job) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: Colors.grey, width: 0.5)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            job.title,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Text(
-                job.company,
-                style: TextStyle(fontSize: 14, color: Colors.grey[700]),
-              ),
-              const SizedBox(width: 10),
-              Text(
-                job.location,
-                style: TextStyle(fontSize: 14, color: Colors.grey[700]),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Text(
-                job.salary,
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Colors.red,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const Spacer(),
-              Text(
-                job.getFormattedTime(),
-                style: TextStyle(fontSize: 12, color: Colors.grey[500]),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children:
-                job.tags.map((tag) {
-                  return Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppTheme.tagBackgroundColor,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      tag,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppTheme.tagTextColor,
-                      ),
-                    ),
-                  );
-                }).toList(),
-          ),
-        ],
-      ),
+  /// 我的收藏 - 岗位列表
+  Widget _buildMyFavoritesJobsTab() {
+    return ListView.builder(
+      padding: const EdgeInsets.only(top: 16, bottom: 16),
+      itemCount: 3,
+      itemBuilder: (context, index) {
+        return ListTile(title: Text("我的收藏 - 岗位 第${index + 1}项"));
+      },
+    );
+  }
+
+  /// 我的收藏 - 帖子列表
+  Widget _buildMyFavoritesForumTab() {
+    return ListView.builder(
+      padding: const EdgeInsets.only(top: 16, bottom: 16),
+      itemCount: 3,
+      itemBuilder: (context, index) {
+        return ListTile(title: Text("我的收藏 - 帖子 第${index + 1}项"));
+      },
     );
   }
 }
