@@ -10,28 +10,13 @@ import 'package:cryptosquare/views/job_view.dart';
 import 'package:cryptosquare/util/qr_border_painter.dart';
 import 'package:cryptosquare/util/tag_utils.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HomeView extends StatelessWidget {
   final HomeController homeController = Get.find<HomeController>();
   final ServiceController serviceController = Get.put(ServiceController());
 
   HomeView({super.key});
-
-  String _getServiceIcon(String title) {
-    switch (title) {
-      case '在线课程':
-        return 'assets/images/online_course.png';
-      case '运营转型':
-        return 'assets/images/customize.png';
-      case '求职交流':
-        return 'assets/images/online_course.png';
-      case '1v1咨询':
-        return 'assets/images/online_course.png';
-      default:
-        return 'assets/images/online_course.png';
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Obx(() {
@@ -544,6 +529,14 @@ class HomeView extends StatelessWidget {
     );
     final pop = homeService?.pop;
 
+    // 检查redirect_type，如果是1则使用外部浏览器打开链接
+    if (homeService?.redirectType == '1' &&
+        homeService?.redirectLink != null &&
+        homeService!.redirectLink!.isNotEmpty) {
+      _launchURL(homeService.redirectLink!);
+      return;
+    }
+
     // 处理title，当pop.title为空时使用service.title
     String titleText = '';
     if (pop?.title != null && pop!.title!.isNotEmpty) {
@@ -568,16 +561,12 @@ class HomeView extends StatelessWidget {
       }
     } else {
       // 如果pop.intro为空，使用service.description作为默认值
-      introText =
-          service.description.isNotEmpty
-              ? service.description
-              : '由行业资深从业者，TOP 交易所主管等组成的专家团队，解答您在 Web3 求职与工作过程中遇到的各种问题。例如：社区运营及用户画像、内容运营与品牌建设、用户增长与裂变策略、活动运营及合作推广、数据分析等。';
+      introText = service.description.isNotEmpty ? service.description : '空数据';
     }
 
     // 检查introText是否只包含空格，如果是则提供默认文本
     if (introText.trim().isEmpty) {
-      introText =
-          '由行业资深从业者，TOP 交易所主管等组成的专家团队，解答您在 Web3 求职与工作过程中遇到的各种问题。例如：社区运营及用户画像、内容运营与品牌建设、用户增长与裂变策略、活动运营及合作推广、数据分析等。';
+      introText = '空数据';
     }
 
     // 处理tips数组，每个元素之间添加换行，最后一个不加
@@ -813,6 +802,20 @@ class HomeView extends StatelessWidget {
       backgroundColor: Colors.transparent,
       elevation: 0,
     );
+  }
+
+  // 打开外部URL的方法
+  void _launchURL(String url) async {
+    final Uri uri = Uri.parse(url);
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        print('无法打开URL: $url');
+      }
+    } catch (e) {
+      print('打开URL时出错: $e');
+    }
   }
 
   Widget _buildNewsList() {
