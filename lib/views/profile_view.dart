@@ -5,6 +5,7 @@ import 'package:cryptosquare/controllers/user_controller.dart';
 import 'package:cryptosquare/controllers/home_controller.dart';
 import 'package:cryptosquare/controllers/job_controller.dart';
 import 'package:cryptosquare/theme/app_theme.dart';
+import 'package:cryptosquare/util/tag_utils.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
@@ -525,7 +526,7 @@ class _ProfileViewState extends State<ProfileView>
                       borderRadius: BorderRadius.circular(3),
                     ),
                     child: Text(
-                      tag,
+                      TagUtils.formatTag(tag),
                       style: const TextStyle(
                         fontSize: 12,
                         color: Colors.black87,
@@ -537,7 +538,9 @@ class _ProfileViewState extends State<ProfileView>
           const SizedBox(height: 6),
           // 额外标签
           Text(
-            (job["extraTags"] as List).join(" "),
+            (job["extraTags"] as List)
+                .map((tag) => TagUtils.formatTag(tag))
+                .join(" "),
             style: TextStyle(fontSize: 13, color: Colors.grey[500]),
           ),
           const SizedBox(height: 6),

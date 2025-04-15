@@ -151,7 +151,7 @@ class HomeController extends GetxController {
   Future<void> _fetchJobsAsync() {
     // 从API获取岗位数据
     return _restClient
-        .getFeaturedJobs('h5')
+        .getFeaturedJobs('h5', '30')
         .then((response) {
           if (response.data != null && response.data!.isNotEmpty) {
             final apiJobs = response.data!;

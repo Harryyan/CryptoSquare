@@ -8,6 +8,7 @@ import 'package:cryptosquare/models/app_models.dart';
 import 'package:cryptosquare/theme/app_theme.dart';
 import 'package:cryptosquare/views/job_view.dart';
 import 'package:cryptosquare/util/qr_border_painter.dart';
+import 'package:cryptosquare/util/tag_utils.dart';
 import 'package:intl/intl.dart';
 
 class HomeView extends StatelessWidget {
@@ -514,7 +515,7 @@ class HomeView extends StatelessWidget {
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(
-        tag,
+        TagUtils.formatTag(tag),
         style: const TextStyle(color: AppTheme.tagTextColor, fontSize: 12),
       ),
     );
@@ -529,7 +530,7 @@ class HomeView extends StatelessWidget {
         border: Border.all(color: Colors.grey[300]!),
       ),
       child: Text(
-        '#$tag',
+        '#${TagUtils.formatTag(tag)}',
         style: TextStyle(color: Colors.grey[700], fontSize: 12),
       ),
     );

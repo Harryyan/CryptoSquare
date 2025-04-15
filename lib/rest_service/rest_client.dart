@@ -75,6 +75,7 @@ abstract class RestClient {
   @GET('/job/index/jobhot')
   Future<FeaturedJobResponse> getFeaturedJobs(
     @Query('PLATFORM') String platform,
+    @Query('page_size') String pageSize,
   );
 
   @GET('/job/index/banner_new')

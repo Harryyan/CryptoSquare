@@ -4,6 +4,7 @@ import 'package:cryptosquare/controllers/job_controller.dart';
 import 'package:cryptosquare/theme/app_theme.dart';
 import 'package:cryptosquare/models/app_models.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:cryptosquare/util/tag_utils.dart';
 
 class JobView extends StatelessWidget {
   final JobController jobController = Get.put(JobController());
@@ -567,7 +568,7 @@ class JobView extends StatelessWidget {
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(
-        tag,
+        TagUtils.formatTag(tag),
         style: const TextStyle(color: AppTheme.tagTextColor, fontSize: 12),
       ),
     );
