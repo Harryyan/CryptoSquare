@@ -824,14 +824,48 @@ class HomeView extends StatelessWidget {
         return const SizedBox(height: 200);
       }
 
-      return ListView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: homeController.news.length,
-        itemBuilder: (context, index) {
-          final newsItem = homeController.news[index];
-          return _buildNewsItem(newsItem);
-        },
+      return Column(
+        children: [
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: homeController.news.length,
+            itemBuilder: (context, index) {
+              // 当滚动到最后一项时，触发加载更多
+              if (index == homeController.news.length - 1) {
+                // 检查是否需要加载更多
+                if (homeController.hasMoreNews.value &&
+                    !homeController.isLoadingMoreNews.value) {
+                  // 延迟执行，避免构建过程中调用setState
+                  Future.microtask(() => homeController.loadMoreNews());
+                }
+              }
+              final newsItem = homeController.news[index];
+              return _buildNewsItem(newsItem);
+            },
+          ),
+          // 加载更多指示器
+          Obx(
+            () =>
+                homeController.isLoadingMoreNews.value
+                    ? const Padding(
+                      padding: EdgeInsets.all(16.0),
+                      child: Center(child: CircularProgressIndicator()),
+                    )
+                    : homeController.hasMoreNews.value
+                    ? GestureDetector(
+                      onTap: () => homeController.loadMoreNews(),
+                      child: const Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: Center(child: Text('加载更多')),
+                      ),
+                    )
+                    : const Padding(
+                      padding: EdgeInsets.all(16.0),
+                      child: Center(child: Text('没有更多数据了')),
+                    ),
+          ),
+        ],
       );
     });
   }

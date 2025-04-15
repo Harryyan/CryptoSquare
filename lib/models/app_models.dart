@@ -121,14 +121,12 @@ class NewsItem {
   final String title;
   final String source;
   final int timeAgo;
-  final List<String> tags;
 
   NewsItem({
     required this.id,
     required this.title,
     required this.source,
     required this.timeAgo,
-    required this.tags,
   });
 
   factory NewsItem.fromJson(Map<String, dynamic> json) =>

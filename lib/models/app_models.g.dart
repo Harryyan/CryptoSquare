@@ -66,7 +66,6 @@ NewsItem _$NewsItemFromJson(Map<String, dynamic> json) => NewsItem(
   title: json['title'] as String,
   source: json['source'] as String,
   timeAgo: (json['timeAgo'] as num).toInt(),
-  tags: (json['tags'] as List<dynamic>).map((e) => e as String).toList(),
 );
 
 Map<String, dynamic> _$NewsItemToJson(NewsItem instance) => <String, dynamic>{
@@ -74,7 +73,6 @@ Map<String, dynamic> _$NewsItemToJson(NewsItem instance) => <String, dynamic>{
   'title': instance.title,
   'source': instance.source,
   'timeAgo': instance.timeAgo,
-  'tags': instance.tags,
 };
 
 User _$UserFromJson(Map<String, dynamic> json) => User(

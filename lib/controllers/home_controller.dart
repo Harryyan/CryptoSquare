@@ -12,6 +12,9 @@ class HomeController extends GetxController {
   final RxList<ServiceItem> services = <ServiceItem>[].obs;
   final RxList<JobPost> jobs = <JobPost>[].obs;
   final RxList<NewsItem> news = <NewsItem>[].obs;
+  final RxInt currentNewsPage = 1.obs;
+  final RxBool isLoadingMoreNews = false.obs;
+  final RxBool hasMoreNews = true.obs;
   final RxInt currentTabIndex = 0.obs;
   final RxInt currentServiceTabIndex = 0.obs;
   final RxInt currentBannerIndex = 0.obs;
@@ -145,7 +148,20 @@ class HomeController extends GetxController {
 
   // 保留公共方法用于手动刷新
   void fetchNews() {
+    // 重置分页状态并获取第一页数据
+    currentNewsPage.value = 1;
+    hasMoreNews.value = true;
+    news.clear();
     _fetchNewsAsync();
+  }
+
+  // 加载更多新闻数据
+  void loadMoreNews() {
+    if (!isLoadingMoreNews.value && hasMoreNews.value) {
+      isLoadingMoreNews.value = true;
+      currentNewsPage.value++;
+      _fetchNewsAsync(isLoadMore: true);
+    }
   }
 
   Future<void> _fetchJobsAsync() {
@@ -216,52 +232,68 @@ class HomeController extends GetxController {
 
   // 这里不需要重复的方法声明，已在上方定义
 
-  Future<void> _fetchNewsAsync() {
-    // 从Bitpush API获取Web3动态数据
+  Future<void> _fetchNewsAsync({bool isLoadMore = false}) {
+    // 从Bitpush API获取Web3动态数据，支持分页
     return _bitpushClient
-        .getTagnews()
+        .getTagnews(page: currentNewsPage.value)
         .then((response) {
-          if (response.data != null && response.data!.isNotEmpty) {
-            final apiNews = response.data!;
-            news.value =
-                apiNews
-                    .map((apiNewsItem) {
-                      // 解析标签字符串为列表
-                      List<String> tagsList = [];
-                      if (apiNewsItem.tags != null &&
-                          apiNewsItem.tags!.isNotEmpty) {
-                        tagsList = apiNewsItem.tags!.split(',');
-                      }
+          if (response.item_list != null && response.item_list!.isNotEmpty) {
+            final apiNews = response.item_list!;
+            final newItems =
+                apiNews.map((apiNewsItem) {
+                  // 计算时间差（分钟）
+                  int timeAgo = 30; // 默认值
+                  if (apiNewsItem.time != null) {
+                    final DateTime newsTime =
+                        DateTime.fromMillisecondsSinceEpoch(
+                          apiNewsItem.time! * 1000,
+                        );
+                    final DateTime now = DateTime.now();
+                    final Duration difference = now.difference(newsTime);
+                    timeAgo = difference.inMinutes;
+                  }
 
-                      // 计算时间差（分钟）
-                      int timeAgo = 30; // 默认值
-                      if (apiNewsItem.time != null) {
-                        final DateTime newsTime =
-                            DateTime.fromMillisecondsSinceEpoch(
-                              apiNewsItem.time! * 1000,
-                            );
-                        final DateTime now = DateTime.now();
-                        final Duration difference = now.difference(newsTime);
-                        timeAgo = difference.inMinutes;
-                      }
+                  return NewsItem(
+                    id: apiNewsItem.id ?? 0,
+                    title: apiNewsItem.title ?? '',
+                    source: 'BitPush',
+                    timeAgo: timeAgo,
+                  );
+                }).toList();
 
-                      return NewsItem(
-                        id: apiNewsItem.id ?? 0,
-                        title: apiNewsItem.title ?? '',
-                        source: 'BitPush',
-                        timeAgo: timeAgo,
-                        tags: tagsList,
-                      );
-                    })
-                    .toList()
-                    .take(20)
-                    .toList(); // 只显示前20条数据
+            // 判断是否还有更多数据
+            if (newItems.isEmpty) {
+              hasMoreNews.value = false;
+            }
+
+            // 如果是加载更多，则追加数据；否则替换数据
+            if (isLoadMore) {
+              news.addAll(newItems);
+            } else {
+              news.value = newItems;
+            }
+          } else {
+            // 如果返回空数据，表示没有更多数据了
+            hasMoreNews.value = false;
+          }
+
+          // 重置加载状态
+          if (isLoadMore) {
+            isLoadingMoreNews.value = false;
           }
         })
         .catchError((error) {
           print('获取Web3动态数据失败: $error');
           // 网络错误时不加载默认数据，保持列表为空
-          news.value = [];
+          if (!isLoadMore) {
+            news.value = [];
+          }
+          // 重置加载状态
+          if (isLoadMore) {
+            isLoadingMoreNews.value = false;
+            // 加载失败时，恢复页码
+            currentNewsPage.value--;
+          }
           throw error; // 重新抛出错误，让上层知道这个请求失败了
           // 不再抛出错误，而是返回成功，这样即使这个请求失败，其他请求仍然可以继续
           return Future.value();
