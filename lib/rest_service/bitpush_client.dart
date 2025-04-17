@@ -261,4 +261,36 @@ class BitpushClient {
       rethrow;
     }
   }
+
+  // 获取单个新闻详情
+  Future<BitpushNewsResponse> getNewsDetail(String newsId) async {
+    try {
+      // 构建请求参数
+      final Map<String, dynamic> params = {
+        'm': 'get_article_detail',
+        'id': newsId,
+        'timestamp': DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      };
+
+      // 创建FormData对象，确保以form-data格式发送请求
+      final formData = FormData.fromMap(params);
+
+      // 发送POST请求到API端点，使用FormData
+      final response = await _dio.post<dynamic>('webapi.php', data: formData);
+
+      if (response.data is BitpushNewsResponse) {
+        return response.data as BitpushNewsResponse;
+      } else if (response.data is Map<String, dynamic>) {
+        return BitpushNewsResponse.fromJson(
+          response.data as Map<String, dynamic>,
+        );
+      } else if (response.data is String) {
+        return BitpushNewsResponse.fromJsonString(response.data as String);
+      } else {
+        throw FormatException('Unexpected response format');
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

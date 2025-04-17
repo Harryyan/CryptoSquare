@@ -258,6 +258,7 @@ class HomeController extends GetxController {
                     title: apiNewsItem.title ?? '',
                     source: 'BitPush',
                     timeAgo: timeAgo,
+                    content: apiNewsItem.content,
                   );
                 }).toList();
 

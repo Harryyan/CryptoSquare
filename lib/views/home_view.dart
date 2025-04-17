@@ -11,6 +11,8 @@ import 'package:cryptosquare/util/qr_border_painter.dart';
 import 'package:cryptosquare/util/tag_utils.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:cryptosquare/rest_service/bitpush_client.dart';
+import 'package:dio/dio.dart';
 
 class HomeView extends StatelessWidget {
   final HomeController homeController = Get.find<HomeController>();
@@ -880,42 +882,171 @@ class HomeView extends StatelessWidget {
       'yyyy-MM-dd HH:mm',
     ).format(newsTime);
 
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 3,
-            offset: const Offset(0, 1),
+    return GestureDetector(
+      onTap: () {
+        // 点击Web3动态item时，显示详情弹窗
+        _showWeb3NewsDialog(newsItem, formattedTime);
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.1),
+              spreadRadius: 1,
+              blurRadius: 3,
+              offset: const Offset(0, 1),
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                formattedTime,
+                style: const TextStyle(
+                  color: AppTheme.subtitleColor,
+                  fontSize: 12,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                newsItem.title,
+                style: const TextStyle(fontSize: 16),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
           ),
-        ],
+        ),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
+    );
+  }
+
+  // 显示Web3动态详情弹窗
+  void _showWeb3NewsDialog(NewsItem newsItem, String formattedTime) {
+    // 直接使用NewsItem中的content数据，如果为空则使用标题
+    String content = newsItem.content ?? newsItem.title;
+
+    Get.bottomSheet(
+      Container(
+        height: Get.height * 0.8, // 设置弹窗高度为屏幕高度的80%
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(16),
+            topRight: Radius.circular(16),
+          ),
+        ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              formattedTime,
-              style: const TextStyle(
-                color: AppTheme.subtitleColor,
-                fontSize: 12,
+            // 顶部标题栏
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    decoration: const BoxDecoration(
+                      image: DecorationImage(
+                        image: AssetImage('assets/images/web3_title.png'),
+                        fit: BoxFit.cover,
+                      ),
+                      borderRadius: BorderRadius.only(
+                        bottomRight: Radius.circular(16),
+                      ),
+                    ),
+                    child: const Text(
+                      'Web3 动态',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(right: 16),
+                    child: GestureDetector(
+                      onTap: () => Get.back(),
+                      child: const Icon(
+                        Icons.close,
+                        color: Colors.black,
+                        size: 24,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              newsItem.title,
-              style: const TextStyle(fontSize: 16),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+            // 内容区域
+            Expanded(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        newsItem.title,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        formattedTime,
+                        style: const TextStyle(
+                          color: AppTheme.subtitleColor,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(content, style: const TextStyle(fontSize: 16)),
+                      const SizedBox(height: 24),
+                      // 声明文字（从底部移到内容区域内）
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Text(
+                          '以上内容由CryptoSquare合作伙伴BitPush提供，不构成任何投资建议。',
+                          style: TextStyle(
+                            color: AppTheme.subtitleColor,
+                            fontSize: 12,
+                          ),
+                          textAlign: TextAlign.left,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ],
         ),
       ),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      elevation: 0,
     );
   }
 }
