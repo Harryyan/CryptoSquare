@@ -185,7 +185,7 @@ class JobDetailView extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 32.0),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -221,7 +221,7 @@ class JobDetailView extends StatelessWidget {
           const SizedBox(width: 12),
           // 右侧 - 查看HR联系方式按钮
           Expanded(
-            flex: 3,
+            flex: 2,
             child: ElevatedButton(
               onPressed: () {
                 // 检查用户是否登录
@@ -251,7 +251,7 @@ class JobDetailView extends StatelessWidget {
                 '查看HR联系方式',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 18,
+                  fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
               ),
