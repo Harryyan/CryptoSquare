@@ -5,6 +5,7 @@ import 'package:cryptosquare/theme/app_theme.dart';
 import 'package:cryptosquare/models/app_models.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:cryptosquare/util/tag_utils.dart';
+import 'package:cryptosquare/views/job_detail_view.dart';
 
 class JobView extends StatelessWidget {
   final JobController jobController = Get.put(JobController());
@@ -462,99 +463,102 @@ class JobView extends StatelessWidget {
   }
 
   Widget _buildJobItem(JobPost job) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 3,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    job.getFormattedTitle(),
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                      color: Colors.black,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  ),
-                ),
-                Text(
-                  job.salary,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.orange[700],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Text(
-                  job.company,
-                  style: const TextStyle(
-                    color: Colors.black,
-                    fontSize: 14,
-                    fontWeight: FontWeight.normal,
-                  ),
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  job.getFormattedTime(),
-                  style: TextStyle(color: Colors.grey[500], fontSize: 14),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Flexible(
-                  child: Row(
-                    children: [
-                      _buildJobTag(job.location),
-                      const SizedBox(width: 8),
-                      ...job.tags.take(2).map((tag) {
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: _buildJobTag(tag),
-                        );
-                      }).toList(),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 16),
-                GestureDetector(
-                  onTap: () => jobController.toggleFavorite(job.id),
-                  child: Image.asset(
-                    job.isFavorite
-                        ? 'assets/images/star_fill.png'
-                        : 'assets/images/star.png',
-                    width: 20,
-                    height: 20,
-                  ),
-                ),
-              ],
+    return GestureDetector(
+      onTap: () => jobController.navigateToJobDetail(job.id),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.1),
+              spreadRadius: 1,
+              blurRadius: 3,
+              offset: const Offset(0, 1),
             ),
           ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      job.getFormattedTitle(),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                        color: Colors.black,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                  ),
+                  Text(
+                    job.salary,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.orange[700],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Text(
+                    job.company,
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontSize: 14,
+                      fontWeight: FontWeight.normal,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    job.getFormattedTime(),
+                    style: TextStyle(color: Colors.grey[500], fontSize: 14),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Flexible(
+                    child: Row(
+                      children: [
+                        _buildJobTag(job.location),
+                        const SizedBox(width: 8),
+                        ...job.tags.take(2).map((tag) {
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: _buildJobTag(tag),
+                          );
+                        }).toList(),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  GestureDetector(
+                    onTap: () => jobController.toggleFavorite(job.id),
+                    child: Image.asset(
+                      job.isFavorite
+                          ? 'assets/images/star_fill.png'
+                          : 'assets/images/star.png',
+                      width: 20,
+                      height: 20,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
