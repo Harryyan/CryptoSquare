@@ -257,9 +257,9 @@ class JobDetailView extends GetView<JobController> {
                   height: 24,
                 ),
                 const SizedBox(width: 8),
-                const Text(
-                  '预计消耗5积分',
-                  style: TextStyle(fontSize: 14, color: Colors.black87),
+                Text(
+                  '预计消耗${controller.currentJobDetail.value?.apply?.score ?? 5}积分',
+                  style: const TextStyle(fontSize: 14, color: Colors.black87),
                 ),
               ],
             ),
