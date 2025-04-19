@@ -24,7 +24,7 @@ class _MainViewState extends State<MainView>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 5, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
     // 监听Tab切换，确保UI更新与控制器同步
     _tabController.addListener(() {
       if (_tabController.indexIsChanging) {
@@ -62,10 +62,6 @@ class _MainViewState extends State<MainView>
                   case 1:
                     return JobView();
                   case 2:
-                    return const Center(child: Text('求职服务页面'));
-                  case 3:
-                    return const Center(child: Text('互助共学页面'));
-                  case 4:
                     return const Center(child: Text('全球论坛页面'));
                   default:
                     return HomeView();
@@ -120,9 +116,7 @@ class _MainViewState extends State<MainView>
         tabs: [
           _buildTab('首页', 0),
           _buildTab('Web3工作', 1),
-          _buildTab('求职服务', 2),
-          _buildTab('互助共学', 3),
-          _buildTab('全球论坛', 4),
+          _buildTab('全球论坛', 2),
         ],
         indicatorColor: AppTheme.primaryColor,
         indicatorWeight: 3,
