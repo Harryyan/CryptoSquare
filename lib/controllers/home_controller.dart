@@ -216,6 +216,7 @@ class HomeController extends GetxController {
                     createdAt: createdAt,
                     timeAgo: timeAgo,
                     tags: tagsList,
+                    jobKey: apiJob.jobKey,
                   );
                 }).toList();
           }

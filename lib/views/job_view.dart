@@ -447,14 +447,10 @@ class JobView extends StatelessWidget {
   }
 
   Widget _buildJobList() {
-    // 移除Obx包装，因为已经在外层使用了Obx
-    if (jobController.jobs.isEmpty) {
-      return const Center(child: Text('暂无工作信息'));
-    }
-
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
+    return ListView.separated(
+      padding: const EdgeInsets.all(16.0),
       itemCount: jobController.jobs.length,
+      separatorBuilder: (context, index) => const SizedBox(height: 16),
       itemBuilder: (context, index) {
         final job = jobController.jobs[index];
         return _buildJobItem(job);
@@ -464,7 +460,15 @@ class JobView extends StatelessWidget {
 
   Widget _buildJobItem(JobPost job) {
     return GestureDetector(
-      onTap: () => jobController.navigateToJobDetail(job.id),
+      onTap:
+          () => jobController.navigateToJobDetail(
+            job.jobKey ?? job.id.toString(),
+            title: job.title,
+            company: job.company,
+            salary: job.salary,
+            publishTime: job.getFormattedTime(),
+            tags: job.tags,
+          ), // 直接传递jobKey和必要的参数
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         decoration: BoxDecoration(

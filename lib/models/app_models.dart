@@ -51,6 +51,7 @@ class JobPost {
   final int timeAgo;
   final String? createdAt;
   final List<String> tags;
+  final String? jobKey;
   bool isFavorite;
 
   JobPost({
@@ -62,6 +63,7 @@ class JobPost {
     required this.timeAgo,
     this.createdAt,
     required this.tags,
+    this.jobKey,
     this.isFavorite = false,
   });
 

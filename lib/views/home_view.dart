@@ -401,7 +401,14 @@ class HomeView extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         // 导航到岗位详情页面
-        Get.find<JobController>().navigateToJobDetail(job.id);
+        Get.find<JobController>().navigateToJobDetail(
+          job.jobKey ?? job.id.toString(),
+          title: job.title,
+          company: job.company,
+          salary: job.salary,
+          publishTime: job.getFormattedTime(),
+          tags: job.tags,
+        );
       },
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

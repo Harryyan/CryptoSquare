@@ -4,8 +4,9 @@ import 'package:get/get.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:cryptosquare/theme/app_theme.dart';
 import 'package:cryptosquare/controllers/user_controller.dart';
+import 'package:cryptosquare/util/language_management.dart';
 
-class JobDetailView extends StatelessWidget {
+class JobDetailView extends GetView<JobController> {
   final String title;
   final String company;
   final String salary;
@@ -39,29 +40,74 @@ class JobDetailView extends StatelessWidget {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildJobHeader(),
-                  // 添加灰色背景区域作为明显的分隔
-                  Container(height: 12, color: const Color(0xFFF5F5F5)),
-                  _buildJobDescription(),
-                ],
-              ),
-            ),
-          ),
-          _buildApplyButton(),
-        ],
+      body: Obx(
+        () =>
+            controller.currentJobDetail.value == null
+                ? const Center(child: CircularProgressIndicator())
+                : Column(
+                  children: [
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildJobHeader(),
+                            // 添加灰色背景区域作为明显的分隔
+                            Container(
+                              height: 12,
+                              color: const Color(0xFFF5F5F5),
+                            ),
+                            _buildJobDescription(),
+                          ],
+                        ),
+                      ),
+                    ),
+                    _buildApplyButton(),
+                  ],
+                ),
       ),
     );
   }
 
   // 岗位头部信息
   Widget _buildJobHeader() {
+    // 使用API返回的数据，如果没有则使用构造函数传入的数据
+    final jobDetail = controller.currentJobDetail.value;
+    final displayTitle = jobDetail?.jobTitle ?? title;
+    final displayCompany = jobDetail?.jobCompany ?? company;
+
+    // 处理薪资显示
+    String displaySalary = salary;
+    if (jobDetail != null &&
+        jobDetail.minSalary != null &&
+        jobDetail.maxSalary != null) {
+      final minSalary = jobDetail.minSalary!;
+      final maxSalary = jobDetail.maxSalary!;
+
+      // 根据货币类型显示对应的符号
+      String currencySymbol = '¥';
+      if (jobDetail.jobSalaryCurrency?.toLowerCase() == 'usd') {
+        currencySymbol = '\$';
+      } else if (jobDetail.jobSalaryCurrency?.toLowerCase() == 'rmb') {
+        currencySymbol = '¥';
+      }
+
+      // 根据app语言设置显示单位
+      String unitDisplay = jobDetail.jobSalaryUnit ?? 'K';
+      if (unitDisplay.toLowerCase() == 'month') {
+        // 根据当前语言设置显示月份
+        unitDisplay = LanguageManagement.language() == 1 ? '/月' : '/month';
+      }
+
+      displaySalary = '$currencySymbol$minSalary-$maxSalary$unitDisplay';
+    }
+
+    // 处理标签
+    List<String> displayTags = tags;
+    if (jobDetail?.tags != null && jobDetail!.tags!.isNotEmpty) {
+      displayTags = jobDetail.tags!.split(',');
+    }
+
     return Container(
       padding: const EdgeInsets.all(16.0),
       color: Colors.white,
@@ -70,7 +116,7 @@ class JobDetailView extends StatelessWidget {
         children: [
           // 职位名称
           Text(
-            title,
+            displayTitle,
             style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -80,7 +126,7 @@ class JobDetailView extends StatelessWidget {
           const SizedBox(height: 8),
           // 公司名称
           Text(
-            company,
+            displayCompany,
             style: const TextStyle(fontSize: 16, color: Colors.black87),
           ),
           const SizedBox(height: 12),
@@ -88,7 +134,7 @@ class JobDetailView extends StatelessWidget {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: tags.map((tag) => _buildTag(tag)).toList(),
+            children: displayTags.map((tag) => _buildTag(tag)).toList(),
           ),
 
           const SizedBox(height: 12),
@@ -99,7 +145,7 @@ class JobDetailView extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                salary,
+                displaySalary,
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -164,7 +210,7 @@ class JobDetailView extends StatelessWidget {
           const SizedBox(height: 16),
           // 使用flutter_html渲染HTML内容
           Html(
-            data: description,
+            data: controller.currentJobDetail.value?.jobDesc ?? description,
             style: {
               "body": Style(
                 fontSize: FontSize(15),
@@ -265,18 +311,17 @@ class JobDetailView extends StatelessWidget {
 
 // 扩展JobController，添加导航到岗位详情页的方法
 extension JobDetailNavigation on JobController {
-  void navigateToJobDetail(int jobId) {
-    // 这里应该根据jobId获取完整的岗位信息
-    // 暂时使用模拟数据
-    final description =
-        "在多个平台（如Twitter，LinkedIn等）上创建与Orca品牌和语调相符的有针对性的相关内容。<br>开发并实施Orca的渠道营销策略：排名渠道，计划特定渠道的活动，确定成功的度量标准，并执行活动。<br>与组织内的各个功能部门合作，以营销产品发布。<br>通过整合关于帖子性能的数据洞察，建立以分析驱动的增长文化。<br>继续扩大Orca对新的和现有的DeFi用户的覆盖范围。<br>职位要求：<br>你将带来什么：<br>对加密Twitter文化，特别是在Solana社区内的深入理解。<br>有使用Orca和/或其他Solana DeFi协议的丰富经验。<br>对AMMs和DeFi的理解。<br>成功执行跨渠道营销活动的记录。<br>所有权心态：如果你看到更好的方式，就说出来并与他人合作来完成。<br>既富有创造力又具有分析性的思维过程，能够设身处地为用户着想。";
-
-    // 模拟岗位数据
+  void navigateToJobDetail(int jobId) async {
+    // 查找本地岗位数据以获取jobKey
     final job = jobs.firstWhere(
       (job) => job.id == jobId,
       orElse: () => jobs.first,
     );
 
+    // 清空当前岗位详情，以显示加载状态
+    currentJobDetail.value = null;
+
+    // 导航到岗位详情页面
     Get.to(
       () => JobDetailView(
         title: job.title,
@@ -284,8 +329,34 @@ extension JobDetailNavigation on JobController {
         salary: job.salary,
         publishTime: job.getFormattedTime(),
         tags: job.tags,
-        description: description,
+        description: '', // 初始为空，将通过API获取
       ),
     );
+
+    try {
+      // 使用jobId作为jobKey调用API获取详细信息
+      await fetchJobDetail(jobId.toString());
+
+      // 如果获取失败，显示错误提示
+      if (currentJobDetail.value == null) {
+        Get.snackbar(
+          '提示',
+          '获取岗位详情失败，请稍后重试',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.grey[800],
+          colorText: Colors.white,
+          margin: const EdgeInsets.all(16),
+        );
+      }
+    } catch (e) {
+      Get.snackbar(
+        '提示',
+        '获取岗位详情失败: $e',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.grey[800],
+        colorText: Colors.white,
+        margin: const EdgeInsets.all(16),
+      );
+    }
   }
 }

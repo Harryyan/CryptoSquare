@@ -1,6 +1,8 @@
+import 'package:cryptosquare/util/language_management.dart';
 import 'package:get/get.dart';
 import 'package:cryptosquare/models/app_models.dart';
 import 'package:cryptosquare/rest_service/rest_client.dart';
+import 'package:cryptosquare/views/job_detail_view.dart';
 import 'package:dio/dio.dart';
 
 class JobController extends GetxController {
@@ -8,6 +10,7 @@ class JobController extends GetxController {
 
   // 工作列表数据
   final RxList<JobPost> jobs = <JobPost>[].obs;
+  final Rx<JobDetailData?> currentJobDetail = Rx<JobDetailData?>(null);
 
   // 搜索相关状态
   final RxString searchQuery = ''.obs;
@@ -117,6 +120,24 @@ class JobController extends GetxController {
     }
   }
 
+  // 获取岗位详情
+  Future<void> fetchJobDetail(String jobKey) async {
+    try {
+      final response = await _restClient.getJobDetail(
+        jobKey,
+        LanguageManagement.language(), // language
+        'app', // platformStr
+      );
+
+      if (response.data != null) {
+        currentJobDetail.value = response.data;
+      }
+    } catch (e) {
+      print('获取岗位详情失败: $e');
+      rethrow;
+    }
+  }
+
   // 切换收藏状态
   void toggleFavorite(int jobId) {
     final index = jobs.indexWhere((job) => job.id == jobId);
@@ -125,6 +146,48 @@ class JobController extends GetxController {
       job.isFavorite = !job.isFavorite;
       jobs[index] = job;
       jobs.refresh();
+    }
+  }
+
+  // 导航到岗位详情页面
+  void navigateToJobDetail(
+    String jobKey, {
+    String? title,
+    String? company,
+    String? salary,
+    String? publishTime,
+    List<String>? tags,
+  }) async {
+    // 清空当前岗位详情，以显示加载状态
+    currentJobDetail.value = null;
+
+    // 导航到岗位详情页面
+    Get.to(
+      () => JobDetailView(
+        title: title ?? '',
+        company: company ?? '',
+        salary: salary ?? '',
+        publishTime: publishTime ?? '',
+        tags: tags ?? [],
+        description: '', // 初始为空，将通过API获取
+      ),
+    );
+
+    try {
+      // 直接使用传入的jobKey调用API获取详细信息
+      await fetchJobDetail(jobKey);
+
+      // 如果获取失败，显示错误提示
+      if (currentJobDetail.value == null) {
+        Get.snackbar(
+          '提示',
+          '获取岗位详情失败，请稍后重试',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+      }
+    } catch (e) {
+      print('导航到岗位详情页面失败: $e');
+      Get.snackbar('提示', '获取岗位详情失败，请稍后重试', snackPosition: SnackPosition.BOTTOM);
     }
   }
 
@@ -139,6 +202,7 @@ class JobController extends GetxController {
         salary: '\$1,500-2,500',
         timeAgo: 37,
         tags: ['全职', '本科', '需要英语', 'AWS', 'Development', 'React', 'UI/UX'],
+        jobKey: 'job_1',
         isFavorite: true,
       ),
       JobPost(
@@ -149,6 +213,7 @@ class JobController extends GetxController {
         salary: '\$1,500-2,500',
         timeAgo: 37,
         tags: ['全职', '本科', '需要英语', 'AWS', 'Development', 'React', 'UI/UX'],
+        jobKey: 'job_2',
         isFavorite: false,
       ),
       JobPost(
@@ -159,6 +224,7 @@ class JobController extends GetxController {
         salary: '\$1,500-2,500',
         timeAgo: 37,
         tags: ['全职', '本科', '需要英语', 'AWS', 'Development', 'React', 'UI/UX'],
+        jobKey: 'job_3',
         isFavorite: false,
       ),
       JobPost(
@@ -169,6 +235,7 @@ class JobController extends GetxController {
         salary: '\$1,500-2,500',
         timeAgo: 37,
         tags: ['全职', '本科', '需要英语', 'AWS', 'Development', 'React', 'UI/UX'],
+        jobKey: 'job_4',
         isFavorite: false,
       ),
     ];

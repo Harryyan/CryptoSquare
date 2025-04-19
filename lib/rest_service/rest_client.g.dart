@@ -98,6 +98,109 @@ Map<String, dynamic> _$JobDataToJson(JobData instance) => <String, dynamic>{
   'max_salary': instance.maxSalary,
 };
 
+JobDetailApply _$JobDetailApplyFromJson(Map<String, dynamic> json) =>
+    JobDetailApply(
+      isBuyed: json['is_buyed'] as bool?,
+      applyStatus: (json['apply_status'] as num?)?.toInt(),
+      createTime: (json['create_time'] as num?)?.toInt(),
+      expTime: (json['exp_time'] as num?)?.toInt(),
+      applyType: json['apply_type'] as String?,
+      applyVal: json['apply_val'] as String?,
+      score: (json['score'] as num?)?.toInt(),
+    );
+
+Map<String, dynamic> _$JobDetailApplyToJson(JobDetailApply instance) =>
+    <String, dynamic>{
+      'is_buyed': instance.isBuyed,
+      'apply_status': instance.applyStatus,
+      'create_time': instance.createTime,
+      'exp_time': instance.expTime,
+      'apply_type': instance.applyType,
+      'apply_val': instance.applyVal,
+      'score': instance.score,
+    };
+
+JobDetailData _$JobDetailDataFromJson(Map<String, dynamic> json) =>
+    JobDetailData(
+      id: (json['id'] as num?)?.toInt(),
+      jobTitle: json['job_title'] as String?,
+      jobPosition: json['job_positon'] as String?,
+      jobType: json['job_type'] as String?,
+      userId: (json['user_id'] as num?)?.toInt(),
+      createTime: (json['create_time'] as num?)?.toInt(),
+      status: (json['status'] as num?)?.toInt(),
+      lang: (json['lang'] as num?)?.toInt(),
+      jobStatus: (json['job_status'] as num?)?.toInt(),
+      officeMode: (json['office_mode'] as num?)?.toInt(),
+      jobDesc: json['job_desc'] as String?,
+      jobWelfare: json['job_welfare'] as String?,
+      jobEdu: (json['job_edu'] as num?)?.toInt(),
+      minSalary: (json['min_salary'] as num?)?.toInt(),
+      maxSalary: (json['max_salary'] as num?)?.toInt(),
+      jobLang: (json['job_lang'] as num?)?.toInt(),
+      tags: json['tags'] as String?,
+      isHot: (json['is_hot'] as num?)?.toInt(),
+      jobSalaryCurrency: json['job_salary_currency'] as String?,
+      jobSalaryUnit: json['job_salary_unit'] as String?,
+      jobSalaryType: (json['job_salary_type'] as num?)?.toInt(),
+      jobCompany: json['job_company'] as String?,
+      jobKey: json['job_key'] as String?,
+      isTop: (json['is_top'] as num?)?.toInt(),
+      jobLocation: json['job_location'] as String?,
+      lastView: (json['last_view'] as num?)?.toInt(),
+      lastViewUser: (json['last_view_user'] as num?)?.toInt(),
+      replyNums: (json['reply_nums'] as num?)?.toInt(),
+      replyUser: json['reply_user'] as String?,
+      ding: (json['ding'] as num?)?.toInt(),
+      cai: (json['cai'] as num?)?.toInt(),
+      replyTime: (json['reply_time'] as num?)?.toInt(),
+      apply:
+          json['apply'] == null
+              ? null
+              : JobDetailApply.fromJson(json['apply'] as Map<String, dynamic>),
+      jobIsCollect: (json['job_is_collect'] as num?)?.toInt(),
+      jobIsLike: (json['job_is_like'] as num?)?.toInt(),
+    );
+
+Map<String, dynamic> _$JobDetailDataToJson(JobDetailData instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'job_title': instance.jobTitle,
+      'job_positon': instance.jobPosition,
+      'job_type': instance.jobType,
+      'user_id': instance.userId,
+      'create_time': instance.createTime,
+      'status': instance.status,
+      'lang': instance.lang,
+      'job_status': instance.jobStatus,
+      'office_mode': instance.officeMode,
+      'job_desc': instance.jobDesc,
+      'job_welfare': instance.jobWelfare,
+      'job_edu': instance.jobEdu,
+      'min_salary': instance.minSalary,
+      'max_salary': instance.maxSalary,
+      'job_lang': instance.jobLang,
+      'tags': instance.tags,
+      'is_hot': instance.isHot,
+      'job_salary_currency': instance.jobSalaryCurrency,
+      'job_salary_unit': instance.jobSalaryUnit,
+      'job_salary_type': instance.jobSalaryType,
+      'job_company': instance.jobCompany,
+      'job_key': instance.jobKey,
+      'is_top': instance.isTop,
+      'job_location': instance.jobLocation,
+      'last_view': instance.lastView,
+      'last_view_user': instance.lastViewUser,
+      'reply_nums': instance.replyNums,
+      'reply_user': instance.replyUser,
+      'ding': instance.ding,
+      'cai': instance.cai,
+      'reply_time': instance.replyTime,
+      'apply': instance.apply,
+      'job_is_collect': instance.jobIsCollect,
+      'job_is_like': instance.jobIsLike,
+    };
+
 BannerItem _$BannerItemFromJson(Map<String, dynamic> json) => BannerItem(
   id: (json['id'] as num?)?.toInt(),
   title: json['title'] as String?,
@@ -333,6 +436,43 @@ class _RestClient implements RestClient {
                     )
                     .toList()
                 : List.empty(),
+      );
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
+  Future<BaseResponse<JobDetailData>> getJobDetail(
+    String jobKey,
+    int lang,
+    String platformStr,
+  ) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'lang': lang,
+      r'PLATFORM': platformStr,
+    };
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<BaseResponse<JobDetailData>>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/job/detail/${jobKey}',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late BaseResponse<JobDetailData> _value;
+    try {
+      _value = BaseResponse<JobDetailData>.fromJson(
+        _result.data!,
+        (json) => JobDetailData.fromJson(json as Map<String, dynamic>),
       );
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options);

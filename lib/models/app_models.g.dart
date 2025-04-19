@@ -46,6 +46,7 @@ JobPost _$JobPostFromJson(Map<String, dynamic> json) => JobPost(
   timeAgo: (json['timeAgo'] as num).toInt(),
   createdAt: json['createdAt'] as String?,
   tags: (json['tags'] as List<dynamic>).map((e) => e as String).toList(),
+  jobKey: json['jobKey'] as String?,
   isFavorite: json['isFavorite'] as bool? ?? false,
 );
 
@@ -58,6 +59,7 @@ Map<String, dynamic> _$JobPostToJson(JobPost instance) => <String, dynamic>{
   'timeAgo': instance.timeAgo,
   'createdAt': instance.createdAt,
   'tags': instance.tags,
+  'jobKey': instance.jobKey,
   'isFavorite': instance.isFavorite,
 };
 
@@ -66,6 +68,7 @@ NewsItem _$NewsItemFromJson(Map<String, dynamic> json) => NewsItem(
   title: json['title'] as String,
   source: json['source'] as String,
   timeAgo: (json['timeAgo'] as num).toInt(),
+  content: json['content'] as String?,
 );
 
 Map<String, dynamic> _$NewsItemToJson(NewsItem instance) => <String, dynamic>{
@@ -73,6 +76,7 @@ Map<String, dynamic> _$NewsItemToJson(NewsItem instance) => <String, dynamic>{
   'title': instance.title,
   'source': instance.source,
   'timeAgo': instance.timeAgo,
+  'content': instance.content,
 };
 
 User _$UserFromJson(Map<String, dynamic> json) => User(

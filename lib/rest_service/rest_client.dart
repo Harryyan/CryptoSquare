@@ -86,6 +86,13 @@ abstract class RestClient {
 
   @GET('/v3/index/topbanner')
   Future<BaseResponse<List<HomeServiceItem>>> getHomeServices();
+
+  @GET('/job/detail/{job_key}')
+  Future<BaseResponse<JobDetailData>> getJobDetail(
+    @Path('job_key') String jobKey,
+    @Query('lang') int lang,
+    @Query('PLATFORM') String platformStr,
+  );
 }
 
 @JsonSerializable()
@@ -163,6 +170,196 @@ class JobData {
   final int? maxSalary;
 
   Map<String, dynamic> toJson() => _$JobDataToJson(this);
+}
+
+@JsonSerializable()
+class JobDetailApply {
+  const JobDetailApply({
+    this.isBuyed,
+    this.applyStatus,
+    this.createTime,
+    this.expTime,
+    this.applyType,
+    this.applyVal,
+    this.score,
+  });
+
+  factory JobDetailApply.fromJson(Map<String, dynamic> json) =>
+      _$JobDetailApplyFromJson(json);
+
+  @JsonKey(name: 'is_buyed')
+  final bool? isBuyed;
+
+  @JsonKey(name: 'apply_status')
+  final int? applyStatus;
+
+  @JsonKey(name: 'create_time')
+  final int? createTime;
+
+  @JsonKey(name: 'exp_time')
+  final int? expTime;
+
+  @JsonKey(name: 'apply_type')
+  final String? applyType;
+
+  @JsonKey(name: 'apply_val')
+  final String? applyVal;
+
+  @JsonKey(name: 'score')
+  final int? score;
+
+  Map<String, dynamic> toJson() => _$JobDetailApplyToJson(this);
+}
+
+@JsonSerializable()
+class JobDetailData {
+  const JobDetailData({
+    this.id,
+    this.jobTitle,
+    this.jobPosition,
+    this.jobType,
+    this.userId,
+    this.createTime,
+    this.status,
+    this.lang,
+    this.jobStatus,
+    this.officeMode,
+    this.jobDesc,
+    this.jobWelfare,
+    this.jobEdu,
+    this.minSalary,
+    this.maxSalary,
+    this.jobLang,
+    this.tags,
+    this.isHot,
+    this.jobSalaryCurrency,
+    this.jobSalaryUnit,
+    this.jobSalaryType,
+    this.jobCompany,
+    this.jobKey,
+    this.isTop,
+    this.jobLocation,
+    this.lastView,
+    this.lastViewUser,
+    this.replyNums,
+    this.replyUser,
+    this.ding,
+    this.cai,
+    this.replyTime,
+    this.apply,
+    this.jobIsCollect,
+    this.jobIsLike,
+  });
+
+  factory JobDetailData.fromJson(Map<String, dynamic> json) =>
+      _$JobDetailDataFromJson(json);
+
+  @JsonKey(name: 'id')
+  final int? id;
+
+  @JsonKey(name: 'job_title')
+  final String? jobTitle;
+
+  @JsonKey(name: 'job_positon')
+  final String? jobPosition;
+
+  @JsonKey(name: 'job_type')
+  final String? jobType;
+
+  @JsonKey(name: 'user_id')
+  final int? userId;
+
+  @JsonKey(name: 'create_time')
+  final int? createTime;
+
+  @JsonKey(name: 'status')
+  final int? status;
+
+  @JsonKey(name: 'lang')
+  final int? lang;
+
+  @JsonKey(name: 'job_status')
+  final int? jobStatus;
+
+  @JsonKey(name: 'office_mode')
+  final int? officeMode;
+
+  @JsonKey(name: 'job_desc')
+  final String? jobDesc;
+
+  @JsonKey(name: 'job_welfare')
+  final String? jobWelfare;
+
+  @JsonKey(name: 'job_edu')
+  final int? jobEdu;
+
+  @JsonKey(name: 'min_salary')
+  final int? minSalary;
+
+  @JsonKey(name: 'max_salary')
+  final int? maxSalary;
+
+  @JsonKey(name: 'job_lang')
+  final int? jobLang;
+
+  @JsonKey(name: 'tags')
+  final String? tags;
+
+  @JsonKey(name: 'is_hot')
+  final int? isHot;
+
+  @JsonKey(name: 'job_salary_currency')
+  final String? jobSalaryCurrency;
+
+  @JsonKey(name: 'job_salary_unit')
+  final String? jobSalaryUnit;
+
+  @JsonKey(name: 'job_salary_type')
+  final int? jobSalaryType;
+
+  @JsonKey(name: 'job_company')
+  final String? jobCompany;
+
+  @JsonKey(name: 'job_key')
+  final String? jobKey;
+
+  @JsonKey(name: 'is_top')
+  final int? isTop;
+
+  @JsonKey(name: 'job_location')
+  final String? jobLocation;
+
+  @JsonKey(name: 'last_view')
+  final int? lastView;
+
+  @JsonKey(name: 'last_view_user')
+  final int? lastViewUser;
+
+  @JsonKey(name: 'reply_nums')
+  final int? replyNums;
+
+  @JsonKey(name: 'reply_user')
+  final String? replyUser;
+
+  @JsonKey(name: 'ding')
+  final int? ding;
+
+  @JsonKey(name: 'cai')
+  final int? cai;
+
+  @JsonKey(name: 'reply_time')
+  final int? replyTime;
+
+  @JsonKey(name: 'apply')
+  final JobDetailApply? apply;
+
+  @JsonKey(name: 'job_is_collect')
+  final int? jobIsCollect;
+
+  @JsonKey(name: 'job_is_like')
+  final int? jobIsLike;
+
+  Map<String, dynamic> toJson() => _$JobDetailDataToJson(this);
 }
 
 @JsonSerializable()
