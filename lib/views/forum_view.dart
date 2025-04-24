@@ -337,6 +337,8 @@ class _ForumViewState extends State<ForumView>
 
   // 论坛卡片
   Widget _buildForumCard(Map<String, dynamic> post) {
+    final bool hasImage = post['image'] != null;
+
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
       padding: const EdgeInsets.all(16),
@@ -347,20 +349,7 @@ class _ForumViewState extends State<ForumView>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 分类标签
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(
-              color: Colors.blue.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Text(
-              post['category'] ?? '',
-              style: const TextStyle(fontSize: 12, color: Colors.blue),
-            ),
-          ),
-          const SizedBox(height: 8),
-          // 标题
+          // 标题 - 单独占一行并左对齐
           Text(
             post['title'] ?? '',
             style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
@@ -368,54 +357,84 @@ class _ForumViewState extends State<ForumView>
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 8),
-          // 内容摘要
-          Text(
-            post['summary'] ?? '',
-            style: TextStyle(fontSize: 14, color: Colors.grey[700]),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 8),
-          // 图片
-          if (post['image'] != null)
-            ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: Image.network(
-                post['image'],
-                height: 120,
-                width: double.infinity,
-                fit: BoxFit.cover,
-              ),
-            ),
-          const SizedBox(height: 12),
-          // 底部信息
+
+          // 内容摘要和图片在同一行
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 作者头像
-              CircleAvatar(
-                radius: 12,
-                backgroundColor: Colors.grey[300],
-                child: Icon(Icons.person, size: 16, color: Colors.grey[700]),
+              // 左侧图片（如果有）
+              if (hasImage) const SizedBox(width: 12),
+              if (hasImage)
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: Image.network(
+                    post['image'],
+                    height: 80,
+                    width: 120,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+
+              // 右侧内容摘要
+              Expanded(
+                child: Text(
+                  post['summary'] ?? '',
+                  style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                  maxLines: 3, // 支持3行显示
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-              const SizedBox(width: 4),
-              // 作者名称
-              Text(
-                post['author'] ?? '',
-                style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+            ],
+          ),
+
+          const SizedBox(height: 12),
+
+          // 底部信息区域 - 单独一行
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // 左侧：用户信息
+              Row(
+                children: [
+                  // 作者头像
+                  CircleAvatar(
+                    radius: 12,
+                    backgroundColor: Colors.grey[300],
+                    child: Icon(
+                      Icons.person,
+                      size: 16,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  // 作者名称
+                  Text(
+                    post['author'] ?? '',
+                    style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+                  ),
+                  const SizedBox(width: 8),
+                  // 发布时间
+                  Text(
+                    post['time'] ?? '',
+                    style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                  ),
+                ],
               ),
-              const SizedBox(width: 8),
-              // 发布时间
-              Text(
-                post['time'] ?? '',
-                style: TextStyle(fontSize: 12, color: Colors.grey[500]),
-              ),
-              const Spacer(),
-              // 评论数
-              Icon(Icons.comment_outlined, size: 14, color: Colors.grey[500]),
-              const SizedBox(width: 4),
-              Text(
-                '${post['comments'] ?? 0}条评论',
-                style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+
+              // 右侧：评论数
+              Row(
+                children: [
+                  Icon(
+                    Icons.comment_outlined,
+                    size: 14,
+                    color: Colors.grey[500],
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    '${post['comments'] ?? 0}条评论',
+                    style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                  ),
+                ],
               ),
             ],
           ),
@@ -441,8 +460,10 @@ class _ForumViewState extends State<ForumView>
       ),
       child: Row(
         children: [
+          Image.asset('assets/images/coin-icon.png', width: 24, height: 24),
+          const SizedBox(width: 8),
           Text(
-            '示例内容可以在4.4秒内',
+            '贡献内容可获4积分',
             style: TextStyle(fontSize: 14, color: Colors.grey[600]),
           ),
           const Spacer(),
@@ -450,12 +471,17 @@ class _ForumViewState extends State<ForumView>
             onPressed: () {
               // 发布动态逻辑
             },
-            icon: const Icon(Icons.edit, color: Colors.white),
+            icon: Image.asset(
+              'assets/images/write.png',
+              width: 20,
+              height: 20,
+              color: Colors.white,
+            ),
             label: const Text('发布动态', style: TextStyle(color: Colors.white)),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
+              backgroundColor: const Color(0xFF2563EB),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(6),
               ),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             ),
