@@ -20,8 +20,9 @@ class _ForumViewState extends State<ForumView>
   final RxBool isLoadingMore = false.obs;
   final RxBool hasSearchText = false.obs;
 
-  // WebView控制器
+  // WebView相关
   WebViewController? _webViewController;
+  final RxInt webViewProgress = 0.obs; // WebView加载进度
 
   // 模拟的论坛数据
   final RxList<Map<String, dynamic>> forumList =
@@ -314,12 +315,18 @@ class _ForumViewState extends State<ForumView>
           ..setNavigationDelegate(
             NavigationDelegate(
               onProgress: (int progress) {
+                // 更新加载进度
+                webViewProgress.value = progress;
                 print('WebView is loading (progress : $progress%)');
               },
               onPageStarted: (String url) {
+                // 页面开始加载时，设置进度为0
+                webViewProgress.value = 0;
                 print('Page started loading: $url');
               },
               onPageFinished: (String url) {
+                // 页面加载完成时，设置进度为100
+                webViewProgress.value = 100;
                 print('Page finished loading: $url');
               },
             ),
@@ -331,8 +338,27 @@ class _ForumViewState extends State<ForumView>
     // 保存控制器引用
     _webViewController = controller;
 
-    // 返回WebView组件
-    return WebViewWidget(controller: controller);
+    // 返回包含进度条和WebView的组件
+    return Column(
+      children: [
+        // 加载进度条，仅在加载过程中显示
+        Obx(
+          () =>
+              webViewProgress.value < 100 && webViewProgress.value > 0
+                  ? LinearProgressIndicator(
+                    value: webViewProgress.value / 100,
+                    backgroundColor: Colors.grey[200],
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      const Color(0xFF2563EB),
+                    ),
+                    minHeight: 3,
+                  )
+                  : const SizedBox.shrink(),
+        ),
+        // WebView组件
+        Expanded(child: WebViewWidget(controller: controller)),
+      ],
+    );
   }
 
   // 论坛卡片
