@@ -6,6 +6,7 @@ import 'package:cryptosquare/controllers/user_controller.dart';
 import 'package:cryptosquare/views/home_view.dart';
 import 'package:cryptosquare/views/job_view.dart';
 import 'package:cryptosquare/views/profile_view.dart';
+import 'package:cryptosquare/views/forum_view.dart';
 import 'package:cryptosquare/theme/app_theme.dart';
 
 class MainView extends StatefulWidget {
@@ -62,7 +63,7 @@ class _MainViewState extends State<MainView>
                   case 1:
                     return JobView();
                   case 2:
-                    return const Center(child: Text('全球论坛页面'));
+                    return const ForumView();
                   default:
                     return HomeView();
                 }
