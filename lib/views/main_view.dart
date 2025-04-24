@@ -51,6 +51,7 @@ class _MainViewState extends State<MainView>
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
+        bottom: false, // 确保底部安全区域不会被压着,
         child: Column(
           children: [
             _buildHeader(),

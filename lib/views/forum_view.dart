@@ -471,9 +471,16 @@ class _ForumViewState extends State<ForumView>
 
   // 底部发布栏
   Widget _buildBottomPublishBar() {
+    // 获取底部安全区域高度
     return Container(
-      height: 60,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      // 高度包含内容高度(60)加上底部安全区域高度
+      height: 80,
+      padding: EdgeInsets.only(
+        left: 16,
+        right: 16,
+        top: 8,
+        bottom: 18, // 底部padding增加安全区域高度
+      ),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -492,7 +499,7 @@ class _ForumViewState extends State<ForumView>
             '贡献内容可获4积分',
             style: TextStyle(fontSize: 14, color: Colors.grey[600]),
           ),
-          const Spacer(),
+          const Spacer(flex: 6),
           ElevatedButton.icon(
             onPressed: () {
               // 发布动态逻辑
@@ -512,6 +519,7 @@ class _ForumViewState extends State<ForumView>
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             ),
           ),
+          const Spacer(flex: 1),
         ],
       ),
     );
