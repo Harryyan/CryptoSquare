@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:cryptosquare/theme/app_theme.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'dart:io';
 
 class ForumView extends StatefulWidget {
   const ForumView({super.key});
@@ -19,6 +20,7 @@ class _ForumViewState extends State<ForumView>
   final RxBool isRefreshing = false.obs;
   final RxBool isLoadingMore = false.obs;
   final RxBool hasSearchText = false.obs;
+  final RxBool isNetworkAvailable = true.obs; // 网络连接状态
 
   // WebView相关
   WebViewController? _webViewController;
@@ -66,8 +68,94 @@ class _ForumViewState extends State<ForumView>
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
         currentTabIndex.value = _tabController.index;
+
+        // 当切换到加密百科标签时，检查网络连接
+        if (currentTabIndex.value == 3) {
+          _checkNetworkAndLoadWebView();
+        }
       }
     });
+  }
+
+  // 检查网络连接并加载WebView
+  void _checkNetworkAndLoadWebView() {
+    // 如果WebView控制器已经初始化，则不需要重新创建
+    if (_webViewController != null) return;
+
+    try {
+      // 尝试初始化WebView控制器
+      _initWebViewController();
+    } catch (e) {
+      // 捕获可能的异常
+      print('WebView初始化错误: $e');
+      webViewProgress.value = 0;
+      isNetworkAvailable.value = false;
+
+      // 显示错误提示
+      Get.snackbar(
+        '加载错误',
+        '无法加载网页内容，请检查网络连接',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red[100],
+        colorText: Colors.red[900],
+        duration: const Duration(seconds: 3),
+      );
+    }
+  }
+
+  // 初始化WebView控制器
+  void _initWebViewController() {
+    final controller =
+        WebViewController()
+          ..setJavaScriptMode(JavaScriptMode.unrestricted)
+          ..setNavigationDelegate(
+            NavigationDelegate(
+              onProgress: (int progress) {
+                webViewProgress.value = progress;
+                // 如果进度大于0，说明网络连接正常
+                if (progress > 0) {
+                  isNetworkAvailable.value = true;
+                }
+              },
+              onPageStarted: (String url) {
+                webViewProgress.value = 0;
+                isNetworkAvailable.value = true; // 页面开始加载，网络应该是可用的
+              },
+              onPageFinished: (String url) {
+                webViewProgress.value = 100;
+                isNetworkAvailable.value = true; // 页面加载完成，网络是可用的
+              },
+              onWebResourceError: (WebResourceError error) {
+                print(
+                  'WebView error: ${error.description} (${error.errorCode})',
+                );
+                webViewProgress.value = 0;
+
+                // 根据错误类型判断网络状态
+                if (error.description.contains('SocketException') ||
+                    error.description.contains('Connection refused') ||
+                    error.description.contains('net::ERR_') ||
+                    error.description.contains('Failed host lookup')) {
+                  isNetworkAvailable.value = false;
+
+                  Get.snackbar(
+                    '网络连接错误',
+                    '无法连接到服务器，请检查您的网络连接',
+                    snackPosition: SnackPosition.BOTTOM,
+                    backgroundColor: Colors.red[100],
+                    colorText: Colors.red[900],
+                    duration: const Duration(seconds: 3),
+                  );
+                }
+              },
+            ),
+          )
+          ..loadRequest(
+            Uri.parse('https://www.cryptosquare.org/bbs?lng=zh-CN'),
+          );
+
+    // 保存控制器引用
+    _webViewController = controller;
   }
 
   @override
@@ -308,35 +396,10 @@ class _ForumViewState extends State<ForumView>
 
   // 加密百科WebView
   Widget _buildEncyclopediaWebView() {
-    // 创建WebView控制器
-    final controller =
-        WebViewController()
-          ..setJavaScriptMode(JavaScriptMode.unrestricted)
-          ..setNavigationDelegate(
-            NavigationDelegate(
-              onProgress: (int progress) {
-                // 更新加载进度
-                webViewProgress.value = progress;
-                print('WebView is loading (progress : $progress%)');
-              },
-              onPageStarted: (String url) {
-                // 页面开始加载时，设置进度为0
-                webViewProgress.value = 0;
-                print('Page started loading: $url');
-              },
-              onPageFinished: (String url) {
-                // 页面加载完成时，设置进度为100
-                webViewProgress.value = 100;
-                print('Page finished loading: $url');
-              },
-            ),
-          )
-          ..loadRequest(
-            Uri.parse('https://www.cryptosquare.org/bbs?lng=zh-CN'),
-          );
-
-    // 保存控制器引用
-    _webViewController = controller;
+    // 如果WebView控制器未初始化，则初始化
+    if (_webViewController == null) {
+      _initWebViewController();
+    }
 
     // 返回包含进度条和WebView的组件
     return Column(
@@ -356,7 +419,96 @@ class _ForumViewState extends State<ForumView>
                   : const SizedBox.shrink(),
         ),
         // WebView组件
-        Expanded(child: WebViewWidget(controller: controller)),
+        Expanded(
+          child:
+              _webViewController == null
+                  ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CircularProgressIndicator(
+                          color: const Color(0xFF2563EB),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          '正在加载...',
+                          style: TextStyle(color: Colors.grey[600]),
+                        ),
+                      ],
+                    ),
+                  )
+                  : Stack(
+                    children: [
+                      WebViewWidget(controller: _webViewController!),
+                      // 错误视图 - 当发生网络错误时显示
+                      Obx(
+                        () =>
+                            (!isNetworkAvailable.value ||
+                                        webViewProgress.value == 0) &&
+                                    currentTabIndex.value == 3 &&
+                                    webViewProgress.value != 100
+                                ? Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.wifi_off,
+                                        size: 64,
+                                        color: Colors.grey[400],
+                                      ),
+                                      const SizedBox(height: 16),
+                                      Text(
+                                        '网络连接错误',
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.grey[700],
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        '无法连接到服务器，请检查您的网络连接',
+                                        style: TextStyle(
+                                          color: Colors.grey[600],
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      const SizedBox(height: 24),
+                                      ElevatedButton.icon(
+                                        onPressed: () {
+                                          // 重新加载WebView
+                                          webViewProgress.value =
+                                              1; // 重置进度以显示加载状态
+                                          isNetworkAvailable.value =
+                                              true; // 重置网络状态
+                                          _webViewController?.reload();
+                                        },
+                                        icon: const Icon(
+                                          Icons.refresh,
+                                          color: Colors.white,
+                                        ),
+                                        label: const Text(
+                                          '重试',
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: const Color(
+                                            0xFF2563EB,
+                                          ),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 24,
+                                            vertical: 12,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                                : const SizedBox.shrink(),
+                      ),
+                    ],
+                  ),
+        ),
       ],
     );
   }
