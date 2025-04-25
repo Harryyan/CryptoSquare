@@ -230,6 +230,7 @@ class BitpushClient {
       final Map<String, dynamic> params = {
         'm': 'get_articles',
         'category_id': 1551,
+        'show_all': 1,
         'timestamp': DateTime.now().millisecondsSinceEpoch ~/ 1000,
       };
 
