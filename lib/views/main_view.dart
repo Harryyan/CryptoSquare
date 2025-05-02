@@ -1,3 +1,4 @@
+import 'package:cryptosquare/views/page_login.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
@@ -85,9 +86,19 @@ class _MainViewState extends State<MainView>
           Image.asset('assets/images/logo.png', height: 20),
           // 用户头像
           GestureDetector(
-            onTap: () {
-              // 处理头像点击事件，跳转到个人资料页面
-              Get.to(() => const ProfileView());
+            onTap: () async {
+              // 根据登录状态决定跳转到登录页面还是个人资料页面
+              if (userController.isLoggedIn) {
+                // 已登录，直接跳转到个人资料页面
+                Get.to(() => const ProfileView());
+              } else {
+                // 未登录，先跳转到登录页面
+                final result = await Get.to(() => const LoginPage());
+                // 检查登录结果，如果登录成功则跳转到个人资料页面
+                if (result != null && result['loginStatus'] == 'success') {
+                  Get.to(() => const ProfileView());
+                }
+              }
             },
             child: Obx(() {
               if (userController.isLoggedIn &&
