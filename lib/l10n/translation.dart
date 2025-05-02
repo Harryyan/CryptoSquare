@@ -39,6 +39,7 @@ class Translation extends Translations {
       I18nKeyword.otherLogin: "其他登录方式",
       I18nKeyword.loginSuccess: "登录成功",
       I18nKeyword.searchTitle: "搜索",
+      I18nKeyword.selectCountryCode: "选择国家/地区代码",
     },
     'en_US': {
       I18nKeyword.language: '简体中文',
@@ -77,6 +78,7 @@ class Translation extends Translations {
       I18nKeyword.otherLogin: "Or continue with",
       I18nKeyword.loginSuccess: "Login succeed",
       I18nKeyword.searchTitle: "Search",
+      I18nKeyword.selectCountryCode: "Select Country/Region Code",
     },
   };
 }

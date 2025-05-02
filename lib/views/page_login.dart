@@ -14,6 +14,7 @@ import 'dart:convert';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:country_picker/country_picker.dart';
 import 'package:getwidget/components/tabs/gf_segment_tabs.dart';
+import 'package:cryptosquare/views/country_code_page.dart';
 
 import '../widget/linked_label_checkbox.dart';
 import '../widget/square_tile.dart';
@@ -185,35 +186,17 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                             controller.index == 0
                                 ? null
                                 : GestureDetector(
-                                  onTap: () {
-                                    showCountryPicker(
-                                      context: context,
-                                      showPhoneCode: true,
-                                      favorite: ['CN'],
-                                      countryListTheme: CountryListThemeData(
-                                        borderRadius: BorderRadius.circular(
-                                          6.0,
-                                        ),
-                                        inputDecoration: InputDecoration(
-                                          labelText: I18nKeyword.searchTitle.tr,
-                                          hintText: I18nKeyword.searchHint.tr,
-                                          prefixIcon: const Icon(Icons.search),
-                                          border: OutlineInputBorder(
-                                            borderSide: BorderSide(
-                                              color: const Color(
-                                                0xFF8C98A8,
-                                              ).withOpacity(0.2),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      onSelect: (Country country) {
-                                        onCountryCodeSelected(
-                                          "+${country.phoneCode} ${country.countryCode}",
-                                        );
-                                      },
+                                  onTap: () async {
+                                    final result = await Get.to(
+                                      () => const CountryCodePage(),
                                     );
+                                    if (result != null && result is Country) {
+                                      onCountryCodeSelected(
+                                        "+${result.phoneCode} ${result.countryCode}",
+                                      );
+                                    }
                                   },
+
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 12.0,

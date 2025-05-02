@@ -35,6 +35,7 @@ class I18nKeyword {
   static const String searchHint = "searchHint";
   static const String currentLocation = "currentLocation";
   static const String lastPick = "lastPick";
+  static const String selectCountryCode = "selectCountryCode";
   static const String wiki = "wiki";
   static const String article = "article";
   static const String cancelLogin = "cancelLogin";
