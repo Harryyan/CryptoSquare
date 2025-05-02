@@ -13,4 +13,34 @@ class I18nKeyword {
   static const String networkError = "networkError";
   static const String retry = "retry";
   static const String networkErrorDetail = "networkErrorDetail";
+
+  // Sign In & Sign Up
+  static const String signInUpTitle = "signInUpTitle";
+  static const String signInUpType = "signInUpType";
+  static const String deleteAccountTitle = "deleteAccountTitle";
+  static const String deleteAccountType = "deleteAccountType";
+  static const String email = "email";
+  static const String phone = "phone";
+  static const String emailEmpty = "emailEmpty";
+  static const String emailInvalid = "emailInvalid";
+  static const String phoneEmpty = "phoneEmpty";
+  static const String verifyCode = "verifyCode";
+  static const String sendCode = "sendCode";
+  static const String codeSentFailed = "codeSentFailed";
+  static const String codeShouldNotEmpty = "codeShouldNotEmpty";
+  static const String codeSent = "codeSent";
+  static const String phoneNumber = "phoneNumber";
+  static const String countryListSearchTitle = "countryListSearchTitle";
+  static const String searchTitle = "searchTitle";
+  static const String searchHint = "searchHint";
+  static const String currentLocation = "currentLocation";
+  static const String lastPick = "lastPick";
+  static const String wiki = "wiki";
+  static const String article = "article";
+  static const String cancelLogin = "cancelLogin";
+  static const String loginSuccess = "loginSuccess";
+  static const String cancelReply = "cancelReply";
+  static const String replySucceed = "replySucceed";
+  static const String replyFailed = "replyFailed";
+  static const String otherLogin = "otherLogin";
 }

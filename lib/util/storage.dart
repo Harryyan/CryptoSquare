@@ -1,6 +1,6 @@
 import 'package:get_storage/get_storage.dart';
 
-enum StoreKeys { language, loginStatus, token }
+enum StoreKeys { language, loginStatus, token, userInfo }
 
 class GStorage {
   static final GStorage _storage = GStorage._internal();
@@ -28,4 +28,9 @@ class GStorage {
   setToken(String token) => _box.write(StoreKeys.token.toString(), token);
 
   String getToken() => _box.read<String>(StoreKeys.token.toString()) ?? "";
+
+  // 用户信息
+  setUserInfo(Map info) => _box.write(StoreKeys.userInfo.toString(), info);
+
+  Map getUserInfo() => _box.read<Map>(StoreKeys.userInfo.toString()) ?? {};
 }
