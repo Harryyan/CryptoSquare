@@ -9,6 +9,7 @@ import 'package:cryptosquare/views/job_view.dart';
 import 'package:cryptosquare/views/profile_view.dart';
 import 'package:cryptosquare/views/forum_view.dart';
 import 'package:cryptosquare/theme/app_theme.dart';
+import 'package:cryptosquare/util/storage.dart';
 
 class MainView extends StatefulWidget {
   MainView({super.key});
@@ -87,8 +88,8 @@ class _MainViewState extends State<MainView>
           // 用户头像
           GestureDetector(
             onTap: () async {
-              // 根据登录状态决定跳转到登录页面还是个人资料页面
-              if (userController.isLoggedIn) {
+              // 使用GStorage().getLoginStatus()检查登录状态
+              if (GStorage().getLoginStatus()) {
                 // 已登录，直接跳转到个人资料页面
                 Get.to(() => const ProfileView());
               } else {
@@ -101,7 +102,7 @@ class _MainViewState extends State<MainView>
               }
             },
             child: Obx(() {
-              if (userController.isLoggedIn &&
+              if (GStorage().getLoginStatus() &&
                   userController.user.avatarUrl != null) {
                 return CircleAvatar(
                   radius: 20,

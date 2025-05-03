@@ -8,6 +8,7 @@ import 'package:cryptosquare/util/event_bus.dart';
 import 'package:cryptosquare/util/storage.dart';
 
 import 'package:flutter/services.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
@@ -285,24 +286,57 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                   eventBus.emit('isUserNameValid', 'true');
                                 }
 
-                                var result =
-                                    isEmail
-                                        ? await UserRestClient().emailVerify(
-                                          _userNameController.text,
-                                        )
-                                        : await UserRestClient().phoneVerify(
-                                          keepOnlyNumbers(
-                                            selectedCountryCode +
-                                                _userNameController.text,
-                                          ),
-                                          GStorage().getLanguageCN() ? 1 : 0,
-                                        );
+                                try {
+                                  var result =
+                                      isEmail
+                                          ? await UserRestClient().emailVerify(
+                                            _userNameController.text,
+                                          )
+                                          : await UserRestClient().phoneVerify(
+                                            keepOnlyNumbers(
+                                              selectedCountryCode +
+                                                  _userNameController.text,
+                                            ),
+                                            GStorage().getLanguageCN() ? 1 : 0,
+                                          );
 
-                                SmartDialog.showToast(
-                                  result.code == 0
-                                      ? I18nKeyword.codeSent.tr
-                                      : "${result.message}",
-                                );
+                                  // 确保在UI线程上显示Toast
+                                  WidgetsBinding.instance.addPostFrameCallback((
+                                    _,
+                                  ) {
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            result.code == 0
+                                                ? I18nKeyword.codeSent.tr
+                                                : "${result.message}",
+                                          ),
+                                          duration: const Duration(seconds: 2),
+                                        ),
+                                      );
+                                    }
+                                  });
+                                } catch (e) {
+                                  // 处理异常情况
+                                  WidgetsBinding.instance.addPostFrameCallback((
+                                    _,
+                                  ) {
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text("发送验证码失败，请稍后重试"),
+                                          duration: const Duration(seconds: 2),
+                                        ),
+                                      );
+                                    }
+                                  });
+                                  print("验证码发送错误: $e");
+                                }
                               },
                             ),
                           ),
@@ -448,11 +482,18 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                           } else {
                             // 登录失败
                             setState(() {
-                              SmartDialog.showToast(
-                                GStorage().getLanguageCN()
-                                    ? '登录失败'
-                                    : 'Login Failed',
-                              );
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      GStorage().getLanguageCN()
+                                          ? '登录失败'
+                                          : 'Login Failed',
+                                    ),
+                                    duration: const Duration(seconds: 2),
+                                  ),
+                                );
+                              }
                               // _passwordController.value =
                               //     const TextEditingValue(text: '');
                               _codeController.value = const TextEditingValue(
@@ -551,11 +592,18 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                           } else {
                             // 登录失败
                             setState(() {
-                              SmartDialog.showToast(
-                                GStorage().getLanguageCN()
-                                    ? '登录失败'
-                                    : 'Login Failed',
-                              );
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      GStorage().getLanguageCN()
+                                          ? '登录失败'
+                                          : 'Login Failed',
+                                    ),
+                                    duration: const Duration(seconds: 2),
+                                  ),
+                                );
+                              }
                               // _passwordController.value =
                               //     const TextEditingValue(text: '');
                               _codeController.value = const TextEditingValue(
@@ -624,11 +672,18 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                             } else {
                               // 登录失败
                               setState(() {
-                                SmartDialog.showToast(
-                                  GStorage().getLanguageCN()
-                                      ? '登录失败'
-                                      : 'Login Failed',
-                                );
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        GStorage().getLanguageCN()
+                                            ? '登录失败'
+                                            : 'Login Failed',
+                                      ),
+                                      duration: const Duration(seconds: 2),
+                                    ),
+                                  );
+                                }
                                 // _passwordController.value =
                                 //     const TextEditingValue(text: '');
                                 _codeController.value = const TextEditingValue(
