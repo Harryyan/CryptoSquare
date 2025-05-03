@@ -10,6 +10,7 @@ import 'package:cryptosquare/views/profile_view.dart';
 import 'package:cryptosquare/views/forum_view.dart';
 import 'package:cryptosquare/theme/app_theme.dart';
 import 'package:cryptosquare/util/storage.dart';
+import 'package:cryptosquare/util/event_bus.dart';
 
 class MainView extends StatefulWidget {
   MainView({super.key});
@@ -24,6 +25,9 @@ class _MainViewState extends State<MainView>
   final UserController userController = Get.find<UserController>();
   late TabController _tabController;
 
+  // 添加登录状态的响应式变量
+  final RxBool isLoggedIn = false.obs;
+
   @override
   void initState() {
     super.initState();
@@ -33,6 +37,19 @@ class _MainViewState extends State<MainView>
       if (_tabController.indexIsChanging) {
         homeController.changeTab(_tabController.index);
       }
+    });
+
+    // 初始化登录状态
+    isLoggedIn.value = GStorage().getLoginStatus();
+
+    // 监听登录状态变化事件
+    eventBus.on('loginSuccessful', (_) {
+      updateLoginStatus();
+    });
+
+    // 监听登出事件
+    eventBus.on('logoutSuccessful', (_) {
+      updateLoginStatus();
     });
 
     // 监听homeController的currentTabIndex变化，同步到TabController
@@ -45,8 +62,16 @@ class _MainViewState extends State<MainView>
 
   @override
   void dispose() {
+    // 移除事件监听
+    eventBus.off('loginSuccessful');
+    eventBus.off('logoutSuccessful');
     _tabController.dispose();
     super.dispose();
+  }
+
+  // 监听登录状态变化
+  void updateLoginStatus() {
+    isLoggedIn.value = GStorage().getLoginStatus();
   }
 
   @override
@@ -88,8 +113,8 @@ class _MainViewState extends State<MainView>
           // 用户头像
           GestureDetector(
             onTap: () async {
-              // 使用GStorage().getLoginStatus()检查登录状态
-              if (GStorage().getLoginStatus()) {
+              // 使用响应式变量检查登录状态
+              if (isLoggedIn.value) {
                 // 已登录，直接跳转到个人资料页面
                 Get.to(() => const ProfileView());
               } else {
@@ -97,13 +122,14 @@ class _MainViewState extends State<MainView>
                 final result = await Get.to(() => const LoginPage());
                 // 检查登录结果，如果登录成功则跳转到个人资料页面
                 if (result != null && result['loginStatus'] == 'success') {
+                  // 更新登录状态
+                  isLoggedIn.value = true;
                   Get.to(() => const ProfileView());
                 }
               }
             },
             child: Obx(() {
-              if (GStorage().getLoginStatus() &&
-                  userController.user.avatarUrl != null) {
+              if (isLoggedIn.value && userController.user.avatarUrl != null) {
                 return CircleAvatar(
                   radius: 20,
                   backgroundImage: NetworkImage(userController.user.avatarUrl!),

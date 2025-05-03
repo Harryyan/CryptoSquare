@@ -24,7 +24,7 @@ class GStorage {
   bool getLoginStatus() =>
       _box.read<bool>(StoreKeys.loginStatus.toString()) ?? false;
 
-  // setToken, getToken
+  // 用户token
   setToken(String token) => _box.write(StoreKeys.token.toString(), token);
 
   String getToken() => _box.read<String>(StoreKeys.token.toString()) ?? "";

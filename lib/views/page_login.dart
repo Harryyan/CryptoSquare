@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 import 'dart:io';
 import 'package:cryptosquare/auth_service/auth_service.dart';
 import 'package:cryptosquare/components/countdown_button.dart';
@@ -471,6 +472,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                             // 登录成功
                             GStorage().setLoginStatus(true);
                             GStorage().setToken(result.data?.secret ?? "");
+                            log(result.data?.secret ?? "");
                             GStorage().setUserInfo({
                               "avatar": result.data?.avatar,
                               "userName": result.data?.nickname,

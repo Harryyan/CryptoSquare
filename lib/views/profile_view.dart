@@ -6,6 +6,8 @@ import 'package:cryptosquare/controllers/home_controller.dart';
 import 'package:cryptosquare/controllers/job_controller.dart';
 import 'package:cryptosquare/theme/app_theme.dart';
 import 'package:cryptosquare/util/tag_utils.dart';
+import 'package:cryptosquare/util/storage.dart';
+import 'package:cryptosquare/models/app_models.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
@@ -25,6 +27,12 @@ class _ProfileViewState extends State<ProfileView>
   final RxInt currentTabIndex = 0.obs;
   // 右侧：2=岗位，3=帖子
   final RxInt postTabIndex = 2.obs;
+
+  // 用户信息
+  final RxBool isUserLoggedIn = false.obs;
+  final RxString userName = '未登录'.obs;
+  final RxString userAvatar = ''.obs;
+  final RxInt userScore = 0.obs;
 
   @override
   void initState() {
@@ -46,6 +54,45 @@ class _ProfileViewState extends State<ProfileView>
         }
       }
     });
+
+    // 从GStorage加载用户信息
+    _loadUserInfo();
+
+    // 使用addPostFrameCallback确保在构建完成后再同步用户信息到UserController
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _syncUserInfoToController();
+    });
+  }
+
+  /// 从GStorage加载用户信息
+  void _loadUserInfo() {
+    // 检查登录状态
+    isUserLoggedIn.value = GStorage().getLoginStatus();
+
+    if (isUserLoggedIn.value) {
+      // 获取用户信息
+      Map userInfo = GStorage().getUserInfo();
+
+      // 更新用户信息
+      userName.value = userInfo['userName'] ?? '未登录';
+      userAvatar.value = userInfo['avatar'] ?? '';
+      userScore.value = userInfo['score'] ?? 0;
+    }
+  }
+
+  /// 将用户信息同步到UserController
+  void _syncUserInfoToController() {
+    if (isUserLoggedIn.value && userController.user.id == 0) {
+      Map userInfo = GStorage().getUserInfo();
+      userController.login(
+        User(
+          id: userInfo['userID'] ?? 0,
+          name: userName.value,
+          avatarUrl: userAvatar.value,
+          isLoggedIn: true,
+        ),
+      );
+    }
   }
 
   @override
@@ -132,8 +179,7 @@ class _ProfileViewState extends State<ProfileView>
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Obx(() {
-              if (userController.isLoggedIn &&
-                  userController.user.avatarUrl != null) {
+              if (isUserLoggedIn.value && userAvatar.value.isNotEmpty) {
                 return Container(
                   decoration: BoxDecoration(
                     shape: BoxShape.rectangle,
@@ -143,7 +189,7 @@ class _ProfileViewState extends State<ProfileView>
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(14),
                     child: Image.network(
-                      userController.user.avatarUrl!,
+                      userAvatar.value,
                       width: 60,
                       height: 60,
                       fit: BoxFit.cover,
@@ -179,8 +225,8 @@ class _ProfileViewState extends State<ProfileView>
                 children: [
                   Obx(
                     () => Text(
-                      userController.isLoggedIn
-                          ? _formatUserName(userController.user.name)
+                      isUserLoggedIn.value
+                          ? _formatUserName(userName.value)
                           : '未登录',
                       style: const TextStyle(
                         color: Colors.white,
@@ -199,9 +245,11 @@ class _ProfileViewState extends State<ProfileView>
                         height: 16,
                       ),
                       const SizedBox(width: 5),
-                      const Text(
-                        '199积分',
-                        style: TextStyle(color: Colors.white, fontSize: 14),
+                      Obx(
+                        () => Text(
+                          '${userScore.value}积分',
+                          style: TextStyle(color: Colors.white, fontSize: 14),
+                        ),
                       ),
                     ],
                   ),

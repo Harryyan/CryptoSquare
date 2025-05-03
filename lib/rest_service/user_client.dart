@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cryptosquare/model/cs_user.dart';
 import 'package:cryptosquare/model/cs_user_profile_data.dart';
 import 'package:cryptosquare/models/checkIn_states.dart';
+import 'package:cryptosquare/util/storage.dart';
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 
@@ -17,8 +18,14 @@ abstract class UserRestClient {
     _dio?.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) {
+          String token = GStorage().getToken();
+
           options.headers["platform"] = Platform.isAndroid ? "android" : "ios";
           options.headers["app-version"] = "1.4.2";
+
+          if (token.isNotEmpty) {
+            options.headers["x-user-secret"] = token;
+          }
 
           return handler.next(options);
         },
