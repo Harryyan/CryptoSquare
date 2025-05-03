@@ -468,11 +468,12 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                   );
 
                           if (result.code == 0) {
-                            var profile = await UserRestClient().userProfile();
                             // 登录成功
                             GStorage().setLoginStatus(true);
                             GStorage().setToken(result.data?.secret ?? "");
                             log(result.data?.secret ?? "");
+
+                            var profile = await UserRestClient().userProfile();
                             GStorage().setUserInfo({
                               "avatar": result.data?.avatar,
                               "userName": result.data?.nickname,

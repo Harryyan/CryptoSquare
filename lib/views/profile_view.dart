@@ -247,7 +247,7 @@ class _ProfileViewState extends State<ProfileView>
                       const SizedBox(width: 5),
                       Obx(
                         () => Text(
-                          '${userScore.value}积分',
+                          '${userScore.value} 积分',
                           style: TextStyle(color: Colors.white, fontSize: 14),
                         ),
                       ),
