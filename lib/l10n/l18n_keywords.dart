@@ -44,4 +44,9 @@ class I18nKeyword {
   static const String replySucceed = "replySucceed";
   static const String replyFailed = "replyFailed";
   static const String otherLogin = "otherLogin";
+
+  // Job related
+  static const String tip = "tip";
+  static const String loginToFavorite = "loginToFavorite";
+  static const String favoriteError = "favoriteError";
 }

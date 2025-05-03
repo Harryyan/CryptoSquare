@@ -3,7 +3,7 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:cryptosquare/auth_service/auth_service.dart';
 import 'package:cryptosquare/components/countdown_button.dart';
-import 'package:cryptosquare/l10n/l10n_keywords.dart';
+import 'package:cryptosquare/l10n/l18n_keywords.dart';
 import 'package:cryptosquare/rest_service/user_client.dart';
 import 'package:cryptosquare/util/event_bus.dart';
 import 'package:cryptosquare/util/storage.dart';

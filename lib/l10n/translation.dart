@@ -1,4 +1,4 @@
-import 'package:cryptosquare/l10n/l10n_keywords.dart';
+import 'package:cryptosquare/l10n/l18n_keywords.dart';
 import 'package:get/get.dart';
 
 class Translation extends Translations {
@@ -40,6 +40,10 @@ class Translation extends Translations {
       I18nKeyword.loginSuccess: "登录成功",
       I18nKeyword.searchTitle: "搜索",
       I18nKeyword.selectCountryCode: "选择国家/地区代码",
+      // Job related
+      I18nKeyword.tip: "提示",
+      I18nKeyword.loginToFavorite: "请先登录后再收藏职位",
+      I18nKeyword.favoriteError: "收藏操作失败，请稍后重试",
     },
     'en_US': {
       I18nKeyword.language: '简体中文',
@@ -79,6 +83,11 @@ class Translation extends Translations {
       I18nKeyword.loginSuccess: "Login succeed",
       I18nKeyword.searchTitle: "Search",
       I18nKeyword.selectCountryCode: "Select Country/Region Code",
+      // Job related
+      I18nKeyword.tip: "Tip",
+      I18nKeyword.loginToFavorite: "Please login before adding to favorites",
+      I18nKeyword.favoriteError:
+          "Favorite operation failed, please try again later",
     },
   };
 }

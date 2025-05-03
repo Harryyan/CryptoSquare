@@ -1,7 +1,9 @@
+import 'package:cryptosquare/l10n/l18n_keywords.dart';
 import 'package:get/get.dart';
 import 'package:cryptosquare/models/app_models.dart';
 import 'package:cryptosquare/rest_service/rest_client.dart';
 import 'package:cryptosquare/rest_service/bitpush_client.dart';
+import 'package:cryptosquare/util/storage.dart';
 import 'package:dio/dio.dart';
 
 class HomeController extends GetxController {
@@ -316,7 +318,19 @@ class HomeController extends GetxController {
       final job = jobs[index];
       final newFavoriteStatus = !job.isFavorite;
 
-      // 调用收藏接口
+      // 检查用户是否已登录
+      if (!GStorage().getLoginStatus()) {
+        // 用户未登录，显示提示信息
+        Get.snackbar(
+          I18nKeyword.tip.tr,
+          I18nKeyword.loginToFavorite.tr,
+          snackPosition: SnackPosition.BOTTOM,
+          duration: const Duration(seconds: 2),
+        );
+        return; // 中断后续操作
+      }
+
+      // 用户已登录，调用收藏接口
       _restClient
           .collectJob(jobKey)
           .then((response) {
@@ -337,7 +351,13 @@ class HomeController extends GetxController {
           })
           .catchError((error) {
             print('收藏操作失败: $error');
-            // 可以在这里添加错误提示
+            // 显示错误提示
+            Get.snackbar(
+              I18nKeyword.tip.tr,
+              I18nKeyword.favoriteError.tr,
+              snackPosition: SnackPosition.BOTTOM,
+              duration: const Duration(seconds: 2),
+            );
           });
     }
   }

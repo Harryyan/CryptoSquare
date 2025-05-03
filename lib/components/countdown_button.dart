@@ -1,4 +1,4 @@
-import 'package:cryptosquare/l10n/l10n_keywords.dart';
+import 'package:cryptosquare/l10n/l18n_keywords.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 
