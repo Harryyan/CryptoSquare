@@ -1,3 +1,4 @@
+import 'package:cryptosquare/models/app_models.dart';
 import 'package:cryptosquare/views/page_login.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -42,14 +43,21 @@ class _MainViewState extends State<MainView>
     // 初始化登录状态
     isLoggedIn.value = GStorage().getLoginStatus();
 
+    // 如果用户已登录，从GStorage加载用户信息
+    if (isLoggedIn.value) {
+      _loadUserInfo();
+    }
+
     // 监听登录状态变化事件
     eventBus.on('loginSuccessful', (_) {
       updateLoginStatus();
+      _loadUserInfo(); // 登录成功后加载用户信息
     });
 
     // 监听登出事件
     eventBus.on('logoutSuccessful', (_) {
       updateLoginStatus();
+      userController.logout(); // 登出时清除用户信息
     });
 
     // 监听homeController的currentTabIndex变化，同步到TabController
@@ -72,6 +80,21 @@ class _MainViewState extends State<MainView>
   // 监听登录状态变化
   void updateLoginStatus() {
     isLoggedIn.value = GStorage().getLoginStatus();
+  }
+
+  // 从GStorage加载用户信息
+  void _loadUserInfo() {
+    Map userInfo = GStorage().getUserInfo();
+    if (userInfo.isNotEmpty) {
+      // 创建User对象并更新UserController
+      User user = User(
+        id: userInfo['userID'] ?? 0,
+        name: userInfo['userName'] ?? '',
+        avatarUrl: userInfo['avatar'],
+        isLoggedIn: true,
+      );
+      userController.login(user);
+    }
   }
 
   @override
@@ -129,18 +152,24 @@ class _MainViewState extends State<MainView>
               }
             },
             child: Obx(() {
-              if (isLoggedIn.value && userController.user.avatarUrl != null) {
-                return CircleAvatar(
-                  radius: 20,
-                  backgroundImage: NetworkImage(userController.user.avatarUrl!),
-                );
-              } else {
-                return SvgPicture.asset(
-                  'assets/images/avatar_placeholder.svg',
-                  height: 30,
-                  width: 30,
-                );
+              if (isLoggedIn.value) {
+                // 直接从GStorage获取用户信息
+                Map userInfo = GStorage().getUserInfo();
+                String? avatarUrl = userInfo['avatar'];
+
+                if (avatarUrl != null && avatarUrl.isNotEmpty) {
+                  return CircleAvatar(
+                    radius: 20,
+                    backgroundImage: NetworkImage(avatarUrl),
+                  );
+                }
               }
+              // 未登录或没有头像时显示默认头像
+              return Image.asset(
+                'assets/images/avatar.png',
+                height: 40,
+                width: 40,
+              );
             }),
           ),
         ],
