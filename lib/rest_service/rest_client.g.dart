@@ -264,6 +264,12 @@ Map<String, dynamic> _$TopBannerPopToJson(TopBannerPop instance) =>
       'tips': instance.tips,
     };
 
+JobCollectData _$JobCollectDataFromJson(Map<String, dynamic> json) =>
+    JobCollectData(status: (json['status'] as num?)?.toInt());
+
+Map<String, dynamic> _$JobCollectDataToJson(JobCollectData instance) =>
+    <String, dynamic>{'status': instance.status};
+
 HomeServiceItem _$HomeServiceItemFromJson(Map<String, dynamic> json) =>
     HomeServiceItem(
       id: (json['id'] as num?)?.toInt(),
@@ -473,6 +479,36 @@ class _RestClient implements RestClient {
       _value = BaseResponse<JobDetailData>.fromJson(
         _result.data!,
         (json) => JobDetailData.fromJson(json as Map<String, dynamic>),
+      );
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
+  Future<BaseResponse<JobCollectData>> collectJob(String jobKey) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final _data = {'job_key': jobKey};
+    final _options = _setStreamType<BaseResponse<JobCollectData>>(
+      Options(method: 'POST', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/api/v3/job/collect',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late BaseResponse<JobCollectData> _value;
+    try {
+      _value = BaseResponse<JobCollectData>.fromJson(
+        _result.data!,
+        (json) => JobCollectData.fromJson(json as Map<String, dynamic>),
       );
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options);

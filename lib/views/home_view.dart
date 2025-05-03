@@ -491,7 +491,11 @@ class HomeView extends StatelessWidget {
                   ),
                   const SizedBox(width: 16), // 添加固定间隔
                   GestureDetector(
-                    onTap: () => homeController.toggleFavorite(job.id),
+                    onTap:
+                        () => homeController.toggleFavorite(
+                          job.id,
+                          job.jobKey ?? "",
+                        ),
                     child: Image.asset(
                       job.isFavorite
                           ? 'assets/images/star_fill.png'

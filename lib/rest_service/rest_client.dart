@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:retrofit/retrofit.dart';
 import 'package:cryptosquare/util/environment_config.dart';
+import 'package:cryptosquare/util/storage.dart';
 
 part 'rest_client.g.dart';
 
@@ -66,6 +69,24 @@ abstract class RestClient {
   /// 创建一个使用当前环境配置的RestClient实例
   static RestClient create() {
     final dio = Dio();
+
+    // 添加拦截器处理用户认证
+    dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) {
+          String token = GStorage().getToken();
+
+          options.headers["platform"] = Platform.isAndroid ? "android" : "ios";
+
+          if (token.isNotEmpty) {
+            options.headers["x-user-secret"] = token;
+          }
+
+          return handler.next(options);
+        },
+      ),
+    );
+
     return RestClient(dio, baseUrl: EnvironmentConfig.baseUrl);
   }
 
@@ -92,6 +113,11 @@ abstract class RestClient {
     @Path('job_key') String jobKey,
     @Query('lang') int lang,
     @Query('PLATFORM') String platformStr,
+  );
+
+  @POST('/api/v3/job/collect')
+  Future<BaseResponse<JobCollectData>> collectJob(
+    @Field('job_key') String jobKey,
   );
 }
 
@@ -455,6 +481,19 @@ class TopBannerPop {
   final dynamic tips;
 
   Map<String, dynamic> toJson() => _$TopBannerPopToJson(this);
+}
+
+@JsonSerializable()
+class JobCollectData {
+  const JobCollectData({this.status});
+
+  factory JobCollectData.fromJson(Map<String, dynamic> json) =>
+      _$JobCollectDataFromJson(json);
+
+  @JsonKey(name: 'status')
+  final int? status;
+
+  Map<String, dynamic> toJson() => _$JobCollectDataToJson(this);
 }
 
 @JsonSerializable()

@@ -297,8 +297,6 @@ class HomeController extends GetxController {
             currentNewsPage.value--;
           }
           throw error; // 重新抛出错误，让上层知道这个请求失败了
-          // 不再抛出错误，而是返回成功，这样即使这个请求失败，其他请求仍然可以继续
-          return Future.value();
         });
   }
 
@@ -312,21 +310,35 @@ class HomeController extends GetxController {
     currentServiceTabIndex.value = index;
   }
 
-  void toggleFavorite(int jobId) {
+  void toggleFavorite(int jobId, String jobKey) {
     final index = jobs.indexWhere((job) => job.id == jobId);
     if (index != -1) {
       final job = jobs[index];
-      jobs[index] = JobPost(
-        id: job.id,
-        title: job.title,
-        company: job.company,
-        location: job.location,
-        salary: job.salary,
-        timeAgo: job.timeAgo,
-        createdAt: job.createdAt,
-        tags: job.tags,
-        isFavorite: !job.isFavorite,
-      );
+      final newFavoriteStatus = !job.isFavorite;
+
+      // 调用收藏接口
+      _restClient
+          .collectJob(jobKey)
+          .then((response) {
+            // 接口调用成功后更新UI
+            jobs[index] = JobPost(
+              id: job.id,
+              title: job.title,
+              company: job.company,
+              location: job.location,
+              salary: job.salary,
+              timeAgo: job.timeAgo,
+              createdAt: job.createdAt,
+              tags: job.tags,
+              jobKey: job.jobKey,
+              isFavorite: newFavoriteStatus,
+            );
+            print('收藏状态更新成功: ${newFavoriteStatus ? "已收藏" : "取消收藏"}');
+          })
+          .catchError((error) {
+            print('收藏操作失败: $error');
+            // 可以在这里添加错误提示
+          });
     }
   }
 }
