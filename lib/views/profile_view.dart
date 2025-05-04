@@ -7,6 +7,7 @@ import 'package:cryptosquare/controllers/job_controller.dart';
 import 'package:cryptosquare/theme/app_theme.dart';
 import 'package:cryptosquare/util/tag_utils.dart';
 import 'package:cryptosquare/util/storage.dart';
+import 'package:cryptosquare/util/event_bus.dart';
 import 'package:cryptosquare/models/app_models.dart';
 import 'package:cryptosquare/views/profile_edit_view.dart';
 
@@ -63,6 +64,12 @@ class _ProfileViewState extends State<ProfileView>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _syncUserInfoToController();
     });
+
+    // 监听头像更新事件
+    eventBus.on('avatarUpdated', (_) {
+      // 当头像更新时，重新加载用户信息以更新头像显示
+      _loadUserInfo();
+    });
   }
 
   /// 从GStorage加载用户信息
@@ -99,6 +106,8 @@ class _ProfileViewState extends State<ProfileView>
   @override
   void dispose() {
     _tabController.dispose();
+    // 移除事件监听
+    eventBus.off('avatarUpdated');
     super.dispose();
   }
 

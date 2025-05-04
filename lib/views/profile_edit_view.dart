@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:cryptosquare/controllers/user_controller.dart';
 import 'package:cryptosquare/theme/app_theme.dart';
 import 'package:cryptosquare/util/storage.dart';
+import 'package:cryptosquare/util/event_bus.dart';
 import 'package:cryptosquare/models/app_models.dart';
 import 'package:cryptosquare/l10n/l18n_keywords.dart';
 import 'package:cryptosquare/rest_service/user_client.dart';
@@ -118,6 +119,9 @@ class _ProfileEditViewState extends State<ProfileEditView> {
             isLoggedIn: true,
           ),
         );
+
+        // 发送头像更新事件通知，让其他页面更新头像显示
+        eventBus.emit('avatarUpdated', userInfo['avatar']);
       }
 
       SmartDialog.dismiss();

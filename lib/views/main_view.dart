@@ -28,6 +28,8 @@ class _MainViewState extends State<MainView>
 
   // 添加登录状态的响应式变量
   final RxBool isLoggedIn = false.obs;
+  // 添加头像URL的响应式变量
+  final RxString avatarUrl = ''.obs;
 
   @override
   void initState() {
@@ -60,6 +62,12 @@ class _MainViewState extends State<MainView>
       userController.logout(); // 登出时清除用户信息
     });
 
+    // 监听头像更新事件
+    eventBus.on('avatarUpdated', (_) {
+      // 当头像更新时，重新加载用户信息以更新头像显示
+      _loadUserInfo();
+    });
+
     // 监听homeController的currentTabIndex变化，同步到TabController
     ever(homeController.currentTabIndex, (index) {
       if (_tabController.index != index) {
@@ -73,6 +81,7 @@ class _MainViewState extends State<MainView>
     // 移除事件监听
     eventBus.off('loginSuccessful');
     eventBus.off('logoutSuccessful');
+    eventBus.off('avatarUpdated');
     _tabController.dispose();
     super.dispose();
   }
@@ -86,6 +95,9 @@ class _MainViewState extends State<MainView>
   void _loadUserInfo() {
     Map userInfo = GStorage().getUserInfo();
     if (userInfo.isNotEmpty) {
+      // 更新头像URL的响应式变量
+      avatarUrl.value = userInfo['avatar'] ?? '';
+
       // 创建User对象并更新UserController
       User user = User(
         id: userInfo['userID'] ?? 0,
@@ -153,14 +165,11 @@ class _MainViewState extends State<MainView>
             },
             child: Obx(() {
               if (isLoggedIn.value) {
-                // 直接从GStorage获取用户信息
-                Map userInfo = GStorage().getUserInfo();
-                String? avatarUrl = userInfo['avatar'];
-
-                if (avatarUrl != null && avatarUrl.isNotEmpty) {
+                // 使用响应式变量avatarUrl
+                if (avatarUrl.value.isNotEmpty) {
                   return CircleAvatar(
                     radius: 20,
-                    backgroundImage: NetworkImage(avatarUrl),
+                    backgroundImage: NetworkImage(avatarUrl.value),
                   );
                 }
               }
