@@ -334,6 +334,53 @@ class _UserRestClient implements UserRestClient {
     return _value;
   }
 
+  @override
+  Future<CSUserAvatarResp> uploadAvatar(
+    File? imageFile,
+    String imgName,
+    String nickname,
+    int lang,
+  ) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    queryParameters.removeWhere((k, v) => v == null);
+    final _headers = <String, dynamic>{};
+    final _data = FormData();
+    if (imageFile != null) {
+      _data.files.add(
+        MapEntry(
+          'avatar',
+          MultipartFile.fromFileSync(
+            imageFile.path,
+            filename: imageFile.path.split(Platform.pathSeparator).last,
+          ),
+        ),
+      );
+    }
+    _data.fields.add(MapEntry('imageName', imgName));
+    _data.fields.add(MapEntry('nickname', nickname));
+    _data.fields.add(MapEntry('lang', lang.toString()));
+    final _options = _setStreamType<CSUserAvatarResp>(
+      Options(method: 'POST', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/user/avatar',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late CSUserAvatarResp _value;
+    try {
+      _value = CSUserAvatarResp.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options);
+      rethrow;
+    }
+    return _value;
+  }
+
   RequestOptions _setStreamType<T>(RequestOptions requestOptions) {
     if (T != dynamic &&
         !(requestOptions.responseType == ResponseType.bytes ||

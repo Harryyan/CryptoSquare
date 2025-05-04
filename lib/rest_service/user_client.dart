@@ -94,4 +94,12 @@ abstract class UserRestClient {
 
   @GET("/bbs/user_check_in_status")
   Future<CheckInStateResp> checkInStatus();
+
+  @POST("/user/avatar")
+  Future<CSUserAvatarResp> uploadAvatar(
+    @Part(name: "avatar") File? imageFile,
+    @Part(name: "imageName") String imgName,
+    @Part(name: "nickname") String nickname,
+    @Part(name: "lang") int lang,
+  );
 }
