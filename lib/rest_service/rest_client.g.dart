@@ -265,10 +265,26 @@ Map<String, dynamic> _$TopBannerPopToJson(TopBannerPop instance) =>
     };
 
 JobCollectData _$JobCollectDataFromJson(Map<String, dynamic> json) =>
-    JobCollectData(status: (json['status'] as num?)?.toInt());
+    JobCollectData(
+      id: (json['id'] as num?)?.toInt(),
+      rsType: json['rs_type'] as String?,
+      rsId: json['rs_id'] as String?,
+      value: (json['value'] as num?)?.toInt(),
+      userId: (json['user_id'] as num?)?.toInt(),
+      createdAt: json['created_at'] as String?,
+      updatedAt: json['updated_at'] as String?,
+    );
 
 Map<String, dynamic> _$JobCollectDataToJson(JobCollectData instance) =>
-    <String, dynamic>{'status': instance.status};
+    <String, dynamic>{
+      'id': instance.id,
+      'rs_type': instance.rsType,
+      'rs_id': instance.rsId,
+      'value': instance.value,
+      'user_id': instance.userId,
+      'created_at': instance.createdAt,
+      'updated_at': instance.updatedAt,
+    };
 
 HomeServiceItem _$HomeServiceItemFromJson(Map<String, dynamic> json) =>
     HomeServiceItem(

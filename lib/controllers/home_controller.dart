@@ -335,7 +335,11 @@ class HomeController extends GetxController {
           .collectJob(jobKey)
           .then((response) {
             // 检查响应的code字段，只有当code为0时才表示成功
-            if (response.code == 0) {
+            if (response.code == 0 && response.data != null) {
+              // 根据返回的value值确定收藏状态
+              // value为1表示收藏成功，为0表示取消收藏
+              final bool isCollected = response.data?.value == 1;
+
               // 接口调用成功后更新UI
               jobs[index] = JobPost(
                 id: job.id,
@@ -347,9 +351,9 @@ class HomeController extends GetxController {
                 createdAt: job.createdAt,
                 tags: job.tags,
                 jobKey: job.jobKey,
-                isFavorite: newFavoriteStatus,
+                isFavorite: isCollected,
               );
-              print('收藏状态更新成功: ${newFavoriteStatus ? "已收藏" : "取消收藏"}');
+              print('收藏状态更新成功: ${isCollected ? "已收藏" : "取消收藏"}');
             } else {
               // code不为0，表示操作失败
               print(

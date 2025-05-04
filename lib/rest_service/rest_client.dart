@@ -497,13 +497,39 @@ class TopBannerPop {
 
 @JsonSerializable()
 class JobCollectData {
-  const JobCollectData({this.status});
+  const JobCollectData({
+    this.id,
+    this.rsType,
+    this.rsId,
+    this.value,
+    this.userId,
+    this.createdAt,
+    this.updatedAt,
+  });
 
   factory JobCollectData.fromJson(Map<String, dynamic> json) =>
       _$JobCollectDataFromJson(json);
 
-  @JsonKey(name: 'status')
-  final int? status;
+  @JsonKey(name: 'id')
+  final int? id;
+
+  @JsonKey(name: 'rs_type')
+  final String? rsType;
+
+  @JsonKey(name: 'rs_id')
+  final String? rsId;
+
+  @JsonKey(name: 'value')
+  final int? value;
+
+  @JsonKey(name: 'user_id')
+  final int? userId;
+
+  @JsonKey(name: 'created_at')
+  final String? createdAt;
+
+  @JsonKey(name: 'updated_at')
+  final String? updatedAt;
 
   Map<String, dynamic> toJson() => _$JobCollectDataToJson(this);
 }
