@@ -7,7 +7,7 @@ import 'package:cryptosquare/util/storage.dart';
 import 'package:dio/dio.dart';
 
 class HomeController extends GetxController {
-  final RestClient _restClient = RestClient.create();
+  final RestClient _restClient = RestClient();
   final BitpushClient _bitpushClient = BitpushClient(Dio());
   // 使用自定义的BitpushClient实现，处理字符串响应
   final RxList<Banner> banners = <Banner>[].obs;
@@ -334,20 +334,34 @@ class HomeController extends GetxController {
       _restClient
           .collectJob(jobKey)
           .then((response) {
-            // 接口调用成功后更新UI
-            jobs[index] = JobPost(
-              id: job.id,
-              title: job.title,
-              company: job.company,
-              location: job.location,
-              salary: job.salary,
-              timeAgo: job.timeAgo,
-              createdAt: job.createdAt,
-              tags: job.tags,
-              jobKey: job.jobKey,
-              isFavorite: newFavoriteStatus,
-            );
-            print('收藏状态更新成功: ${newFavoriteStatus ? "已收藏" : "取消收藏"}');
+            // 检查响应的code字段，只有当code为0时才表示成功
+            if (response.code == 0) {
+              // 接口调用成功后更新UI
+              jobs[index] = JobPost(
+                id: job.id,
+                title: job.title,
+                company: job.company,
+                location: job.location,
+                salary: job.salary,
+                timeAgo: job.timeAgo,
+                createdAt: job.createdAt,
+                tags: job.tags,
+                jobKey: job.jobKey,
+                isFavorite: newFavoriteStatus,
+              );
+              print('收藏状态更新成功: ${newFavoriteStatus ? "已收藏" : "取消收藏"}');
+            } else {
+              // code不为0，表示操作失败
+              print(
+                '收藏操作失败: code=${response.code}, message=${response.message}',
+              );
+              Get.snackbar(
+                I18nKeyword.tip.tr,
+                response.message ?? I18nKeyword.favoriteError.tr,
+                snackPosition: SnackPosition.BOTTOM,
+                duration: const Duration(seconds: 2),
+              );
+            }
           })
           .catchError((error) {
             print('收藏操作失败: $error');

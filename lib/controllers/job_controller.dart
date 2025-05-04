@@ -6,7 +6,7 @@ import 'package:cryptosquare/views/job_detail_view.dart';
 import 'package:dio/dio.dart';
 
 class JobController extends GetxController {
-  final RestClient _restClient = RestClient.create();
+  final RestClient _restClient = RestClient();
 
   // 工作列表数据
   final RxList<JobPost> jobs = <JobPost>[].obs;

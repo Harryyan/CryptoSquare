@@ -21,8 +21,6 @@ abstract class UserRestClient {
           String token = GStorage().getToken();
 
           options.headers["platform"] = Platform.isAndroid ? "android" : "ios";
-          options.headers["app-version"] = "1.4.2";
-
           if (token.isNotEmpty) {
             options.headers["x-user-secret"] = token;
           }

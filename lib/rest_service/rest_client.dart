@@ -1,9 +1,9 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:dio/io.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:retrofit/retrofit.dart';
-import 'package:cryptosquare/util/environment_config.dart';
 import 'package:cryptosquare/util/storage.dart';
 
 part 'rest_client.g.dart';
@@ -61,17 +61,15 @@ class FeaturedJobResponse extends BaseResponse<List<JobData>> {
       <String, dynamic>{'message': message, 'code': code, 'data': data};
 }
 
-// 使用环境配置类管理baseUrl
-@RestApi(baseUrl: '')
-abstract class RestClient {
-  factory RestClient(Dio dio, {String? baseUrl}) = _RestClient;
+Dio? _dio;
 
-  /// 创建一个使用当前环境配置的RestClient实例
-  static RestClient create() {
-    final dio = Dio();
+@RestApi(baseUrl: 'https://d3qx0f55wsubto.cloudfront.net/api')
+abstract class RestClient {
+  factory RestClient() {
+    _dio ??= Dio();
 
     // 添加拦截器处理用户认证
-    dio.interceptors.add(
+    _dio?.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) {
           String token = GStorage().getToken();
@@ -87,7 +85,21 @@ abstract class RestClient {
       ),
     );
 
-    return RestClient(dio, baseUrl: EnvironmentConfig.baseUrl);
+    _dio?.httpClientAdapter =
+        IOHttpClientAdapter()
+          // ignore: deprecated_member_use
+          ..onHttpClientCreate = (client) {
+            // Config the client.
+            client.findProxy = (uri) {
+              // Forward all request to proxy "localhost:8888".
+              return 'PROXY 127.0.0.1:9090';
+            };
+            // You can also create a new HttpClient for Dio instead of returning,
+            // but a client must being returned here.
+            return client;
+          };
+
+    return _RestClient(_dio!);
   }
 
   @GET('/tasks')
@@ -115,9 +127,9 @@ abstract class RestClient {
     @Query('PLATFORM') String platformStr,
   );
 
-  @POST('/api/v3/job/collect')
+  @POST('/v3/job/collect')
   Future<BaseResponse<JobCollectData>> collectJob(
-    @Field('job_key') String jobKey,
+    @Field('jobkey') String jobKey,
   );
 }
 

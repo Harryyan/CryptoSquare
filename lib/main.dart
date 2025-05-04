@@ -14,7 +14,7 @@ import 'package:get_storage/get_storage.dart';
 void main() async {
   // 默认使用正式环境
   // 如需切换到测试环境，取消下面这行注释
-  EnvironmentConfig.switchToTest();
+  EnvironmentConfig.switchToProduction();
   await GetStorage.init();
 
   runApp(const MyApp());

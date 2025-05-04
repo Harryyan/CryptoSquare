@@ -306,7 +306,9 @@ Map<String, dynamic> _$HomeServiceItemToJson(HomeServiceItem instance) =>
 // ignore_for_file: unnecessary_brace_in_string_interps,no_leading_underscores_for_local_identifiers,unused_element,unnecessary_string_interpolations
 
 class _RestClient implements RestClient {
-  _RestClient(this._dio, {this.baseUrl, this.errorLogger});
+  _RestClient(this._dio, {this.baseUrl, this.errorLogger}) {
+    baseUrl ??= 'https://d3qx0f55wsubto.cloudfront.net/api';
+  }
 
   final Dio _dio;
 
@@ -492,12 +494,12 @@ class _RestClient implements RestClient {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
-    final _data = {'job_key': jobKey};
+    final _data = {'jobkey': jobKey};
     final _options = _setStreamType<BaseResponse<JobCollectData>>(
       Options(method: 'POST', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            '/api/v3/job/collect',
+            '/v3/job/collect',
             queryParameters: queryParameters,
             data: _data,
           )

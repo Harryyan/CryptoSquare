@@ -3,7 +3,7 @@ import 'package:cryptosquare/rest_service/rest_client.dart';
 import 'package:dio/dio.dart';
 
 class ServiceController extends GetxController {
-  final RestClient _restClient = RestClient.create();
+  final RestClient _restClient = RestClient();
   final RxList<HomeServiceItem> homeServices = <HomeServiceItem>[].obs;
   final RxBool isLoading = true.obs;
   final RxBool isNetworkError = false.obs;
