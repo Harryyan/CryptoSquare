@@ -7,7 +7,6 @@ import 'package:cryptosquare/models/app_models.dart';
 import 'package:cryptosquare/l10n/l18n_keywords.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import 'package:permission_handler/permission_handler.dart';
 
 class ProfileEditView extends StatefulWidget {
   const ProfileEditView({super.key});
@@ -291,7 +290,7 @@ class _ProfileEditViewState extends State<ProfileEditView> {
                   ),
                 ),
                 child: Text(
-                  I18nKeyword.submit.tr,
+                  "提交",
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
