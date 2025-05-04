@@ -19,6 +19,20 @@ class Translation extends Translations {
       I18nKeyword.networkError: "网络请求失败",
       I18nKeyword.retry: "重试",
       I18nKeyword.networkErrorDetail: "请检查您的网络连接，然后重试",
+      // Profile Edit
+      I18nKeyword.editProfile: "编辑个人信息",
+      I18nKeyword.avatar: "头像",
+      I18nKeyword.nickname: "昵称",
+      I18nKeyword.inputNickname: "请输入昵称",
+      I18nKeyword.save: "保存",
+      I18nKeyword.logout: "退出登录",
+      I18nKeyword.logoutConfirm: "确定要退出登录吗？",
+      I18nKeyword.cancel: "取消",
+      I18nKeyword.confirm: "确定",
+      I18nKeyword.tip: "提示",
+      I18nKeyword.profileUpdated: "个人信息已更新",
+      I18nKeyword.tapToChangeAvatar: "点击更换头像",
+      I18nKeyword.avatarUploadInDev: "头像上传功能开发中",
       // Sign In & Sign Up
       I18nKeyword.signInUpTitle: "注册/登录",
       I18nKeyword.signInUpType: "登录账号类型",
@@ -61,6 +75,20 @@ class Translation extends Translations {
       I18nKeyword.retry: "Retry",
       I18nKeyword.networkErrorDetail:
           "Please check your network connection and try again",
+      // Profile Edit
+      I18nKeyword.editProfile: "Edit Profile",
+      I18nKeyword.avatar: "Avatar",
+      I18nKeyword.nickname: "Nickname",
+      I18nKeyword.inputNickname: "Enter your nickname",
+      I18nKeyword.save: "Save",
+      I18nKeyword.logout: "Logout",
+      I18nKeyword.logoutConfirm: "Are you sure you want to logout?",
+      I18nKeyword.cancel: "Cancel",
+      I18nKeyword.confirm: "Confirm",
+      I18nKeyword.tip: "Tip",
+      I18nKeyword.profileUpdated: "Profile updated",
+      I18nKeyword.tapToChangeAvatar: "Tap to change avatar",
+      I18nKeyword.avatarUploadInDev: "Avatar upload feature is in development",
 
       // Sign In & Sign Up
       I18nKeyword.signInUpTitle: "Login/Register",

@@ -8,6 +8,7 @@ import 'package:cryptosquare/theme/app_theme.dart';
 import 'package:cryptosquare/util/tag_utils.dart';
 import 'package:cryptosquare/util/storage.dart';
 import 'package:cryptosquare/models/app_models.dart';
+import 'package:cryptosquare/views/profile_edit_view.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
@@ -154,7 +155,8 @@ class _ProfileViewState extends State<ProfileView>
                   IconButton(
                     icon: const Icon(Icons.menu, color: Colors.white),
                     onPressed: () {
-                      // 可扩展：点击事件
+                      // 跳转到个人信息编辑页面
+                      Get.to(() => const ProfileEditView());
                     },
                   ),
                 ],

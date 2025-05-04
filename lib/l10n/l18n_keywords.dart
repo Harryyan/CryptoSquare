@@ -14,6 +14,21 @@ class I18nKeyword {
   static const String retry = "retry";
   static const String networkErrorDetail = "networkErrorDetail";
 
+  // Profile Edit
+  static const String editProfile = "editProfile";
+  static const String avatar = "avatar";
+  static const String nickname = "nickname";
+  static const String inputNickname = "inputNickname";
+  static const String save = "save";
+  static const String logout = "logout";
+  static const String logoutConfirm = "logoutConfirm";
+  static const String cancel = "cancel";
+  static const String confirm = "confirm";
+  static const String tip = "tip";
+  static const String profileUpdated = "profileUpdated";
+  static const String tapToChangeAvatar = "tapToChangeAvatar";
+  static const String avatarUploadInDev = "avatarUploadInDev";
+
   // Sign In & Sign Up
   static const String signInUpTitle = "signInUpTitle";
   static const String signInUpType = "signInUpType";
@@ -46,7 +61,10 @@ class I18nKeyword {
   static const String otherLogin = "otherLogin";
 
   // Job related
-  static const String tip = "tip";
   static const String loginToFavorite = "loginToFavorite";
   static const String favoriteError = "favoriteError";
+
+  // Permission related
+  static const String permissionRequired = "permissionRequired";
+  static const String photoPermissionHint = "photoPermissionHint";
 }
