@@ -78,39 +78,6 @@ class _ProfileEditViewState extends State<ProfileEditView> {
     );
   }
 
-  /// 退出登录
-  void _logout() {
-    // 显示确认对话框
-    Get.dialog(
-      AlertDialog(
-        title: Text(I18nKeyword.tip.tr),
-        content: Text(I18nKeyword.logoutConfirm.tr),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: Text(I18nKeyword.cancel.tr),
-          ),
-          TextButton(
-            onPressed: () {
-              // 清除登录状态
-              GStorage().setLoginStatus(false);
-
-              // 更新UserController
-              userController.logout();
-
-              // 关闭对话框
-              Get.back();
-
-              // 返回上一页
-              Get.back();
-            },
-            child: Text(I18nKeyword.confirm.tr),
-          ),
-        ],
-      ),
-    );
-  }
-
   /// 选择头像
   void _selectAvatar() async {
     // 请求相册权限
@@ -128,11 +95,11 @@ class _ProfileEditViewState extends State<ProfileEditView> {
         // userInfo['avatar'] = pickedFile.path;
         // GStorage().setUserInfo(userInfo);
 
-        Get.snackbar(
-          I18nKeyword.tip.tr,
-          I18nKeyword.profileUpdated.tr,
-          snackPosition: SnackPosition.BOTTOM,
-        );
+        // Get.snackbar(
+        //   I18nKeyword.tip.tr,
+        //   I18nKeyword.profileUpdated.tr,
+        //   snackPosition: SnackPosition.BOTTOM,
+        // );
       }
     } catch (e) {
       Get.snackbar(
@@ -146,10 +113,11 @@ class _ProfileEditViewState extends State<ProfileEditView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(I18nKeyword.editProfile.tr),
         centerTitle: true,
-        iconTheme: IconThemeData(color: Colors.white),
+        iconTheme: const IconThemeData(color: Colors.white),
         elevation: 0,
         backgroundColor: AppTheme.primaryColor,
         foregroundColor: Colors.white,
@@ -157,6 +125,10 @@ class _ProfileEditViewState extends State<ProfileEditView> {
           color: Colors.white,
           fontWeight: FontWeight.w600,
           fontSize: 17,
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+          onPressed: () => Get.back(),
         ),
       ),
       body: SingleChildScrollView(
@@ -176,28 +148,14 @@ class _ProfileEditViewState extends State<ProfileEditView> {
   /// 头像部分
   Widget _buildAvatarSection() {
     return Container(
-      padding: const EdgeInsets.all(20),
-      margin: const EdgeInsets.only(top: 10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 3,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 30),
+      margin: const EdgeInsets.only(top: 0),
+      decoration: const BoxDecoration(color: Colors.white),
       child: Column(
         children: [
-          Text(
-            I18nKeyword.avatar.tr,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 20),
           Stack(
+            alignment: Alignment.center,
             children: [
               GestureDetector(
                 onTap: _selectAvatar,
@@ -208,18 +166,7 @@ class _ProfileEditViewState extends State<ProfileEditView> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: Colors.grey[200],
-                      border: Border.all(
-                        color: AppTheme.primaryColor.withOpacity(0.3),
-                        width: 2,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.2),
-                          spreadRadius: 1,
-                          blurRadius: 5,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
+                      border: Border.all(color: Colors.white, width: 2),
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(50),
@@ -262,20 +209,20 @@ class _ProfileEditViewState extends State<ProfileEditView> {
                 }),
               ),
               Positioned(
-                right: 0,
-                bottom: 0,
+                right: 5,
+                bottom: 5,
                 child: GestureDetector(
                   onTap: _selectAvatar,
                   child: Container(
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
-                      color: AppTheme.primaryColor,
+                      color: Colors.blue,
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.white, width: 2),
                     ),
                     child: const Icon(
                       Icons.camera_alt,
-                      color: Colors.white,
+                      color: Colors.white, // 设置背景颜色为绿色，与头像背景颜色一致
                       size: 18,
                     ),
                   ),
@@ -291,76 +238,61 @@ class _ProfileEditViewState extends State<ProfileEditView> {
   /// 昵称部分
   Widget _buildNameSection() {
     return Container(
-      padding: const EdgeInsets.all(20),
-      margin: const EdgeInsets.symmetric(horizontal: 0),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 3,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 20),
+      margin: const EdgeInsets.only(top: 10),
+      decoration: const BoxDecoration(color: Colors.white),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            I18nKeyword.nickname.tr,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          Padding(
+            padding: const EdgeInsets.only(left: 5),
+            child: Text(
+              "昵称",
+              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+            ),
           ),
-          const SizedBox(height: 15),
+          const SizedBox(height: 10),
           TextField(
             controller: _nameController,
             maxLength: 11, // 限制昵称最大长度为11个字符
             decoration: InputDecoration(
               hintText: I18nKeyword.inputNickname.tr,
-              counterText: '', // 隐藏字符计数器
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+              counterStyle: TextStyle(color: Colors.grey[600], fontSize: 12),
+              border: UnderlineInputBorder(
                 borderSide: BorderSide(color: Colors.grey.shade300),
               ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+              enabledBorder: UnderlineInputBorder(
                 borderSide: BorderSide(color: Colors.grey.shade300),
               ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: AppTheme.primaryColor,
-                  width: 1.5,
-                ),
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.grey.shade400, width: 1.0),
               ),
               contentPadding: const EdgeInsets.symmetric(
-                horizontal: 15,
-                vertical: 15,
+                horizontal: 5,
+                vertical: 10,
               ),
-              suffixIcon: Icon(Icons.edit, color: AppTheme.primaryColor),
-              filled: true,
-              fillColor: Colors.grey.shade50,
+              filled: false,
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 30),
           Center(
             child: SizedBox(
-              width: 200,
-              height: 45,
+              width: 120,
+              height: 40,
               child: ElevatedButton(
                 onPressed: _saveUserInfo,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryColor,
+                  backgroundColor: Colors.blue,
                   foregroundColor: Colors.white,
-                  elevation: 2,
+                  elevation: 0,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(25),
+                    borderRadius: BorderRadius.circular(5),
                   ),
                 ),
                 child: Text(
-                  I18nKeyword.save.tr,
-                  style: const TextStyle(fontSize: 16),
+                  I18nKeyword.submit.tr,
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
             ),
@@ -372,29 +304,7 @@ class _ProfileEditViewState extends State<ProfileEditView> {
 
   /// 退出登录按钮
   Widget _buildLogoutButton() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Center(
-        child: SizedBox(
-          width: 200,
-          height: 45,
-          child: ElevatedButton(
-            onPressed: _logout,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red.shade600,
-              foregroundColor: Colors.white,
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(25),
-              ),
-            ),
-            child: Text(
-              I18nKeyword.logout.tr,
-              style: const TextStyle(fontSize: 16),
-            ),
-          ),
-        ),
-      ),
-    );
+    // 移除退出登录按钮，因为截图中没有显示
+    return const SizedBox.shrink();
   }
 }

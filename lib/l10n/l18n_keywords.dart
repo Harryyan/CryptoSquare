@@ -28,6 +28,7 @@ class I18nKeyword {
   static const String profileUpdated = "profileUpdated";
   static const String tapToChangeAvatar = "tapToChangeAvatar";
   static const String avatarUploadInDev = "avatarUploadInDev";
+  static const String submit = "submit";
 
   // Sign In & Sign Up
   static const String signInUpTitle = "signInUpTitle";

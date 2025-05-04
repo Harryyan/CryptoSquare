@@ -55,9 +55,11 @@ class Translation extends Translations {
       I18nKeyword.searchTitle: "搜索",
       I18nKeyword.selectCountryCode: "选择国家/地区代码",
       // Job related
+      // ignore: equal_keys_in_map
       I18nKeyword.tip: "提示",
       I18nKeyword.loginToFavorite: "请先登录后再收藏职位",
       I18nKeyword.favoriteError: "收藏操作失败，请稍后重试",
+      I18nKeyword.submit: "提交",
     },
     'en_US': {
       I18nKeyword.language: '简体中文',
@@ -116,6 +118,8 @@ class Translation extends Translations {
       I18nKeyword.loginToFavorite: "Please login before adding to favorites",
       I18nKeyword.favoriteError:
           "Favorite operation failed, please try again later",
+
+      I18nKeyword.submit: "Submit",
     },
   };
 }
