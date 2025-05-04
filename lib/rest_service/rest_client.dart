@@ -163,6 +163,7 @@ class JobData {
     this.jobSalaryCurrency,
     this.minSalary,
     this.maxSalary,
+    this.jobIsCollect = 0,
   });
 
   factory JobData.fromJson(Map<String, dynamic> json) =>
@@ -206,6 +207,9 @@ class JobData {
 
   @JsonKey(name: 'max_salary')
   final int? maxSalary;
+
+  @JsonKey(name: 'job_is_collect')
+  final int? jobIsCollect;
 
   Map<String, dynamic> toJson() => _$JobDataToJson(this);
 }

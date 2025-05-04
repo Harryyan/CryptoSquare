@@ -219,6 +219,7 @@ class HomeController extends GetxController {
                     timeAgo: timeAgo,
                     tags: tagsList,
                     jobKey: apiJob.jobKey,
+                    isFavorite: apiJob.jobIsCollect == 1,
                   );
                 }).toList();
           }

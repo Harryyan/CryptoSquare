@@ -80,6 +80,7 @@ JobData _$JobDataFromJson(Map<String, dynamic> json) => JobData(
   jobSalaryCurrency: json['job_salary_currency'] as String?,
   minSalary: (json['min_salary'] as num?)?.toInt(),
   maxSalary: (json['max_salary'] as num?)?.toInt(),
+  jobIsCollect: (json['job_is_collect'] as num?)?.toInt() ?? 0,
 );
 
 Map<String, dynamic> _$JobDataToJson(JobData instance) => <String, dynamic>{
@@ -96,6 +97,7 @@ Map<String, dynamic> _$JobDataToJson(JobData instance) => <String, dynamic>{
   'job_salary_currency': instance.jobSalaryCurrency,
   'min_salary': instance.minSalary,
   'max_salary': instance.maxSalary,
+  'job_is_collect': instance.jobIsCollect,
 };
 
 JobDetailApply _$JobDetailApplyFromJson(Map<String, dynamic> json) =>
