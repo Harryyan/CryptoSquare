@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:cryptosquare/model/collected_post.dart';
 import 'package:cryptosquare/model/cs_user.dart';
 import 'package:cryptosquare/model/cs_user_profile_data.dart';
 import 'package:cryptosquare/model/job_collect_list.dart';
@@ -107,4 +108,11 @@ abstract class UserRestClient {
 
   @GET("/v3/my/job_collect_list")
   Future<JobCollectListResp> getJobCollectList();
+
+  @GET("/bbs-article/center/metaed")
+  Future<CollectedPostResp> getCollectedPosts({
+    @Query("type") String type = "eye",
+    @Query("page_size") int pageSize = 20,
+    @Query("page") int page = 1,
+  });
 }
