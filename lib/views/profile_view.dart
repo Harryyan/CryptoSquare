@@ -599,12 +599,38 @@ class _ProfileViewState extends State<ProfileView>
 
         // 将API返回的数据转换为UI需要的格式
         for (var item in response.data!.list) {
+          // 从标题中提取薪资信息
+          String title = item.jobTitle;
+          String salary = "";
+
+          // 检查是否包含"薪资面议"文本
+          if (title.contains("薪资面议")) {
+            // 从标题中移除"薪资面议"并添加到salary字段
+            salary = "薪资面议";
+            title = title.replaceAll("薪资面议", "").trim();
+          } else {
+            // 查找薪资部分（如"$4000-$10000/月"）
+            RegExp salaryRegex = RegExp(r'\$\d+(?:-\$\d+)?(?:/[^|]+)?$');
+            Match? match = salaryRegex.firstMatch(title);
+
+            if (match != null) {
+              // 提取薪资部分
+              salary = match.group(0) ?? "";
+              // 从标题中移除薪资部分
+              title = title.substring(0, match.start).trim();
+            }
+          }
+
+          // 移除标题末尾的竖线符号
+          if (title.endsWith("|")) {
+            title = title.substring(0, title.length - 1).trim();
+          }
+
           favoriteJobList.add({
-            "title": item.jobTitle,
+            "title": title,
             "company": item.jobPosition,
-            "time": "收藏的岗位", // 可以根据需要调整
-            "salary": "", // API中没有薪资信息，可以根据需要调整
-            "tags": ["收藏"], // 可以根据需要调整标签
+            "time": "", // 可以根据需要调整
+            "salary": salary, // 从标题中提取的薪资信息
             "extraTags": ["#${item.jobKey}"], // 使用jobKey作为额外标签
             "isFavorite": true,
           });
@@ -671,47 +697,32 @@ class _ProfileViewState extends State<ProfileView>
             ],
           ),
           const SizedBox(height: 8),
-          // 标签
-          Wrap(
-            spacing: 6,
-            runSpacing: 4,
-            children:
-                (job["tags"] as List).map((tag) {
-                  return Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(3),
-                    ),
-                    child: Text(
-                      TagUtils.formatTag(tag),
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.black87,
-                      ),
-                    ),
-                  );
-                }).toList(),
-          ),
+          // 标签部分已移除，因为后台没有返回相关数据
+          const SizedBox(height: 0),
           const SizedBox(height: 6),
-          // 额外标签
-          Text(
-            (job["extraTags"] as List)
-                .map((tag) => TagUtils.formatTag(tag))
-                .join(" "),
-            style: TextStyle(fontSize: 13, color: Colors.grey[500]),
-          ),
+          // // 额外标签
+          // Text(
+          //   (job["extraTags"] as List)
+          //       .map((tag) => TagUtils.formatTag(tag))
+          //       .join(" "),
+          //   style: TextStyle(fontSize: 13, color: Colors.grey[500]),
+          // ),
           const SizedBox(height: 6),
           // 收藏图标
           Align(
             alignment: Alignment.centerRight,
             child:
                 job["isFavorite"] == true
-                    ? const Icon(Icons.star, color: Colors.orange)
-                    : const Icon(Icons.star_border, color: Colors.orange),
+                    ? Image.asset(
+                      "assets/images/star_fill.png",
+                      width: 20,
+                      height: 20,
+                    )
+                    : Image.asset(
+                      "assets/images/star.png",
+                      width: 20,
+                      height: 20,
+                    ),
           ),
         ],
       ),

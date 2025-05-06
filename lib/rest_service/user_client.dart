@@ -23,6 +23,7 @@ abstract class UserRestClient {
 
           options.headers["platform"] = Platform.isAndroid ? "android" : "ios";
           if (token.isNotEmpty) {
+            print(token);
             options.headers["x-user-secret"] = token;
           }
 
