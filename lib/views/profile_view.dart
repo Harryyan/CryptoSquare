@@ -10,6 +10,7 @@ import 'package:cryptosquare/util/storage.dart';
 import 'package:cryptosquare/util/event_bus.dart';
 import 'package:cryptosquare/models/app_models.dart';
 import 'package:cryptosquare/views/profile_edit_view.dart';
+import 'package:cryptosquare/rest_service/user_client.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
@@ -55,6 +56,13 @@ class _ProfileViewState extends State<ProfileView>
           postTabIndex.value = idx;
         }
       }
+
+      // 当切换到我的收藏+岗位标签时，加载收藏的岗位列表
+      if (currentTabIndex.value == 1 &&
+          postTabIndex.value == 2 &&
+          isUserLoggedIn.value) {
+        _loadFavoriteJobs();
+      }
     });
 
     // 从GStorage加载用户信息
@@ -63,6 +71,11 @@ class _ProfileViewState extends State<ProfileView>
     // 使用addPostFrameCallback确保在构建完成后再同步用户信息到UserController
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _syncUserInfoToController();
+
+      // 如果用户已登录，预加载收藏的岗位列表
+      if (isUserLoggedIn.value) {
+        _loadFavoriteJobs();
+      }
     });
 
     // 监听头像更新事件
@@ -404,6 +417,11 @@ class _ProfileViewState extends State<ProfileView>
         onTap: () {
           currentTabIndex.value = index;
           _tabController.animateTo(index);
+
+          // 当点击"我的收藏"标签且用户已登录时，加载收藏的岗位列表
+          if (index == 1 && isUserLoggedIn.value) {
+            _loadFavoriteJobs();
+          }
         },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -498,26 +516,110 @@ class _ProfileViewState extends State<ProfileView>
   }
 
   /// [我的收藏 - 岗位] 示例列表
+  // 收藏的岗位列表
+  final RxList<Map<String, dynamic>> favoriteJobList =
+      <Map<String, dynamic>>[].obs;
+  // 加载状态
+  final RxBool isLoadingFavoriteJobs = false.obs;
+
+  /// [我的收藏 - 岗位] 列表
   Widget _buildMyFavoritesJobsList() {
-    final jobList = [
-      {
-        "title": "Product Manager",
-        "company": "OKX",
-        "time": "2小时前发布",
-        "salary": "\$2,500-4,000",
-        "tags": ["全职", "北京", "本科", "需要英语"],
-        "extraTags": ["#DeFi", "#Trading", "#Crypto"],
-        "isFavorite": true,
+    // 如果用户未登录，显示提示信息
+    if (!isUserLoggedIn.value) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.info_outline, size: 50, color: Colors.grey),
+            SizedBox(height: 16),
+            Text(
+              '请先登录后查看收藏的岗位',
+              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // 添加下拉刷新功能
+    return RefreshIndicator(
+      onRefresh: () async {
+        // 刷新收藏岗位列表
+        await _loadFavoriteJobs();
       },
-    ];
-    return ListView.builder(
-      padding: EdgeInsets.only(top: 4, bottom: 16),
-      itemCount: jobList.length,
-      itemBuilder: (context, index) {
-        final job = jobList[index];
-        return _buildJobCard(job);
-      },
+      child: Obx(() {
+        // 加载中显示进度指示器
+        if (isLoadingFavoriteJobs.value && favoriteJobList.isEmpty) {
+          return Center(child: CircularProgressIndicator());
+        }
+
+        // 没有收藏的岗位
+        if (favoriteJobList.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.star_border, size: 50, color: Colors.grey),
+                SizedBox(height: 16),
+                Text(
+                  '暂无收藏的岗位',
+                  style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                ),
+              ],
+            ),
+          );
+        }
+
+        // 显示收藏的岗位列表
+        return ListView.builder(
+          padding: EdgeInsets.only(top: 4, bottom: 16),
+          itemCount: favoriteJobList.length,
+          itemBuilder: (context, index) {
+            final job = favoriteJobList[index];
+            return _buildJobCard(job);
+          },
+        );
+      }),
     );
+  }
+
+  /// 加载收藏的岗位列表
+  Future<void> _loadFavoriteJobs() async {
+    try {
+      // 设置加载状态
+      isLoadingFavoriteJobs.value = true;
+
+      // 调用API获取收藏的岗位列表
+      final response = await UserRestClient().getJobCollectList();
+
+      // 检查API返回结果
+      if (response.code == 0 && response.data != null) {
+        // 清空现有列表
+        favoriteJobList.clear();
+
+        // 将API返回的数据转换为UI需要的格式
+        for (var item in response.data!.list) {
+          favoriteJobList.add({
+            "title": item.jobTitle,
+            "company": item.jobPosition,
+            "time": "收藏的岗位", // 可以根据需要调整
+            "salary": "", // API中没有薪资信息，可以根据需要调整
+            "tags": ["收藏"], // 可以根据需要调整标签
+            "extraTags": ["#${item.jobKey}"], // 使用jobKey作为额外标签
+            "isFavorite": true,
+          });
+        }
+      } else {
+        // 处理API错误
+        print("加载收藏岗位失败: ${response.message}");
+      }
+    } catch (e) {
+      // 处理异常
+      print("加载收藏岗位异常: $e");
+    } finally {
+      // 无论成功失败，都结束加载状态
+      isLoadingFavoriteJobs.value = false;
+    }
   }
 
   /// 岗位样式卡片

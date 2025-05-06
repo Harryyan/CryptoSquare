@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:cryptosquare/model/cs_user.dart';
 import 'package:cryptosquare/model/cs_user_profile_data.dart';
+import 'package:cryptosquare/model/job_collect_list.dart';
 import 'package:cryptosquare/models/checkIn_states.dart';
 import 'package:cryptosquare/util/storage.dart';
 import 'package:dio/dio.dart';
@@ -102,4 +103,7 @@ abstract class UserRestClient {
     @Part(name: "nickname") String nickname,
     @Part(name: "lang") int lang,
   );
+
+  @GET("/v3/my/job_collect_list")
+  Future<JobCollectListResp> getJobCollectList();
 }
