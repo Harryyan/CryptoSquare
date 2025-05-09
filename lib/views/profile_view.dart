@@ -11,6 +11,7 @@ import 'package:cryptosquare/util/event_bus.dart';
 import 'package:cryptosquare/models/app_models.dart';
 import 'package:cryptosquare/views/profile_edit_view.dart';
 import 'package:cryptosquare/rest_service/user_client.dart';
+import 'package:cryptosquare/model/collected_post.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
@@ -63,6 +64,13 @@ class _ProfileViewState extends State<ProfileView>
           isUserLoggedIn.value) {
         _loadFavoriteJobs();
       }
+
+      // 当切换到我的收藏+帖子标签时，加载收藏的帖子列表
+      if (currentTabIndex.value == 1 &&
+          postTabIndex.value == 3 &&
+          isUserLoggedIn.value) {
+        _loadFavoritePosts(isRefresh: true);
+      }
     });
 
     // 从GStorage加载用户信息
@@ -75,6 +83,11 @@ class _ProfileViewState extends State<ProfileView>
       // 如果用户已登录，预加载收藏的岗位列表
       if (isUserLoggedIn.value) {
         _loadFavoriteJobs();
+
+        // 如果当前是收藏+帖子标签，预加载收藏的帖子列表
+        if (currentTabIndex.value == 1 && postTabIndex.value == 3) {
+          _loadFavoritePosts(isRefresh: true);
+        }
       }
     });
 
@@ -418,9 +431,15 @@ class _ProfileViewState extends State<ProfileView>
           currentTabIndex.value = index;
           _tabController.animateTo(index);
 
-          // 当点击"我的收藏"标签且用户已登录时，加载收藏的岗位列表
+          // 当点击"我的收藏"标签且用户已登录时
           if (index == 1 && isUserLoggedIn.value) {
+            // 加载收藏的岗位列表
             _loadFavoriteJobs();
+
+            // 如果当前选中的是帖子标签，也加载收藏的帖子列表
+            if (postTabIndex.value == 3) {
+              _loadFavoritePosts(isRefresh: true);
+            }
           }
         },
         child: Column(
@@ -473,6 +492,12 @@ class _ProfileViewState extends State<ProfileView>
         return _buildMyFavoritesJobsList();
       } else if (postTabIndex.value == 3) {
         // 我的收藏 + 帖子
+        // 如果用户已登录且收藏帖子列表为空，尝试加载数据
+        if (isUserLoggedIn.value &&
+            favoritePostList.isEmpty &&
+            !isLoadingFavoritePosts.value) {
+          _loadFavoritePosts(isRefresh: true);
+        }
         return _buildMyFavoritesForumList();
       }
     }
@@ -760,25 +785,150 @@ class _ProfileViewState extends State<ProfileView>
     );
   }
 
-  /// [我的收藏 - 帖子] 示例列表
+  // 收藏的帖子列表
+  final RxList<PostItem> favoritePostList = <PostItem>[].obs;
+  // 加载状态
+  final RxBool isLoadingFavoritePosts = false.obs;
+  // 是否还有更多数据
+  final RxBool hasMorePosts = true.obs;
+  // 当前页码
+  final RxInt currentPostPage = 1.obs;
+  // 每页数量
+  final int postPageSize = 20;
+
+  /// [我的收藏 - 帖子] 列表
   Widget _buildMyFavoritesForumList() {
-    final forumList = [
-      {
-        "title": "我收藏的一篇帖子",
-        "time": "3小时前",
-        "comments": 2,
-        "image": "https://via.placeholder.com/150/aaaaaa",
-        "summary": "这是我收藏的一篇帖子示例，里面可能包含一些关于区块链或Web3的心得...",
+    // 如果用户未登录，显示提示信息
+    if (!isUserLoggedIn.value) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.info_outline, size: 50, color: Colors.grey),
+            SizedBox(height: 16),
+            Text(
+              '请先登录后查看收藏的帖子',
+              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // 添加下拉刷新和上拉加载更多功能
+    return RefreshIndicator(
+      onRefresh: () async {
+        // 刷新收藏帖子列表
+        currentPostPage.value = 1;
+        await _loadFavoritePosts(isRefresh: true);
       },
-    ];
-    return ListView.builder(
-      padding: EdgeInsets.only(top: 4, bottom: 16),
-      itemCount: forumList.length,
-      itemBuilder: (context, index) {
-        final post = forumList[index];
-        return _buildForumCard(post);
-      },
+      child: Obx(() {
+        // 加载中显示进度指示器
+        if (isLoadingFavoritePosts.value && favoritePostList.isEmpty) {
+          return Center(child: CircularProgressIndicator());
+        }
+
+        // 没有收藏的帖子
+        if (favoritePostList.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.bookmark_border, size: 50, color: Colors.grey),
+                SizedBox(height: 16),
+                Text(
+                  '暂无收藏的帖子',
+                  style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                ),
+              ],
+            ),
+          );
+        }
+
+        // 显示收藏的帖子列表
+        return NotificationListener<ScrollNotification>(
+          onNotification: (ScrollNotification scrollInfo) {
+            // 检测是否滑动到底部，加载更多数据
+            if (scrollInfo.metrics.pixels ==
+                    scrollInfo.metrics.maxScrollExtent &&
+                !isLoadingFavoritePosts.value &&
+                hasMorePosts.value) {
+              _loadMorePosts();
+            }
+            return false;
+          },
+          child: ListView.builder(
+            padding: EdgeInsets.only(top: 4, bottom: 16),
+            itemCount: favoritePostList.length + (hasMorePosts.value ? 1 : 0),
+            itemBuilder: (context, index) {
+              // 如果是最后一个item且还有更多数据，显示加载更多
+              if (index == favoritePostList.length && hasMorePosts.value) {
+                return Container(
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  alignment: Alignment.center,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                );
+              }
+
+              // 正常显示帖子
+              if (index < favoritePostList.length) {
+                final post = favoritePostList[index];
+                return _buildCollectedPostCard(post);
+              }
+
+              return Container();
+            },
+          ),
+        );
+      }),
     );
+  }
+
+  /// 加载收藏的帖子列表
+  Future<void> _loadFavoritePosts({bool isRefresh = false}) async {
+    try {
+      // 设置加载状态
+      isLoadingFavoritePosts.value = true;
+
+      // 调用API获取收藏的帖子列表
+      final response = await UserRestClient().getCollectedPosts(
+        type: "eye",
+        pageSize: postPageSize,
+        page: currentPostPage.value,
+      );
+
+      // 检查API返回结果
+      if (response.code == 0 && response.data.data.isNotEmpty) {
+        // 如果是刷新，清空现有列表
+        if (isRefresh) {
+          favoritePostList.clear();
+        }
+
+        // 添加新数据到列表
+        favoritePostList.addAll(response.data.data);
+
+        // 判断是否还有更多数据
+        hasMorePosts.value = favoritePostList.length < response.data.total;
+      } else {
+        // 如果返回数据为空，设置没有更多数据
+        hasMorePosts.value = false;
+      }
+    } catch (e) {
+      print('加载收藏帖子失败: $e');
+    } finally {
+      // 无论成功失败，都结束加载状态
+      isLoadingFavoritePosts.value = false;
+    }
+  }
+
+  /// 加载更多收藏的帖子
+  Future<void> _loadMorePosts() async {
+    if (isLoadingFavoritePosts.value || !hasMorePosts.value) return;
+
+    // 页码加1
+    currentPostPage.value++;
+    // 加载更多数据
+    await _loadFavoritePosts();
   }
 
   /// 帖子样式卡片
@@ -855,6 +1005,151 @@ class _ProfileViewState extends State<ProfileView>
               const SizedBox(width: 5),
               Text(
                 '${post['comments']}条评论',
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 收藏的帖子卡片
+  Widget _buildCollectedPostCard(PostItem post) {
+    // 从内容中提取摘要，去除HTML标签
+    String summary = post.content;
+    // 简单处理HTML标签（实际项目中可能需要更复杂的HTML解析）
+    summary = summary.replaceAll(RegExp(r'<[^>]*>'), '');
+    // 限制摘要长度
+    if (summary.length > 100) {
+      summary = summary.substring(0, 100) + '...';
+    }
+
+    // 格式化时间
+    String formattedTime = '';
+    try {
+      final DateTime postTime = DateTime.fromMillisecondsSinceEpoch(
+        post.createTime * 1000,
+      );
+      final DateTime now = DateTime.now();
+      final Duration difference = now.difference(postTime);
+
+      if (difference.inMinutes < 60) {
+        formattedTime = '${difference.inMinutes}分钟前';
+      } else if (difference.inHours < 24) {
+        formattedTime = '${difference.inHours}小时前';
+      } else if (difference.inDays < 30) {
+        formattedTime = '${difference.inDays}天前';
+      } else {
+        formattedTime = '${postTime.year}-${postTime.month}-${postTime.day}';
+      }
+    } catch (e) {
+      formattedTime = '未知时间';
+    }
+
+    // 获取帖子作者信息
+    String authorName =
+        post.extension.auth.nickname.isNotEmpty
+            ? post.extension.auth.nickname
+            : '匿名用户';
+    String authorAvatar =
+        post.extension.auth.avatar.isNotEmpty
+            ? post.extension.auth.avatar
+            : 'https://via.placeholder.com/20';
+
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 帖子标题
+          Text(
+            post.title,
+            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 12),
+          // 摘要 + 缩略图
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  summary,
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: Colors.grey[700],
+                    height: 1.3,
+                  ),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 12),
+              // 如果有图片则显示，否则显示默认图片
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child:
+                    post.extension.auth.avatar.isNotEmpty
+                        ? Image.network(
+                          post.extension.auth.avatar,
+                          width: 80,
+                          height: 80,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Image.asset(
+                              'assets/images/logo.png',
+                              width: 80,
+                              height: 80,
+                              fit: BoxFit.cover,
+                            );
+                          },
+                        )
+                        : Image.asset(
+                          'assets/images/logo.png',
+                          width: 80,
+                          height: 80,
+                          fit: BoxFit.cover,
+                        ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          // 底部作者 + 时间 + 评论数
+          Row(
+            children: [
+              // 作者头像
+              CircleAvatar(
+                radius: 10,
+                backgroundImage: NetworkImage(authorAvatar),
+                onBackgroundImageError: (exception, stackTrace) {
+                  // 头像加载失败时使用默认头像
+                },
+              ),
+              const SizedBox(width: 6),
+              // 作者名称
+              Text(
+                authorName,
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+              const SizedBox(width: 10),
+              // 发布时间
+              Text(
+                formattedTime,
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+              const Spacer(),
+              // 评论图标和数量
+              const Icon(Icons.comment_outlined, size: 14, color: Colors.grey),
+              const SizedBox(width: 5),
+              Text(
+                '${post.replyNums}条评论',
                 style: const TextStyle(fontSize: 12, color: Colors.grey),
               ),
             ],
