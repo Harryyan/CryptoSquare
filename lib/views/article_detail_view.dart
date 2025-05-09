@@ -324,11 +324,12 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
             ],
           ),
         ),
-        ListView.separated(
+        // 添加评论区标题和第一条评论之间的分割线
+        Divider(color: const Color(0xFFE6EDF5), height: 1, thickness: 1),
+        ListView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: topLevelComments.length,
-          separatorBuilder: (context, index) => const Divider(height: 1),
           itemBuilder: (context, index) {
             final comment = topLevelComments[index];
             return _buildCommentItem(comment, comments);
@@ -414,7 +415,7 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
           Container(
             margin: const EdgeInsets.only(left: 56),
             decoration: BoxDecoration(
-              color: Colors.grey[50],
+              color: Colors.white,
               borderRadius: BorderRadius.circular(8),
             ),
             child: ListView.builder(
@@ -460,9 +461,27 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
                               ],
                             ),
                             const SizedBox(height: 4),
-                            Text(
-                              reply.content ?? '',
-                              style: const TextStyle(fontSize: 13),
+                            RichText(
+                              text: TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text:
+                                        "@${comment.user?.userNicename ?? '匿名用户'} ",
+                                    style: const TextStyle(
+                                      color: Color(0xFF2563EB),
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text: reply.content ?? '',
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                         ),
