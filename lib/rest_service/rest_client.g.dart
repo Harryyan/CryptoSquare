@@ -430,12 +430,6 @@ Map<String, dynamic> _$ArticleAuthInfoToJson(ArticleAuthInfo instance) =>
 
 ArticleExtension _$ArticleExtensionFromJson(Map<String, dynamic> json) =>
     ArticleExtension(
-      meta:
-          json['meta'] == null
-              ? null
-              : ArticleExtensionMeta.fromJson(
-                json['meta'] as Map<String, dynamic>,
-              ),
       tag: json['tag'] as List<dynamic>?,
       auth:
           json['auth'] == null
@@ -444,11 +438,7 @@ ArticleExtension _$ArticleExtensionFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$ArticleExtensionToJson(ArticleExtension instance) =>
-    <String, dynamic>{
-      'meta': instance.meta,
-      'tag': instance.tag,
-      'auth': instance.auth,
-    };
+    <String, dynamic>{'tag': instance.tag, 'auth': instance.auth};
 
 ArticleUserExt _$ArticleUserExtFromJson(Map<String, dynamic> json) =>
     ArticleUserExt(

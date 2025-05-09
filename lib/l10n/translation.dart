@@ -60,6 +60,7 @@ class Translation extends Translations {
       I18nKeyword.loginToFavorite: "请先登录后再收藏职位",
       I18nKeyword.favoriteError: "收藏操作失败，请稍后重试",
       I18nKeyword.submit: "提交",
+      I18nKeyword.articleTitle: "文章详情",
     },
     'en_US': {
       I18nKeyword.language: '简体中文',
@@ -120,6 +121,7 @@ class Translation extends Translations {
           "Favorite operation failed, please try again later",
 
       I18nKeyword.submit: "Submit",
+      I18nKeyword.articleTitle: "Article Detail",
     },
   };
 }

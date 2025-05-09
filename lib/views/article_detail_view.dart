@@ -1,6 +1,9 @@
+import 'package:cryptosquare/l10n/l18n_keywords.dart';
+import 'package:cryptosquare/util/storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:cryptosquare/rest_service/rest_client.dart';
+import 'package:get/utils.dart';
 import 'package:intl/intl.dart';
 
 class ArticleDetailView extends StatefulWidget {
@@ -58,7 +61,6 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
       ''',
       createdAt: '2023-05-15 08:30:00',
       extension: ArticleExtension(
-        meta: ArticleExtensionMeta(like: 156, eye: 2345, dislike: 12),
         tag: ['比特币', '市场分析', '加密货币', '投资建议'].map((e) => e as dynamic).toList(),
         auth: ArticleAuthInfo(
           nickname: '加密分析师',
@@ -123,7 +125,18 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(_articleData?.title ?? '文章详情'), elevation: 0),
+      appBar: AppBar(
+        title: Text(I18nKeyword.articleTitle.tr),
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: Image.asset('assets/images/share.png', width: 24, height: 24),
+            onPressed: () {
+              // 分享功能实现
+            },
+          ),
+        ],
+      ),
       body:
           _isLoading
               ? const Center(child: CircularProgressIndicator())
@@ -245,7 +258,7 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.grey[200],
+                  color: const Color(0xFFF4F7FD),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Text(
@@ -259,35 +272,7 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
   }
 
   Widget _buildArticleStats() {
-    final meta = _articleData?.extension?.meta;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Row(
-        children: [
-          Icon(Icons.remove_red_eye, size: 16, color: Colors.grey[600]),
-          const SizedBox(width: 4),
-          Text(
-            '${meta?.eye ?? 0}',
-            style: TextStyle(color: Colors.grey[600], fontSize: 12),
-          ),
-          const SizedBox(width: 16),
-          Icon(Icons.thumb_up_outlined, size: 16, color: Colors.grey[600]),
-          const SizedBox(width: 4),
-          Text(
-            '${meta?.like ?? 0}',
-            style: TextStyle(color: Colors.grey[600], fontSize: 12),
-          ),
-          const SizedBox(width: 16),
-          Icon(Icons.thumb_down_outlined, size: 16, color: Colors.grey[600]),
-          const SizedBox(width: 4),
-          Text(
-            '${meta?.dislike ?? 0}',
-            style: TextStyle(color: Colors.grey[600], fontSize: 12),
-          ),
-        ],
-      ),
-    );
+    return const SizedBox.shrink(); // 移除统计信息显示
   }
 
   Widget _buildCommentsSection() {

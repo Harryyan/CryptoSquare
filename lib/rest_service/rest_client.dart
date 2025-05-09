@@ -761,13 +761,10 @@ class ArticleAuthInfo {
 
 @JsonSerializable()
 class ArticleExtension {
-  const ArticleExtension({this.meta, this.tag, this.auth});
+  const ArticleExtension({this.tag, this.auth});
 
   factory ArticleExtension.fromJson(Map<String, dynamic> json) =>
       _$ArticleExtensionFromJson(json);
-
-  @JsonKey(name: 'meta')
-  final ArticleExtensionMeta? meta;
 
   @JsonKey(name: 'tag')
   final List<dynamic>? tag;

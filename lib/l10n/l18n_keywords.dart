@@ -68,4 +68,13 @@ class I18nKeyword {
   // Permission related
   static const String permissionRequired = "permissionRequired";
   static const String photoPermissionHint = "photoPermissionHint";
+
+  // Article
+  static const String articleTitle = "articleTitle";
+  static const String articleDetail = "articleDetail";
+  static const String articleList = "articleList";
+  static const String articleListEmpty = "articleListEmpty";
+  static const String articleListLoading = "articleListLoading";
+  static const String articleListError = "articleListError";
+  static const String articleListRetry = "articleListRetry";
 }

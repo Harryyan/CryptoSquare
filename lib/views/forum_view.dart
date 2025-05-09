@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:cryptosquare/theme/app_theme.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'dart:io';
+import 'package:cryptosquare/views/article_list_example.dart';
 
 class ForumView extends StatefulWidget {
   const ForumView({super.key});
@@ -197,6 +198,14 @@ class _ForumViewState extends State<ForumView>
     isLoadingMore.value = false;
   }
 
+  // 导航到文章列表示例页面
+  void _navigateToArticleListExample() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const ArticleListExample()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -205,6 +214,26 @@ class _ForumViewState extends State<ForumView>
         child: Column(
           children: [
             _buildSearchBar(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                // 添加测试按钮
+                Padding(
+                  padding: const EdgeInsets.only(right: 16.0),
+                  child: TextButton.icon(
+                    icon: const Icon(
+                      Icons.article,
+                      color: AppTheme.primaryColor,
+                    ),
+                    label: const Text(
+                      '测试文章列表',
+                      style: TextStyle(color: AppTheme.primaryColor),
+                    ),
+                    onPressed: _navigateToArticleListExample,
+                  ),
+                ),
+              ],
+            ),
             _buildTabs(),
             Expanded(child: Obx(() => _buildTabContent())),
           ],
