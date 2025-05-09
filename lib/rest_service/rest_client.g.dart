@@ -106,7 +106,7 @@ JobDetailApply _$JobDetailApplyFromJson(Map<String, dynamic> json) =>
       applyStatus: (json['apply_status'] as num?)?.toInt(),
       createTime: (json['create_time'] as num?)?.toInt(),
       expTime: (json['exp_time'] as num?)?.toInt(),
-      applyType: json['apply_type'] as String?,
+      applyType: (json['apply_type'] as num?)?.toInt(),
       applyVal: json['apply_val'] as String?,
       score: (json['score'] as num?)?.toInt(),
     );

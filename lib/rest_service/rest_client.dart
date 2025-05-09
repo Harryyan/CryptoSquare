@@ -242,7 +242,7 @@ class JobDetailApply {
   final int? expTime;
 
   @JsonKey(name: 'apply_type')
-  final String? applyType;
+  final int? applyType;
 
   @JsonKey(name: 'apply_val')
   final String? applyVal;
