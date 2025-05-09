@@ -157,7 +157,7 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
           _buildArticleContent(),
           _buildArticleTags(),
           _buildArticleStats(),
-          const Divider(height: 32, thickness: 8),
+          Divider(color: Color(0x99F2F5F9), height: 32, thickness: 8),
           _buildCommentsSection(),
         ],
       ),
@@ -232,8 +232,20 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
             margin: Margins.only(top: 16, bottom: 8),
           ),
           'p': Style(margin: Margins.only(bottom: 12)),
-          'ul': Style(margin: Margins.only(left: 16, bottom: 16)),
-          'li': Style(margin: Margins.only(bottom: 8)),
+          'ul': Style(
+            // 清除 ul 默认内边距和外边距
+            padding: HtmlPaddings.zero,
+            margin: Margins.zero,
+            // 把 • 放到行内，避免额外的缩进
+            listStylePosition: ListStylePosition.inside,
+          ),
+          'li': Style(
+            // 清除 li 默认内边距
+            padding: HtmlPaddings.zero,
+            // 保留下边距
+            margin: Margins.only(bottom: 8),
+            listStylePosition: ListStylePosition.inside,
+          ),
         },
       ),
     );
@@ -376,7 +388,11 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
                     const SizedBox(height: 8),
                     Row(
                       children: [
-                        Icon(Icons.reply, size: 16, color: Colors.grey[600]),
+                        Image.asset(
+                          'assets/images/comment_icon.png',
+                          width: 24,
+                          height: 24,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           '回复',
