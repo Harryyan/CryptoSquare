@@ -317,6 +317,253 @@ Map<String, dynamic> _$HomeServiceItemToJson(HomeServiceItem instance) =>
       'pop': instance.pop,
     };
 
+ArticleComment _$ArticleCommentFromJson(Map<String, dynamic> json) =>
+    ArticleComment(
+      id: (json['id'] as num?)?.toInt(),
+      content: json['content'] as String?,
+      userId: (json['user_id'] as num?)?.toInt(),
+      commentTo: (json['comment_to'] as num?)?.toInt(),
+      toType: json['to_type'] as String?,
+      createdAt: json['created_at'] as String?,
+      updatedAt: json['updated_at'] as String?,
+      parentComment: (json['parent_comment'] as num?)?.toInt(),
+      commentTouid: (json['comment_touid'] as num?)?.toInt(),
+      groupid: (json['groupid'] as num?)?.toInt(),
+      isDel: (json['is_del'] as num?)?.toInt(),
+      updatetime: (json['updatetime'] as num?)?.toInt(),
+      user:
+          json['user'] == null
+              ? null
+              : ArticleCommentUser.fromJson(
+                json['user'] as Map<String, dynamic>,
+              ),
+    );
+
+Map<String, dynamic> _$ArticleCommentToJson(ArticleComment instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'content': instance.content,
+      'user_id': instance.userId,
+      'comment_to': instance.commentTo,
+      'to_type': instance.toType,
+      'created_at': instance.createdAt,
+      'updated_at': instance.updatedAt,
+      'parent_comment': instance.parentComment,
+      'comment_touid': instance.commentTouid,
+      'groupid': instance.groupid,
+      'is_del': instance.isDel,
+      'updatetime': instance.updatetime,
+      'user': instance.user,
+    };
+
+ArticleCommentUser _$ArticleCommentUserFromJson(Map<String, dynamic> json) =>
+    ArticleCommentUser(
+      id: (json['ID'] as num?)?.toInt(),
+      userNicename: json['user_nicename'] as String?,
+      userUrl: json['user_url'] as String?,
+    );
+
+Map<String, dynamic> _$ArticleCommentUserToJson(ArticleCommentUser instance) =>
+    <String, dynamic>{
+      'ID': instance.id,
+      'user_nicename': instance.userNicename,
+      'user_url': instance.userUrl,
+    };
+
+ArticleRelatedNews _$ArticleRelatedNewsFromJson(Map<String, dynamic> json) =>
+    ArticleRelatedNews(
+      id: (json['id'] as num?)?.toInt(),
+      link: json['link'] as String?,
+      title: json['title'] as String?,
+    );
+
+Map<String, dynamic> _$ArticleRelatedNewsToJson(ArticleRelatedNews instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'link': instance.link,
+      'title': instance.title,
+    };
+
+ArticleCategoryInfo _$ArticleCategoryInfoFromJson(Map<String, dynamic> json) =>
+    ArticleCategoryInfo(
+      title: json['title'] as String?,
+      catSlug: json['cat_slug'] as String?,
+    );
+
+Map<String, dynamic> _$ArticleCategoryInfoToJson(
+  ArticleCategoryInfo instance,
+) => <String, dynamic>{'title': instance.title, 'cat_slug': instance.catSlug};
+
+ArticleExtensionMeta _$ArticleExtensionMetaFromJson(
+  Map<String, dynamic> json,
+) => ArticleExtensionMeta(
+  like: (json['like'] as num?)?.toInt(),
+  eye: (json['eye'] as num?)?.toInt(),
+  dislike: (json['dislike'] as num?)?.toInt(),
+);
+
+Map<String, dynamic> _$ArticleExtensionMetaToJson(
+  ArticleExtensionMeta instance,
+) => <String, dynamic>{
+  'like': instance.like,
+  'eye': instance.eye,
+  'dislike': instance.dislike,
+};
+
+ArticleAuthInfo _$ArticleAuthInfoFromJson(Map<String, dynamic> json) =>
+    ArticleAuthInfo(
+      nickname: json['nickname'] as String?,
+      avatar: json['avatar'] as String?,
+      isOnline: json['is_online'] as bool?,
+      userKey: json['user_key'] as String?,
+      userId: (json['user_id'] as num?)?.toInt(),
+    );
+
+Map<String, dynamic> _$ArticleAuthInfoToJson(ArticleAuthInfo instance) =>
+    <String, dynamic>{
+      'nickname': instance.nickname,
+      'avatar': instance.avatar,
+      'is_online': instance.isOnline,
+      'user_key': instance.userKey,
+      'user_id': instance.userId,
+    };
+
+ArticleExtension _$ArticleExtensionFromJson(Map<String, dynamic> json) =>
+    ArticleExtension(
+      meta:
+          json['meta'] == null
+              ? null
+              : ArticleExtensionMeta.fromJson(
+                json['meta'] as Map<String, dynamic>,
+              ),
+      tag: json['tag'] as List<dynamic>?,
+      auth:
+          json['auth'] == null
+              ? null
+              : ArticleAuthInfo.fromJson(json['auth'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$ArticleExtensionToJson(ArticleExtension instance) =>
+    <String, dynamic>{
+      'meta': instance.meta,
+      'tag': instance.tag,
+      'auth': instance.auth,
+    };
+
+ArticleUserExt _$ArticleUserExtFromJson(Map<String, dynamic> json) =>
+    ArticleUserExt(
+      isFavorite: (json['is_favorite'] as num?)?.toInt(),
+      isDing: (json['is_ding'] as num?)?.toInt(),
+      isCai: (json['is_cai'] as num?)?.toInt(),
+    );
+
+Map<String, dynamic> _$ArticleUserExtToJson(ArticleUserExt instance) =>
+    <String, dynamic>{
+      'is_favorite': instance.isFavorite,
+      'is_ding': instance.isDing,
+      'is_cai': instance.isCai,
+    };
+
+ArticleDetailData _$ArticleDetailDataFromJson(
+  Map<String, dynamic> json,
+) => ArticleDetailData(
+  id: (json['id'] as num?)?.toInt(),
+  title: json['title'] as String?,
+  content: json['content'] as String?,
+  user: (json['user'] as num?)?.toInt(),
+  status: (json['status'] as num?)?.toInt(),
+  type: json['type'] as String?,
+  createdAt: json['created_at'] as String?,
+  updatedAt: json['updated_at'] as String?,
+  lang: (json['lang'] as num?)?.toInt(),
+  lastView: (json['last_view'] as num?)?.toInt(),
+  lastViewUser: (json['last_view_user'] as num?)?.toInt(),
+  replyNums: (json['reply_nums'] as num?)?.toInt(),
+  replyUser: json['reply_user'] as String?,
+  ding: (json['ding'] as num?)?.toInt(),
+  cai: (json['cai'] as num?)?.toInt(),
+  replyTime: (json['reply_time'] as num?)?.toInt(),
+  catId: (json['cat_id'] as num?)?.toInt(),
+  origin: json['origin'] as String?,
+  originLink: json['origin_link'] as String?,
+  createTime: (json['create_time'] as num?)?.toInt(),
+  profile: json['profile'] as String?,
+  hasTag: (json['has_tag'] as num?)?.toInt(),
+  sh5: (json['sh5'] as num?)?.toInt(),
+  startTime: json['start_time'] as String?,
+  endTime: json['end_time'] as String?,
+  isTop: (json['is_top'] as num?)?.toInt(),
+  isHot: (json['is_hot'] as num?)?.toInt(),
+  contact: json['contact'] as String?,
+  address: json['address'] as String?,
+  trackId: json['track_id'] as String?,
+  extension:
+      json['extension'] == null
+          ? null
+          : ArticleExtension.fromJson(
+            json['extension'] as Map<String, dynamic>,
+          ),
+  userext:
+      json['userext'] == null
+          ? null
+          : ArticleUserExt.fromJson(json['userext'] as Map<String, dynamic>),
+  comments:
+      (json['comments'] as List<dynamic>?)
+          ?.map((e) => ArticleComment.fromJson(e as Map<String, dynamic>))
+          .toList(),
+  catInfo:
+      json['cat_info'] == null
+          ? null
+          : ArticleCategoryInfo.fromJson(
+            json['cat_info'] as Map<String, dynamic>,
+          ),
+  link: json['link'] as String?,
+  relNews:
+      (json['rel_news'] as List<dynamic>?)
+          ?.map((e) => ArticleRelatedNews.fromJson(e as Map<String, dynamic>))
+          .toList(),
+);
+
+Map<String, dynamic> _$ArticleDetailDataToJson(ArticleDetailData instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'title': instance.title,
+      'content': instance.content,
+      'user': instance.user,
+      'status': instance.status,
+      'type': instance.type,
+      'created_at': instance.createdAt,
+      'updated_at': instance.updatedAt,
+      'lang': instance.lang,
+      'last_view': instance.lastView,
+      'last_view_user': instance.lastViewUser,
+      'reply_nums': instance.replyNums,
+      'reply_user': instance.replyUser,
+      'ding': instance.ding,
+      'cai': instance.cai,
+      'reply_time': instance.replyTime,
+      'cat_id': instance.catId,
+      'origin': instance.origin,
+      'origin_link': instance.originLink,
+      'create_time': instance.createTime,
+      'profile': instance.profile,
+      'has_tag': instance.hasTag,
+      'sh5': instance.sh5,
+      'start_time': instance.startTime,
+      'end_time': instance.endTime,
+      'is_top': instance.isTop,
+      'is_hot': instance.isHot,
+      'contact': instance.contact,
+      'address': instance.address,
+      'track_id': instance.trackId,
+      'extension': instance.extension,
+      'userext': instance.userext,
+      'comments': instance.comments,
+      'cat_info': instance.catInfo,
+      'link': instance.link,
+      'rel_news': instance.relNews,
+    };
+
 // **************************************************************************
 // RetrofitGenerator
 // **************************************************************************
@@ -529,6 +776,43 @@ class _RestClient implements RestClient {
       _value = BaseResponse<JobCollectData>.fromJson(
         _result.data!,
         (json) => JobCollectData.fromJson(json as Map<String, dynamic>),
+      );
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
+  Future<BaseResponse<ArticleDetailData>> getArticleDetail(
+    String id,
+    int lang,
+    String platform,
+  ) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'lang': lang,
+      r'PLATFORM': platform,
+    };
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<BaseResponse<ArticleDetailData>>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/bbs-article/detail/${id}',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late BaseResponse<ArticleDetailData> _value;
+    try {
+      _value = BaseResponse<ArticleDetailData>.fromJson(
+        _result.data!,
+        (json) => ArticleDetailData.fromJson(json as Map<String, dynamic>),
       );
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options);

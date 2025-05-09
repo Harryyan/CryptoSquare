@@ -131,6 +131,13 @@ abstract class RestClient {
   Future<BaseResponse<JobCollectData>> collectJob(
     @Field('jobkey') String jobKey,
   );
+
+  @GET('/bbs-article/detail/{id}')
+  Future<BaseResponse<ArticleDetailData>> getArticleDetail(
+    @Path('id') String id,
+    @Query('lang') int lang,
+    @Query('PLATFORM') String platform,
+  );
 }
 
 @JsonSerializable()
@@ -583,4 +590,364 @@ class HomeServiceItem {
   final TopBannerPop? pop;
 
   Map<String, dynamic> toJson() => _$HomeServiceItemToJson(this);
+}
+
+@JsonSerializable()
+class ArticleComment {
+  const ArticleComment({
+    this.id,
+    this.content,
+    this.userId,
+    this.commentTo,
+    this.toType,
+    this.createdAt,
+    this.updatedAt,
+    this.parentComment,
+    this.commentTouid,
+    this.groupid,
+    this.isDel,
+    this.updatetime,
+    this.user,
+  });
+
+  factory ArticleComment.fromJson(Map<String, dynamic> json) =>
+      _$ArticleCommentFromJson(json);
+
+  @JsonKey(name: 'id')
+  final int? id;
+
+  @JsonKey(name: 'content')
+  final String? content;
+
+  @JsonKey(name: 'user_id')
+  final int? userId;
+
+  @JsonKey(name: 'comment_to')
+  final int? commentTo;
+
+  @JsonKey(name: 'to_type')
+  final String? toType;
+
+  @JsonKey(name: 'created_at')
+  final String? createdAt;
+
+  @JsonKey(name: 'updated_at')
+  final String? updatedAt;
+
+  @JsonKey(name: 'parent_comment')
+  final int? parentComment;
+
+  @JsonKey(name: 'comment_touid')
+  final int? commentTouid;
+
+  @JsonKey(name: 'groupid')
+  final int? groupid;
+
+  @JsonKey(name: 'is_del')
+  final int? isDel;
+
+  @JsonKey(name: 'updatetime')
+  final int? updatetime;
+
+  @JsonKey(name: 'user')
+  final ArticleCommentUser? user;
+
+  Map<String, dynamic> toJson() => _$ArticleCommentToJson(this);
+}
+
+@JsonSerializable()
+class ArticleCommentUser {
+  const ArticleCommentUser({this.id, this.userNicename, this.userUrl});
+
+  factory ArticleCommentUser.fromJson(Map<String, dynamic> json) =>
+      _$ArticleCommentUserFromJson(json);
+
+  @JsonKey(name: 'ID')
+  final int? id;
+
+  @JsonKey(name: 'user_nicename')
+  final String? userNicename;
+
+  @JsonKey(name: 'user_url')
+  final String? userUrl;
+
+  Map<String, dynamic> toJson() => _$ArticleCommentUserToJson(this);
+}
+
+@JsonSerializable()
+class ArticleRelatedNews {
+  const ArticleRelatedNews({this.id, this.link, this.title});
+
+  factory ArticleRelatedNews.fromJson(Map<String, dynamic> json) =>
+      _$ArticleRelatedNewsFromJson(json);
+
+  @JsonKey(name: 'id')
+  final int? id;
+
+  @JsonKey(name: 'link')
+  final String? link;
+
+  @JsonKey(name: 'title')
+  final String? title;
+
+  Map<String, dynamic> toJson() => _$ArticleRelatedNewsToJson(this);
+}
+
+@JsonSerializable()
+class ArticleCategoryInfo {
+  const ArticleCategoryInfo({this.title, this.catSlug});
+
+  factory ArticleCategoryInfo.fromJson(Map<String, dynamic> json) =>
+      _$ArticleCategoryInfoFromJson(json);
+
+  @JsonKey(name: 'title')
+  final String? title;
+
+  @JsonKey(name: 'cat_slug')
+  final String? catSlug;
+
+  Map<String, dynamic> toJson() => _$ArticleCategoryInfoToJson(this);
+}
+
+@JsonSerializable()
+class ArticleExtensionMeta {
+  const ArticleExtensionMeta({this.like, this.eye, this.dislike});
+
+  factory ArticleExtensionMeta.fromJson(Map<String, dynamic> json) =>
+      _$ArticleExtensionMetaFromJson(json);
+
+  @JsonKey(name: 'like')
+  final int? like;
+
+  @JsonKey(name: 'eye')
+  final int? eye;
+
+  @JsonKey(name: 'dislike')
+  final int? dislike;
+
+  Map<String, dynamic> toJson() => _$ArticleExtensionMetaToJson(this);
+}
+
+@JsonSerializable()
+class ArticleAuthInfo {
+  const ArticleAuthInfo({
+    this.nickname,
+    this.avatar,
+    this.isOnline,
+    this.userKey,
+    this.userId,
+  });
+
+  factory ArticleAuthInfo.fromJson(Map<String, dynamic> json) =>
+      _$ArticleAuthInfoFromJson(json);
+
+  @JsonKey(name: 'nickname')
+  final String? nickname;
+
+  @JsonKey(name: 'avatar')
+  final String? avatar;
+
+  @JsonKey(name: 'is_online')
+  final bool? isOnline;
+
+  @JsonKey(name: 'user_key')
+  final String? userKey;
+
+  @JsonKey(name: 'user_id')
+  final int? userId;
+
+  Map<String, dynamic> toJson() => _$ArticleAuthInfoToJson(this);
+}
+
+@JsonSerializable()
+class ArticleExtension {
+  const ArticleExtension({this.meta, this.tag, this.auth});
+
+  factory ArticleExtension.fromJson(Map<String, dynamic> json) =>
+      _$ArticleExtensionFromJson(json);
+
+  @JsonKey(name: 'meta')
+  final ArticleExtensionMeta? meta;
+
+  @JsonKey(name: 'tag')
+  final List<dynamic>? tag;
+
+  @JsonKey(name: 'auth')
+  final ArticleAuthInfo? auth;
+
+  Map<String, dynamic> toJson() => _$ArticleExtensionToJson(this);
+}
+
+@JsonSerializable()
+class ArticleUserExt {
+  const ArticleUserExt({this.isFavorite, this.isDing, this.isCai});
+
+  factory ArticleUserExt.fromJson(Map<String, dynamic> json) =>
+      _$ArticleUserExtFromJson(json);
+
+  @JsonKey(name: 'is_favorite')
+  final int? isFavorite;
+
+  @JsonKey(name: 'is_ding')
+  final int? isDing;
+
+  @JsonKey(name: 'is_cai')
+  final int? isCai;
+
+  Map<String, dynamic> toJson() => _$ArticleUserExtToJson(this);
+}
+
+@JsonSerializable()
+class ArticleDetailData {
+  const ArticleDetailData({
+    this.id,
+    this.title,
+    this.content,
+    this.user,
+    this.status,
+    this.type,
+    this.createdAt,
+    this.updatedAt,
+    this.lang,
+    this.lastView,
+    this.lastViewUser,
+    this.replyNums,
+    this.replyUser,
+    this.ding,
+    this.cai,
+    this.replyTime,
+    this.catId,
+    this.origin,
+    this.originLink,
+    this.createTime,
+    this.profile,
+    this.hasTag,
+    this.sh5,
+    this.startTime,
+    this.endTime,
+    this.isTop,
+    this.isHot,
+    this.contact,
+    this.address,
+    this.trackId,
+    this.extension,
+    this.userext,
+    this.comments,
+    this.catInfo,
+    this.link,
+    this.relNews,
+  });
+
+  factory ArticleDetailData.fromJson(Map<String, dynamic> json) =>
+      _$ArticleDetailDataFromJson(json);
+
+  @JsonKey(name: 'id')
+  final int? id;
+
+  @JsonKey(name: 'title')
+  final String? title;
+
+  @JsonKey(name: 'content')
+  final String? content;
+
+  @JsonKey(name: 'user')
+  final int? user;
+
+  @JsonKey(name: 'status')
+  final int? status;
+
+  @JsonKey(name: 'type')
+  final String? type;
+
+  @JsonKey(name: 'created_at')
+  final String? createdAt;
+
+  @JsonKey(name: 'updated_at')
+  final String? updatedAt;
+
+  @JsonKey(name: 'lang')
+  final int? lang;
+
+  @JsonKey(name: 'last_view')
+  final int? lastView;
+
+  @JsonKey(name: 'last_view_user')
+  final int? lastViewUser;
+
+  @JsonKey(name: 'reply_nums')
+  final int? replyNums;
+
+  @JsonKey(name: 'reply_user')
+  final String? replyUser;
+
+  @JsonKey(name: 'ding')
+  final int? ding;
+
+  @JsonKey(name: 'cai')
+  final int? cai;
+
+  @JsonKey(name: 'reply_time')
+  final int? replyTime;
+
+  @JsonKey(name: 'cat_id')
+  final int? catId;
+
+  @JsonKey(name: 'origin')
+  final String? origin;
+
+  @JsonKey(name: 'origin_link')
+  final String? originLink;
+
+  @JsonKey(name: 'create_time')
+  final int? createTime;
+
+  @JsonKey(name: 'profile')
+  final String? profile;
+
+  @JsonKey(name: 'has_tag')
+  final int? hasTag;
+
+  @JsonKey(name: 'sh5')
+  final int? sh5;
+
+  @JsonKey(name: 'start_time')
+  final String? startTime;
+
+  @JsonKey(name: 'end_time')
+  final String? endTime;
+
+  @JsonKey(name: 'is_top')
+  final int? isTop;
+
+  @JsonKey(name: 'is_hot')
+  final int? isHot;
+
+  @JsonKey(name: 'contact')
+  final String? contact;
+
+  @JsonKey(name: 'address')
+  final String? address;
+
+  @JsonKey(name: 'track_id')
+  final String? trackId;
+
+  @JsonKey(name: 'extension')
+  final ArticleExtension? extension;
+
+  @JsonKey(name: 'userext')
+  final ArticleUserExt? userext;
+
+  @JsonKey(name: 'comments')
+  final List<ArticleComment>? comments;
+
+  @JsonKey(name: 'cat_info')
+  final ArticleCategoryInfo? catInfo;
+
+  @JsonKey(name: 'link')
+  final String? link;
+
+  @JsonKey(name: 'rel_news')
+  final List<ArticleRelatedNews>? relNews;
+
+  Map<String, dynamic> toJson() => _$ArticleDetailDataToJson(this);
 }
