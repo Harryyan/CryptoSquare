@@ -1,3 +1,4 @@
+import 'package:cryptosquare/model/user_post.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
@@ -56,6 +57,13 @@ class _ProfileViewState extends State<ProfileView>
         } else {
           postTabIndex.value = idx;
         }
+      }
+
+      // 当切换到我的发布+帖子标签时，加载用户发布的帖子列表
+      if (currentTabIndex.value == 0 &&
+          postTabIndex.value == 3 &&
+          isUserLoggedIn.value) {
+        _loadUserPosts(isRefresh: true);
       }
 
       // 当切换到我的收藏+岗位标签时，加载收藏的岗位列表
@@ -754,34 +762,111 @@ class _ProfileViewState extends State<ProfileView>
     );
   }
 
-  //=======================示例列表 - 帖子============================
+  //=======================用户发布列表 - 帖子============================
 
-  /// [我的发布 - 帖子] 示例列表
+  // 用户发布的帖子列表
+  final RxList<UserPostItem> userPostList = <UserPostItem>[].obs;
+  // 加载状态
+  final RxBool isLoadingUserPosts = false.obs;
+  // 是否还有更多数据
+  final RxBool hasMoreUserPosts = true.obs;
+  // 当前页码
+  final RxInt currentUserPostPage = 1.obs;
+  // 每页数量
+  final int userPostPageSize = 20;
+
+  /// [我的发布 - 帖子] 列表
   Widget _buildMyPostsForumList() {
-    final forumList = [
-      {
-        "title": "从技术到应用：普通人的 Web3 学习手册",
-        "time": "1小时前",
-        "comments": 10,
-        "image": "https://via.placeholder.com/150",
-        "summary":
-            "美国SEC前官员John Reed Stark认为，SEC对Coinbase的诉讼可能会胜诉中，因为该监管机构新成立的加密货币工作组...",
+    // 如果用户未登录，显示提示信息
+    if (!isUserLoggedIn.value) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.info_outline, size: 50, color: Colors.grey),
+            SizedBox(height: 16),
+            Text(
+              '请先登录后查看发布的帖子',
+              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // 如果用户已登录且帖子列表为空，尝试加载数据
+    if (isUserLoggedIn.value &&
+        userPostList.isEmpty &&
+        !isLoadingUserPosts.value) {
+      _loadUserPosts(isRefresh: true);
+    }
+
+    // 添加下拉刷新和上拉加载更多功能
+    return RefreshIndicator(
+      onRefresh: () async {
+        // 刷新用户发布帖子列表
+        currentUserPostPage.value = 1;
+        await _loadUserPosts(isRefresh: true);
       },
-      {
-        "title": "如何快速上手智能合约开发",
-        "time": "2小时前",
-        "comments": 5,
-        "image": "https://via.placeholder.com/150/cccccc",
-        "summary": "合约开发中，Solidity是最流行的语言之一...",
-      },
-    ];
-    return ListView.builder(
-      padding: EdgeInsets.only(top: 4, bottom: 16),
-      itemCount: forumList.length,
-      itemBuilder: (context, index) {
-        final post = forumList[index];
-        return _buildForumCard(post);
-      },
+      child: Obx(() {
+        // 加载中显示进度指示器
+        if (isLoadingUserPosts.value && userPostList.isEmpty) {
+          return Center(child: CircularProgressIndicator());
+        }
+
+        // 没有发布的帖子
+        if (userPostList.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.article_outlined, size: 50, color: Colors.grey),
+                SizedBox(height: 16),
+                Text(
+                  '暂无发布的帖子',
+                  style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                ),
+              ],
+            ),
+          );
+        }
+
+        // 显示用户发布的帖子列表
+        return NotificationListener<ScrollNotification>(
+          onNotification: (ScrollNotification scrollInfo) {
+            // 检测是否滑动到底部，加载更多数据
+            if (scrollInfo.metrics.pixels ==
+                    scrollInfo.metrics.maxScrollExtent &&
+                !isLoadingUserPosts.value &&
+                hasMoreUserPosts.value) {
+              _loadMoreUserPosts();
+            }
+            return false;
+          },
+          child: ListView.builder(
+            padding: EdgeInsets.only(top: 4, bottom: 16),
+            itemCount: userPostList.length + (hasMoreUserPosts.value ? 1 : 0),
+            itemBuilder: (context, index) {
+              // 如果是最后一个item且还有更多数据，显示加载更多
+              if (index == userPostList.length && hasMoreUserPosts.value) {
+                return Container(
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  alignment: Alignment.center,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                );
+              }
+
+              // 正常显示帖子
+              if (index < userPostList.length) {
+                final post = userPostList[index];
+                return _buildUserPostCard(post);
+              }
+
+              return Container();
+            },
+          ),
+        );
+      }),
     );
   }
 
@@ -884,6 +969,52 @@ class _ProfileViewState extends State<ProfileView>
     );
   }
 
+  /// 加载用户发布的帖子列表
+  Future<void> _loadUserPosts({bool isRefresh = false}) async {
+    try {
+      // 设置加载状态
+      isLoadingUserPosts.value = true;
+
+      // 调用API获取用户发布的帖子列表
+      final response = await UserRestClient().getUserPosts(
+        pageSize: userPostPageSize,
+        page: currentUserPostPage.value,
+      );
+
+      // 检查API返回结果
+      if (response.code == 0 && response.data.data.isNotEmpty) {
+        // 如果是刷新，清空现有列表
+        if (isRefresh) {
+          userPostList.clear();
+        }
+
+        // 添加新数据到列表
+        userPostList.addAll(response.data.data);
+
+        // 判断是否还有更多数据
+        hasMoreUserPosts.value = userPostList.length < response.data.total;
+      } else {
+        // 如果返回数据为空，设置没有更多数据
+        hasMoreUserPosts.value = false;
+      }
+    } catch (e) {
+      print('加载用户发布帖子失败: $e');
+    } finally {
+      // 无论成功失败，都结束加载状态
+      isLoadingUserPosts.value = false;
+    }
+  }
+
+  /// 加载更多用户发布的帖子
+  Future<void> _loadMoreUserPosts() async {
+    if (isLoadingUserPosts.value || !hasMoreUserPosts.value) return;
+
+    // 页码加1
+    currentUserPostPage.value++;
+    // 加载更多数据
+    await _loadUserPosts();
+  }
+
   /// 加载收藏的帖子列表
   Future<void> _loadFavoritePosts({bool isRefresh = false}) async {
     try {
@@ -929,6 +1060,80 @@ class _ProfileViewState extends State<ProfileView>
     currentPostPage.value++;
     // 加载更多数据
     await _loadFavoritePosts();
+  }
+
+  /// 用户发布的帖子卡片
+  Widget _buildUserPostCard(UserPostItem post) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 帖子标题
+          Text(
+            post.title,
+            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 8),
+          // 分类标签
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.blue.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Text(
+              post.catName,
+              style: TextStyle(fontSize: 12, color: Colors.blue),
+            ),
+          ),
+          const SizedBox(height: 12),
+          // 底部信息
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 10,
+                backgroundImage: NetworkImage(
+                  userController.user.avatarUrl ??
+                      'https://via.placeholder.com/20',
+                ),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                userName.value,
+                style: TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+              const Spacer(),
+              // 状态标签
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color:
+                      post.status == 1
+                          ? Colors.green.withOpacity(0.1)
+                          : Colors.grey.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  post.status == 1 ? '已发布' : '待审核',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: post.status == 1 ? Colors.green : Colors.grey,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
   /// 帖子样式卡片
