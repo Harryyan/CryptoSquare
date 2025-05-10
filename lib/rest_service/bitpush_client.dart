@@ -293,4 +293,61 @@ class BitpushClient {
       rethrow;
     }
   }
+
+  // 获取文章列表
+  Future<BitpushNewsResponse> getArticleList(FormData formData) async {
+    try {
+      // 发送POST请求到API端点，使用FormData
+      final response = await _dio.post<dynamic>('webapi.php', data: formData);
+
+      if (response.data is BitpushNewsResponse) {
+        return response.data as BitpushNewsResponse;
+      } else if (response.data is Map<String, dynamic>) {
+        return BitpushNewsResponse.fromJson(
+          response.data as Map<String, dynamic>,
+        );
+      } else if (response.data is String) {
+        return BitpushNewsResponse.fromJsonString(response.data as String);
+      } else {
+        throw FormatException('Unexpected response format');
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // 获取全球论坛的"全部"标签数据
+  Future<BitpushNewsResponse> getForumArticles({
+    int page = 1,
+    int? cursor,
+    String language = 'zh-CN',
+    String platform = 'web',
+  }) async {
+    try {
+      // 构建请求参数
+      final Map<String, dynamic> params = {
+        'm': 'get_articles',
+        'category_id': 0, // 全部分类
+        'show_all': 1,
+        'timestamp': DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        'language': language,
+        'platform': platform,
+      };
+
+      // 添加分页参数，优先使用cursor（如果提供）
+      if (cursor != null) {
+        params['cursor'] = cursor.toString();
+      } else {
+        params['page'] = page.toString();
+      }
+
+      // 创建FormData对象，确保以form-data格式发送请求
+      final formData = FormData.fromMap(params);
+
+      // 使用通用的getArticleList方法发送请求
+      return await getArticleList(formData);
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

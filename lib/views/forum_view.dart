@@ -1,3 +1,4 @@
+import 'package:cryptosquare/util/storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
@@ -5,6 +6,9 @@ import 'package:cryptosquare/theme/app_theme.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'dart:io';
 import 'package:cryptosquare/views/article_list_example.dart';
+import 'package:cryptosquare/rest_service/rest_client.dart';
+import 'package:cryptosquare/model/article_list.dart';
+import 'package:dio/dio.dart';
 
 class ForumView extends StatefulWidget {
   const ForumView({super.key});
@@ -27,44 +31,23 @@ class _ForumViewState extends State<ForumView>
   WebViewController? _webViewController;
   final RxInt webViewProgress = 0.obs; // WebView加载进度
 
-  // 模拟的论坛数据
-  final RxList<Map<String, dynamic>> forumList =
-      [
-        {
-          "title": "从技术到应用：普通人的 Web3 学习手册",
-          "time": "1小时前",
-          "comments": 10,
-          "image": "https://via.placeholder.com/150",
-          "summary":
-              "美国SEC前官员John Reed Stark认为，SEC对Coinbase的诉讼可能会胜诉中，因为该监管机构新成立的加密货币工作组...",
-          "author": "我不是韭菜",
-          "category": "技术应用",
-        },
-        {
-          "title": "美国SEC前官员John Reed Stark认为，SEC对Coinbase的诉讼可能会胜诉中",
-          "time": "1小时前",
-          "comments": 10,
-          "image": "https://via.placeholder.com/150",
-          "summary":
-              "美国SEC前官员John Reed Stark认为，SEC对Coinbase的诉讼可能会胜诉中，因为该监管机构新成立的加密货币工作组...",
-          "author": "我不是韭菜",
-          "category": "行业动态",
-        },
-        {
-          "title": "从技术到应用：普通人的 Web3 学习手册",
-          "time": "1小时前",
-          "comments": 10,
-          "image": "https://via.placeholder.com/150",
-          "summary":
-              "美国SEC前官员John Reed Stark认为，SEC对Coinbase的诉讼可能会胜诉中，因为该监管机构新成立的加密货币工作组构新成立的加密货币工作组...",
-          "author": "我不是韭菜",
-          "category": "闲谈天地",
-        },
-      ].obs;
+  // 论坛文章数据
+  final RxList<ArticleItem> forumArticles = <ArticleItem>[].obs;
+  final RxBool isLoading = true.obs; // 初始加载状态
+  final RxBool isError = false.obs; // 错误状态
+  final RxString errorMessage = ''.obs; // 错误信息
+  final RxInt currentPage = 1.obs; // 当前页码
+  final RxBool hasMoreData = true.obs; // 是否有更多数据
+
+  // RestClient实例
+  late RestClient _restClient;
 
   @override
   void initState() {
     super.initState();
+    // 初始化RestClient
+    _restClient = RestClient();
+
     _tabController = TabController(length: 4, vsync: this);
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
@@ -76,6 +59,9 @@ class _ForumViewState extends State<ForumView>
         }
       }
     });
+
+    // 加载论坛文章数据
+    _loadForumArticles();
   }
 
   // 检查网络连接并加载WebView
@@ -166,35 +152,79 @@ class _ForumViewState extends State<ForumView>
     super.dispose();
   }
 
+  // 加载论坛文章数据
+  Future<void> _loadForumArticles() async {
+    try {
+      isLoading.value = true;
+      isError.value = false;
+      errorMessage.value = '';
+
+      // 获取平台信息
+      String platform = 'ios';
+      if (Platform.isAndroid) {
+        platform = 'android';
+      }
+
+      // 调用RestClient的getArticleList API获取论坛文章
+      final response = await _restClient.getArticleList(
+        0, // cat_id: 0表示全部分类
+        30, // page_size: 每页30条
+        currentPage.value, // page: 当前页码
+        GStorage().getLanguageCN() ? 1 : 0, // lang: 1是中文，0是英文
+        platform, // platform: 平台信息
+      );
+
+      // 处理响应数据
+      if (response.data?.data != null && response.data!.data!.isNotEmpty) {
+        // 如果是第一页，清空现有数据
+        if (currentPage.value == 1) {
+          forumArticles.clear();
+        }
+
+        // 添加新数据
+        forumArticles.addAll(response.data!.data!);
+
+        // 更新分页信息
+        hasMoreData.value =
+            response.data!.total != null &&
+            forumArticles.length < response.data!.total!;
+      } else {
+        // 没有数据
+        if (currentPage.value == 1) {
+          forumArticles.clear();
+        }
+        hasMoreData.value = false;
+      }
+    } catch (e) {
+      isError.value = true;
+      errorMessage.value = '加载失败: $e';
+      print('加载论坛文章失败: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   // 下拉刷新
   Future<void> _onRefresh() async {
     isRefreshing.value = true;
-    // 模拟网络请求
-    await Future.delayed(const Duration(seconds: 1));
-    // 刷新数据
-    forumList.shuffle();
+    // 重置分页参数
+    currentPage.value = 1;
+
+    // 加载第一页数据
+    await _loadForumArticles();
     isRefreshing.value = false;
   }
 
   // 上拉加载更多
   Future<void> _onLoadMore() async {
-    if (isLoadingMore.value) return;
+    if (isLoadingMore.value || !hasMoreData.value) return;
 
     isLoadingMore.value = true;
-    // 模拟网络请求
-    await Future.delayed(const Duration(seconds: 1));
+    // 增加页码
+    currentPage.value++;
 
-    // 添加更多数据
-    forumList.add({
-      "title": "加载更多：Web3 发展趋势分析",
-      "time": "${forumList.length + 1}小时前",
-      "comments": 5,
-      "image": "https://via.placeholder.com/150/cccccc",
-      "summary": "这是加载的更多内容，Web3技术正在快速发展...",
-      "author": "区块链爱好者",
-      "category": "技术应用",
-    });
-
+    // 加载更多数据
+    await _loadForumArticles();
     isLoadingMore.value = false;
   }
 
@@ -388,11 +418,7 @@ class _ForumViewState extends State<ForumView>
 
   // 论坛列表
   Widget _buildForumList(String? category) {
-    // 根据分类筛选数据
-    final filteredList =
-        category == null
-            ? forumList
-            : forumList.where((item) => item['category'] == category).toList();
+    final filteredList = forumArticles;
 
     return RefreshIndicator(
       onRefresh: _onRefresh,
@@ -404,21 +430,118 @@ class _ForumViewState extends State<ForumView>
           }
           return false;
         },
-        child: ListView.builder(
-          padding: const EdgeInsets.only(bottom: 70), // 为底部发布按钮留出空间
-          itemCount: filteredList.length + (isLoadingMore.value ? 1 : 0),
-          itemBuilder: (context, index) {
-            if (index == filteredList.length) {
-              return const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: CircularProgressIndicator(),
-                ),
-              );
-            }
-            return _buildForumCard(filteredList[index]);
-          },
-        ),
+        child: Obx(() {
+          if (isLoading.value && forumArticles.isEmpty) {
+            // 首次加载显示加载指示器
+            return const Center(
+              child: Padding(
+                padding: EdgeInsets.all(16.0),
+                child: CircularProgressIndicator(),
+              ),
+            );
+          } else if (isError.value && forumArticles.isEmpty) {
+            // 显示错误信息
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 48, color: Colors.grey[400]),
+                  const SizedBox(height: 16),
+                  Text(
+                    '加载失败',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    errorMessage.value,
+                    style: TextStyle(color: Colors.grey[600]),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    onPressed: _onRefresh,
+                    icon: const Icon(Icons.refresh, color: Colors.white),
+                    label: const Text(
+                      '重试',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF2563EB),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          } else if (filteredList.isEmpty) {
+            // 没有数据
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.article_outlined,
+                    size: 48,
+                    color: Colors.grey[400],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    '暂无内容',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '暂时没有相关文章',
+                    style: TextStyle(color: Colors.grey[600]),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            );
+          }
+
+          // 显示文章列表
+          return ListView.builder(
+            padding: const EdgeInsets.only(bottom: 70), // 为底部发布按钮留出空间
+            itemCount:
+                filteredList.length +
+                (isLoadingMore.value || hasMoreData.value ? 1 : 0),
+            itemBuilder: (context, index) {
+              if (index == filteredList.length) {
+                // 底部加载更多指示器
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child:
+                        isLoadingMore.value
+                            ? const CircularProgressIndicator()
+                            : hasMoreData.value
+                            ? TextButton(
+                              onPressed: _onLoadMore,
+                              child: const Text('加载更多'),
+                            )
+                            : Text(
+                              '没有更多内容了',
+                              style: TextStyle(color: Colors.grey[500]),
+                            ),
+                  ),
+                );
+              }
+              return _buildForumCard(filteredList[index]);
+            },
+          );
+        }),
       ),
     );
   }
@@ -543,8 +666,10 @@ class _ForumViewState extends State<ForumView>
   }
 
   // 论坛卡片
-  Widget _buildForumCard(Map<String, dynamic> post) {
-    final bool hasImage = post['image'] != null;
+  Widget _buildForumCard(ArticleItem article) {
+    // 获取文章图片，从extension.meta.img字段
+    final String? imageUrl = article.cover;
+    final bool hasImage = imageUrl != null && imageUrl.isNotEmpty;
 
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
@@ -558,7 +683,7 @@ class _ForumViewState extends State<ForumView>
         children: [
           // 标题 - 单独占一行并左对齐
           Text(
-            post['title'] ?? '',
+            article.title ?? '',
             style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
@@ -575,17 +700,28 @@ class _ForumViewState extends State<ForumView>
                 ClipRRect(
                   borderRadius: BorderRadius.circular(4),
                   child: Image.network(
-                    post['image'],
+                    imageUrl!,
                     height: 80,
                     width: 120,
                     fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        height: 80,
+                        width: 120,
+                        color: Colors.grey[300],
+                        child: Icon(
+                          Icons.image_not_supported,
+                          color: Colors.grey[500],
+                        ),
+                      );
+                    },
                   ),
                 ),
 
               // 右侧内容摘要
               Expanded(
                 child: Text(
-                  post['summary'] ?? '',
+                  article.content ?? '',
                   style: TextStyle(fontSize: 14, color: Colors.grey[700]),
                   maxLines: 3, // 支持3行显示
                   overflow: TextOverflow.ellipsis,
@@ -616,13 +752,15 @@ class _ForumViewState extends State<ForumView>
                   const SizedBox(width: 4),
                   // 作者名称
                   Text(
-                    post['author'] ?? '',
+                    article.extension?.auth?.nickname ?? '',
                     style: TextStyle(fontSize: 12, color: Colors.grey[700]),
                   ),
                   const SizedBox(width: 8),
                   // 发布时间
                   Text(
-                    post['time'] ?? '',
+                    article.createdAt != null
+                        ? _formatTime(_parseTimestamp(article.createdAt!))
+                        : '',
                     style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                   ),
                 ],
@@ -638,7 +776,7 @@ class _ForumViewState extends State<ForumView>
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    '${post['comments'] ?? 0}条评论',
+                    '${article.replyNums ?? '0'}条评论',
                     style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                   ),
                 ],
@@ -648,6 +786,36 @@ class _ForumViewState extends State<ForumView>
         ],
       ),
     );
+  }
+
+  // 解析时间戳字符串为整数
+  int _parseTimestamp(String timestampStr) {
+    try {
+      // 尝试直接解析为整数
+      return int.parse(timestampStr);
+    } catch (e) {
+      // 如果解析失败，返回当前时间戳作为默认值
+      return (DateTime.now().millisecondsSinceEpoch / 1000).floor();
+    }
+  }
+
+  // 格式化时间戳
+  String _formatTime(int timestamp) {
+    final now = DateTime.now();
+    final dateTime = DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
+    final difference = now.difference(dateTime);
+
+    if (difference.inDays > 30) {
+      return '${dateTime.year}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')}';
+    } else if (difference.inDays > 0) {
+      return '${difference.inDays}天前';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours}小时前';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes}分钟前';
+    } else {
+      return '刚刚';
+    }
   }
 
   // 底部发布栏
