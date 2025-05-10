@@ -244,26 +244,26 @@ class _ForumViewState extends State<ForumView>
         child: Column(
           children: [
             _buildSearchBar(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                // 添加测试按钮
-                Padding(
-                  padding: const EdgeInsets.only(right: 16.0),
-                  child: TextButton.icon(
-                    icon: const Icon(
-                      Icons.article,
-                      color: AppTheme.primaryColor,
-                    ),
-                    label: const Text(
-                      '测试文章列表',
-                      style: TextStyle(color: AppTheme.primaryColor),
-                    ),
-                    onPressed: _navigateToArticleListExample,
-                  ),
-                ),
-              ],
-            ),
+            // Row(
+            //   mainAxisAlignment: MainAxisAlignment.end,
+            //   children: [
+            //     // 添加测试按钮
+            //     Padding(
+            //       padding: const EdgeInsets.only(right: 16.0),
+            //       child: TextButton.icon(
+            //         icon: const Icon(
+            //           Icons.article,
+            //           color: AppTheme.primaryColor,
+            //         ),
+            //         label: const Text(
+            //           '测试文章列表',
+            //           style: TextStyle(color: AppTheme.primaryColor),
+            //         ),
+            //         onPressed: _navigateToArticleListExample,
+            //       ),
+            //     ),
+            //   ],
+            // ),
             _buildTabs(),
             Expanded(child: Obx(() => _buildTabContent())),
           ],
@@ -667,9 +667,13 @@ class _ForumViewState extends State<ForumView>
 
   // 论坛卡片
   Widget _buildForumCard(ArticleItem article) {
-    // 获取文章图片，从extension.meta.img字段
+    // 获取文章图片，从cover字段
     final String? imageUrl = article.cover;
     final bool hasImage = imageUrl != null && imageUrl.isNotEmpty;
+
+    // 获取用户头像，从extension.auth.avatar字段
+    final String? avatarUrl = article.extension?.auth?.avatar;
+    final bool hasAvatar = avatarUrl != null && avatarUrl.isNotEmpty;
 
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
@@ -677,93 +681,135 @@ class _ForumViewState extends State<ForumView>
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 标题 - 单独占一行并左对齐
+          // 文章标题 - 单独占一行并左对齐
           Text(
             article.title ?? '',
             style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 8),
-
-          // 内容摘要和图片在同一行
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 左侧图片（如果有）
-              if (hasImage) const SizedBox(width: 12),
-              if (hasImage)
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: Image.network(
-                    imageUrl!,
-                    height: 80,
-                    width: 120,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        height: 80,
-                        width: 120,
-                        color: Colors.grey[300],
-                        child: Icon(
-                          Icons.image_not_supported,
-                          color: Colors.grey[500],
-                        ),
-                      );
-                    },
-                  ),
-                ),
-
-              // 右侧内容摘要
-              Expanded(
-                child: Text(
-                  article.content ?? '',
-                  style: TextStyle(fontSize: 14, color: Colors.grey[700]),
-                  maxLines: 3, // 支持3行显示
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-
           const SizedBox(height: 12),
 
-          // 底部信息区域 - 单独一行
+          // 文章内容区域 - 左侧封面图片，右侧文章描述
+          // Row(
+          //   crossAxisAlignment: CrossAxisAlignment.start,
+          //   children: [
+          //     // 左侧封面图片
+          //     if (hasImage)
+          //       // ClipRRect(
+          //       //   borderRadius: BorderRadius.circular(6),
+          //       //   child: Image.network(
+          //       //     imageUrl!,
+          //       //     height: 80,
+          //       //     width: 120,
+          //       //     fit: BoxFit.cover,
+          //       //     errorBuilder: (context, error, stackTrace) {
+          //       //       return Container(
+          //       //         height: 80,
+          //       //         width: 120,
+          //       //         color: Colors.grey[200],
+          //       //         child: Icon(
+          //       //           Icons.image_not_supported,
+          //       //           color: Colors.grey[400],
+          //       //           size: 24,
+          //       //         ),
+          //       //       );
+          //       //     },
+          //       //   ),
+          //       // ),
+
+          //     // 图片与内容之间的间距
+          //     // if (hasImage) const SizedBox(width: 12),
+          //   ],
+          // ),
+          const SizedBox(height: 16),
+
+          // 底部用户信息区域
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // 左侧：用户信息
-              Row(
-                children: [
-                  // 作者头像
-                  CircleAvatar(
-                    radius: 12,
-                    backgroundColor: Colors.grey[300],
-                    child: Icon(
-                      Icons.person,
-                      size: 16,
-                      color: Colors.grey[700],
+              // 左侧：用户头像、用户名和发布时间
+              Expanded(
+                child: Row(
+                  children: [
+                    // 用户头像
+                    if (hasAvatar)
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.network(
+                          avatarUrl!,
+                          width: 24,
+                          height: 24,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return CircleAvatar(
+                              radius: 12,
+                              backgroundColor: Colors.grey[300],
+                              child: Icon(
+                                Icons.person,
+                                size: 16,
+                                color: Colors.grey[700],
+                              ),
+                            );
+                          },
+                        ),
+                      )
+                    else
+                      CircleAvatar(
+                        radius: 12,
+                        backgroundColor: Colors.grey[300],
+                        child: Icon(
+                          Icons.person,
+                          size: 16,
+                          color: Colors.grey[700],
+                        ),
+                      ),
+
+                    const SizedBox(width: 8),
+
+                    // 用户名
+                    Text(
+                      article.extension?.auth?.nickname ?? '',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey[800],
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 4),
-                  // 作者名称
-                  Text(
-                    article.extension?.auth?.nickname ?? '',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[700]),
-                  ),
-                  const SizedBox(width: 8),
-                  // 发布时间
-                  Text(
-                    article.createdAt != null
-                        ? _formatTime(_parseTimestamp(article.createdAt!))
-                        : '',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[500]),
-                  ),
-                ],
+
+                    const SizedBox(width: 6),
+
+                    Text(
+                      "|",
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey[400],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+
+                    const SizedBox(width: 6),
+
+                    // 发布时间
+                    Text(
+                      article.createTime != null
+                          ? _formatTime(article.createTime!)
+                          : '',
+                      style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                    ),
+                  ],
+                ),
               ),
 
               // 右侧：评论数
@@ -787,90 +833,90 @@ class _ForumViewState extends State<ForumView>
       ),
     );
   }
+}
 
-  // 解析时间戳字符串为整数
-  int _parseTimestamp(String timestampStr) {
-    try {
-      // 尝试直接解析为整数
-      return int.parse(timestampStr);
-    } catch (e) {
-      // 如果解析失败，返回当前时间戳作为默认值
-      return (DateTime.now().millisecondsSinceEpoch / 1000).floor();
-    }
+// 解析时间戳字符串为整数
+int _parseTimestamp(String timestampStr) {
+  try {
+    // 尝试直接解析为整数
+    return int.parse(timestampStr);
+  } catch (e) {
+    // 如果解析失败，返回当前时间戳作为默认值
+    return (DateTime.now().millisecondsSinceEpoch / 1000).floor();
   }
+}
 
-  // 格式化时间戳
-  String _formatTime(int timestamp) {
-    final now = DateTime.now();
-    final dateTime = DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
-    final difference = now.difference(dateTime);
+// 格式化时间戳
+String _formatTime(int timestamp) {
+  final now = DateTime.now();
+  final dateTime = DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
+  final difference = now.difference(dateTime);
 
-    if (difference.inDays > 30) {
-      return '${dateTime.year}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')}';
-    } else if (difference.inDays > 0) {
-      return '${difference.inDays}天前';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours}小时前';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes}分钟前';
-    } else {
-      return '刚刚';
-    }
+  if (difference.inDays > 30) {
+    return '${dateTime.year}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')}';
+  } else if (difference.inDays > 0) {
+    return '${difference.inDays}天前';
+  } else if (difference.inHours > 0) {
+    return '${difference.inHours}小时前';
+  } else if (difference.inMinutes > 0) {
+    return '${difference.inMinutes}分钟前';
+  } else {
+    return '刚刚';
   }
+}
 
-  // 底部发布栏
-  Widget _buildBottomPublishBar() {
-    // 获取底部安全区域高度
-    return Container(
-      // 高度包含内容高度(60)加上底部安全区域高度
-      height: 80,
-      padding: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        top: 8,
-        bottom: 18, // 底部padding增加安全区域高度
-      ),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 5,
-            offset: const Offset(0, -1),
+// 底部发布栏
+Widget _buildBottomPublishBar() {
+  // 获取底部安全区域高度
+  return Container(
+    // 高度包含内容高度(60)加上底部安全区域高度
+    height: 80,
+    padding: EdgeInsets.only(
+      left: 16,
+      right: 16,
+      top: 8,
+      bottom: 18, // 底部padding增加安全区域高度
+    ),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.05),
+          blurRadius: 5,
+          offset: const Offset(0, -1),
+        ),
+      ],
+    ),
+    child: Row(
+      children: [
+        Image.asset('assets/images/coin-icon.png', width: 24, height: 24),
+        const SizedBox(width: 8),
+        Text(
+          '贡献内容可获4积分',
+          style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+        ),
+        const Spacer(flex: 6),
+        ElevatedButton.icon(
+          onPressed: () {
+            // 发布动态逻辑
+          },
+          icon: Image.asset(
+            'assets/images/write.png',
+            width: 20,
+            height: 20,
+            color: Colors.white,
           ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Image.asset('assets/images/coin-icon.png', width: 24, height: 24),
-          const SizedBox(width: 8),
-          Text(
-            '贡献内容可获4积分',
-            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-          ),
-          const Spacer(flex: 6),
-          ElevatedButton.icon(
-            onPressed: () {
-              // 发布动态逻辑
-            },
-            icon: Image.asset(
-              'assets/images/write.png',
-              width: 20,
-              height: 20,
-              color: Colors.white,
+          label: const Text('发布动态', style: TextStyle(color: Colors.white)),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF2563EB),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(6),
             ),
-            label: const Text('发布动态', style: TextStyle(color: Colors.white)),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF2563EB),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(6),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           ),
-          const Spacer(flex: 1),
-        ],
-      ),
-    );
-  }
+        ),
+        const Spacer(flex: 1),
+      ],
+    ),
+  );
 }
