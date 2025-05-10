@@ -9,6 +9,7 @@ import 'package:cryptosquare/views/article_list_example.dart';
 import 'package:cryptosquare/rest_service/rest_client.dart';
 import 'package:cryptosquare/model/article_list.dart';
 import 'package:dio/dio.dart';
+import 'package:cryptosquare/controllers/article_controller.dart';
 
 class ForumView extends StatefulWidget {
   const ForumView({super.key});
@@ -675,161 +676,171 @@ class _ForumViewState extends State<ForumView>
     final String? avatarUrl = article.extension?.auth?.avatar;
     final bool hasAvatar = avatarUrl != null && avatarUrl.isNotEmpty;
 
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 文章标题 - 单独占一行并左对齐
-          Text(
-            article.title ?? '',
-            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 12),
+    // 使用InkWell包装整个卡片，添加点击事件
+    return InkWell(
+      onTap: () {
+        // 使用ArticleController导航到文章详情页面
+        ArticleController().navigateToArticleDetail(
+          context,
+          article.id.toString(),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 文章标题 - 单独占一行并左对齐
+            Text(
+              article.title ?? '',
+              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 12),
 
-          // 文章内容区域 - 左侧封面图片，右侧文章描述
-          // Row(
-          //   crossAxisAlignment: CrossAxisAlignment.start,
-          //   children: [
-          //     // 左侧封面图片
-          //     if (hasImage)
-          //       // ClipRRect(
-          //       //   borderRadius: BorderRadius.circular(6),
-          //       //   child: Image.network(
-          //       //     imageUrl!,
-          //       //     height: 80,
-          //       //     width: 120,
-          //       //     fit: BoxFit.cover,
-          //       //     errorBuilder: (context, error, stackTrace) {
-          //       //       return Container(
-          //       //         height: 80,
-          //       //         width: 120,
-          //       //         color: Colors.grey[200],
-          //       //         child: Icon(
-          //       //           Icons.image_not_supported,
-          //       //           color: Colors.grey[400],
-          //       //           size: 24,
-          //       //         ),
-          //       //       );
-          //       //     },
-          //       //   ),
-          //       // ),
+            // 文章内容区域 - 左侧封面图片，右侧文章描述
+            // Row(
+            //   crossAxisAlignment: CrossAxisAlignment.start,
+            //   children: [
+            //     // 左侧封面图片
+            //     if (hasImage)
+            //       // ClipRRect(
+            //       //   borderRadius: BorderRadius.circular(6),
+            //       //   child: Image.network(
+            //       //     imageUrl!,
+            //       //     height: 80,
+            //       //     width: 120,
+            //       //     fit: BoxFit.cover,
+            //       //     errorBuilder: (context, error, stackTrace) {
+            //       //       return Container(
+            //       //         height: 80,
+            //       //         width: 120,
+            //       //         color: Colors.grey[200],
+            //       //         child: Icon(
+            //       //           Icons.image_not_supported,
+            //       //           color: Colors.grey[400],
+            //       //           size: 24,
+            //       //         ),
+            //       //       );
+            //       //     },
+            //       //   ),
+            //       // ),
 
-          //     // 图片与内容之间的间距
-          //     // if (hasImage) const SizedBox(width: 12),
-          //   ],
-          // ),
-          const SizedBox(height: 16),
+            //     // 图片与内容之间的间距
+            //     // if (hasImage) const SizedBox(width: 12),
+            //   ],
+            // ),
+            const SizedBox(height: 16),
 
-          // 底部用户信息区域
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              // 左侧：用户头像、用户名和发布时间
-              Expanded(
-                child: Row(
+            // 底部用户信息区域
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // 左侧：用户头像、用户名和发布时间
+                Expanded(
+                  child: Row(
+                    children: [
+                      // 用户头像
+                      if (hasAvatar)
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.network(
+                            avatarUrl!,
+                            width: 24,
+                            height: 24,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return CircleAvatar(
+                                radius: 12,
+                                backgroundColor: Colors.grey[300],
+                                child: Icon(
+                                  Icons.person,
+                                  size: 16,
+                                  color: Colors.grey[700],
+                                ),
+                              );
+                            },
+                          ),
+                        )
+                      else
+                        CircleAvatar(
+                          radius: 12,
+                          backgroundColor: Colors.grey[300],
+                          child: Icon(
+                            Icons.person,
+                            size: 16,
+                            color: Colors.grey[700],
+                          ),
+                        ),
+
+                      const SizedBox(width: 8),
+
+                      // 用户名
+                      Text(
+                        article.extension?.auth?.nickname ?? '',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey[800],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+
+                      const SizedBox(width: 6),
+
+                      Text(
+                        "|",
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey[400],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+
+                      const SizedBox(width: 6),
+
+                      // 发布时间
+                      Text(
+                        article.createTime != null
+                            ? _formatTime(article.createTime!)
+                            : '',
+                        style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // 右侧：评论数
+                Row(
                   children: [
-                    // 用户头像
-                    if (hasAvatar)
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Image.network(
-                          avatarUrl!,
-                          width: 24,
-                          height: 24,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return CircleAvatar(
-                              radius: 12,
-                              backgroundColor: Colors.grey[300],
-                              child: Icon(
-                                Icons.person,
-                                size: 16,
-                                color: Colors.grey[700],
-                              ),
-                            );
-                          },
-                        ),
-                      )
-                    else
-                      CircleAvatar(
-                        radius: 12,
-                        backgroundColor: Colors.grey[300],
-                        child: Icon(
-                          Icons.person,
-                          size: 16,
-                          color: Colors.grey[700],
-                        ),
-                      ),
-
-                    const SizedBox(width: 8),
-
-                    // 用户名
-                    Text(
-                      article.extension?.auth?.nickname ?? '',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey[800],
-                        fontWeight: FontWeight.w500,
-                      ),
+                    Icon(
+                      Icons.comment_outlined,
+                      size: 14,
+                      color: Colors.grey[500],
                     ),
-
-                    const SizedBox(width: 6),
-
+                    const SizedBox(width: 4),
                     Text(
-                      "|",
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey[400],
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-
-                    const SizedBox(width: 6),
-
-                    // 发布时间
-                    Text(
-                      article.createTime != null
-                          ? _formatTime(article.createTime!)
-                          : '',
+                      '${article.replyNums ?? '0'}条评论',
                       style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                     ),
                   ],
                 ),
-              ),
-
-              // 右侧：评论数
-              Row(
-                children: [
-                  Icon(
-                    Icons.comment_outlined,
-                    size: 14,
-                    color: Colors.grey[500],
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    '${article.replyNums ?? '0'}条评论',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[500]),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

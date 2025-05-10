@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:cryptosquare/l10n/l18n_keywords.dart';
 import 'package:cryptosquare/util/storage.dart';
 import 'package:flutter/material.dart';
@@ -5,6 +7,7 @@ import 'package:flutter_html/flutter_html.dart';
 import 'package:cryptosquare/rest_service/rest_client.dart';
 import 'package:get/utils.dart';
 import 'package:intl/intl.dart';
+import 'package:dio/dio.dart';
 
 class ArticleDetailView extends StatefulWidget {
   final String articleId;
@@ -31,95 +34,38 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
       _isLoading = true;
     });
 
-    // 这里应该调用API获取文章详情，现在使用模拟数据
-    await Future.delayed(const Duration(seconds: 1));
-    setState(() {
-      _articleData = _getMockArticleData();
-      _isLoading = false;
-    });
-  }
+    try {
+      // 调用API获取文章详情
+      final client = RestClient();
+      final response = await client.getArticleDetail(
+        widget.articleId,
+        GStorage().getLanguageCN() ? 1 : 0, // 默认使用中文，可以根据实际需求修改
+        Platform.isAndroid ? "android" : "ios", // 平台标识
+      );
 
-  // 模拟文章数据
-  ArticleDetailData _getMockArticleData() {
-    return ArticleDetailData(
-      id: 1,
-      title: '加密货币市场分析：比特币突破50,000美元大关',
-      content: '''
-      <h2>市场概览</h2>
-      <p>比特币近期表现强劲，突破了50,000美元的重要心理关口。这一突破得益于机构投资者的持续进入和市场情绪的改善。</p>
-      <p>以太坊同样表现不俗，随着ETH 2.0的推进，其价格也有所上涨。</p>
-      <h2>技术分析</h2>
-      <p>从技术面来看，比特币突破了多条移动平均线，显示出强劲的上升动能。短期内可能会有回调，但中长期趋势依然向好。</p>
-      <p>交易量的增加也印证了这一趋势的可持续性。</p>
-      <h2>风险提示</h2>
-      <p>尽管市场前景看好，投资者仍需注意以下风险：</p>
-      <ul>
-        <li>监管政策的不确定性</li>
-        <li>市场波动性较大</li>
-        <li>技术安全风险</li>
-      </ul>
-      ''',
-      createdAt: '2023-05-15 08:30:00',
-      extension: ArticleExtension(
-        tag: ['比特币', '市场分析', '加密货币', '投资建议'].map((e) => e as dynamic).toList(),
-        auth: ArticleAuthInfo(
-          nickname: '加密分析师',
-          avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
-          isOnline: true,
-          userId: 101,
-        ),
-      ),
-      comments: [
-        ArticleComment(
-          id: 1,
-          content: '非常感谢分享，这篇分析很有见地！',
-          userId: 201,
-          createdAt: '2023-05-15 09:15:00',
-          parentComment: 0,
-          user: ArticleCommentUser(
-            id: 201,
-            userNicename: '币圈新手',
-            userUrl: 'https://randomuser.me/api/portraits/women/65.jpg',
-          ),
-        ),
-        ArticleComment(
-          id: 2,
-          content: '我认为比特币还会继续上涨，机构资金正在不断流入。',
-          userId: 202,
-          createdAt: '2023-05-15 10:30:00',
-          parentComment: 0,
-          user: ArticleCommentUser(
-            id: 202,
-            userNicename: '区块链爱好者',
-            userUrl: 'https://randomuser.me/api/portraits/men/41.jpg',
-          ),
-        ),
-        ArticleComment(
-          id: 3,
-          content: '我同意你的观点，尤其是关于机构资金流入的分析。',
-          userId: 203,
-          createdAt: '2023-05-15 11:45:00',
-          parentComment: 2, // 回复ID为2的评论
-          user: ArticleCommentUser(
-            id: 203,
-            userNicename: '投资分析师',
-            userUrl: 'https://randomuser.me/api/portraits/women/22.jpg',
-          ),
-        ),
-        ArticleComment(
-          id: 4,
-          content: '监管风险不容忽视，最近有些国家正在加强对加密货币的监管。',
-          userId: 204,
-          createdAt: '2023-05-15 13:20:00',
-          parentComment: 0,
-          user: ArticleCommentUser(
-            id: 204,
-            userNicename: '风险控制专家',
-            userUrl: 'https://randomuser.me/api/portraits/men/55.jpg',
-          ),
-        ),
-      ],
-    );
+      if (response.code == 0 && response.data != null) {
+        setState(() {
+          _articleData = response.data;
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _isLoading = false;
+        });
+        // 显示错误信息
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(response.message ?? '获取文章详情失败')));
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      // 显示错误信息
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('网络错误: ${e.toString()}')));
+    }
   }
 
   @override
