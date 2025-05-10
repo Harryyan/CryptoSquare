@@ -811,6 +811,45 @@ class _RestClient implements RestClient {
     return _value;
   }
 
+  @override
+  Future<ArticleListResponse> getArticleList(
+    int catId,
+    int pageSize,
+    int page,
+    int lang,
+    String platform,
+  ) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'cat_id': catId,
+      r'page_size': pageSize,
+      r'page': page,
+      r'lang': lang,
+      r'PLATFORM': platform,
+    };
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<ArticleListResponse>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/bbs-article',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late ArticleListResponse _value;
+    try {
+      _value = ArticleListResponse.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options);
+      rethrow;
+    }
+    return _value;
+  }
+
   RequestOptions _setStreamType<T>(RequestOptions requestOptions) {
     if (T != dynamic &&
         !(requestOptions.responseType == ResponseType.bytes ||

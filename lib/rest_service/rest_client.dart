@@ -5,6 +5,7 @@ import 'package:dio/io.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:retrofit/retrofit.dart';
 import 'package:cryptosquare/util/storage.dart';
+import 'package:cryptosquare/model/article_list.dart';
 
 part 'rest_client.g.dart';
 
@@ -135,6 +136,15 @@ abstract class RestClient {
   @GET('/bbs-article/detail/{id}')
   Future<BaseResponse<ArticleDetailData>> getArticleDetail(
     @Path('id') String id,
+    @Query('lang') int lang,
+    @Query('PLATFORM') String platform,
+  );
+
+  @GET('/bbs-article')
+  Future<ArticleListResponse> getArticleList(
+    @Query('cat_id') int catId,
+    @Query('page_size') int pageSize,
+    @Query('page') int page,
     @Query('lang') int lang,
     @Query('PLATFORM') String platform,
   );
