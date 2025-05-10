@@ -369,12 +369,20 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
                           comment.user?.userNicename ?? '匿名用户',
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '|',
+                          style: TextStyle(
+                            color: Colors.grey[400],
+                            fontSize: 12,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
                         Text(
                           _formatCommentTime(comment.createdAt),
                           style: TextStyle(
@@ -442,7 +450,6 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
                                   reply.user?.userNicename ?? '匿名用户',
@@ -451,6 +458,15 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
                                     fontSize: 13,
                                   ),
                                 ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  '|',
+                                  style: TextStyle(
+                                    color: Colors.grey[400],
+                                    fontSize: 11,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
                                 Text(
                                   _formatCommentTime(reply.createdAt),
                                   style: TextStyle(
@@ -482,6 +498,24 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
                                   ),
                                 ],
                               ),
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                Image.asset(
+                                  'assets/images/comment_icon.png',
+                                  width: 20,
+                                  height: 20,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '回复',
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
