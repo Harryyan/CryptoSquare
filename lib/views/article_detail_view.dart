@@ -21,12 +21,15 @@ class ArticleDetailView extends StatefulWidget {
 
 class _ArticleDetailViewState extends State<ArticleDetailView> {
   ArticleDetailData? _articleData;
+  List<ArticleCommentItem>? _comments;
   bool _isLoading = true;
+  bool _isLoadingComments = true;
 
   @override
   void initState() {
     super.initState();
     _loadArticleDetail();
+    _loadArticleComments();
   }
 
   Future<void> _loadArticleDetail() async {
@@ -65,6 +68,45 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('网络错误: ${e.toString()}')));
+    }
+  }
+
+  Future<void> _loadArticleComments() async {
+    setState(() {
+      _isLoadingComments = true;
+    });
+
+    try {
+      // 调用API获取文章评论
+      final client = RestClient();
+      final response = await client.getArticleComments(
+        widget.articleId,
+        GStorage().getLanguageCN() ? 1 : 0, // 默认使用中文，可以根据实际需求修改
+        Platform.isAndroid ? "android" : "ios", // 平台标识
+      );
+
+      if (response.code == 0 && response.data != null) {
+        setState(() {
+          _comments = response.data;
+          _isLoadingComments = false;
+        });
+      } else {
+        setState(() {
+          _isLoadingComments = false;
+        });
+        // 显示错误信息
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(response.message ?? '获取评论失败')));
+      }
+    } catch (e) {
+      setState(() {
+        _isLoadingComments = false;
+      });
+      // 显示错误信息
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('获取评论失败: ${e.toString()}')));
     }
   }
 
@@ -234,7 +276,14 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
   }
 
   Widget _buildCommentsSection() {
-    final comments = _articleData?.comments;
+    if (_isLoadingComments) {
+      return const Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final comments = _comments;
     if (comments == null || comments.isEmpty) {
       return const Padding(
         padding: EdgeInsets.all(16.0),
@@ -286,14 +335,11 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
   }
 
   Widget _buildCommentItem(
-    ArticleComment comment,
-    List<ArticleComment> allComments,
+    ArticleCommentItem comment,
+    List<ArticleCommentItem> allComments,
   ) {
-    // 查找此评论的回复（子评论）
-    final replies =
-        allComments
-            .where((reply) => reply.parentComment == comment.id)
-            .toList();
+    // 使用评论的reply字段获取回复
+    final List<ArticleCommentReply> replies = comment.reply ?? [];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
