@@ -313,7 +313,7 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
               ),
               const SizedBox(width: 8),
               Text(
-                '(${comments.length})',
+                '(${_articleData?.replyNums ?? 0})',
                 style: TextStyle(color: Colors.grey[600]),
               ),
             ],
