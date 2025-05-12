@@ -140,6 +140,13 @@ abstract class RestClient {
     @Query('PLATFORM') String platform,
   );
 
+  @GET('/bbs-article/comment/{article_id}')
+  Future<ArticleCommentResponse> getArticleComments(
+    @Path('article_id') String articleId,
+    @Query('lang') int lang,
+    @Query('PLATFORM') String platform,
+  );
+
   @GET('/bbs-article')
   Future<ArticleListResponse> getArticleList(
     @Query('cat_id') int catId,
@@ -957,4 +964,165 @@ class ArticleDetailData {
   final List<ArticleRelatedNews>? relNews;
 
   Map<String, dynamic> toJson() => _$ArticleDetailDataToJson(this);
+}
+
+@JsonSerializable()
+class ArticleCommentResponse extends BaseResponse<List<ArticleCommentItem>> {
+  const ArticleCommentResponse({
+    String? message,
+    int? code,
+    List<ArticleCommentItem>? data,
+  }) : super(message: message, code: code, data: data);
+
+  factory ArticleCommentResponse.fromJson(Map<String, dynamic> json) {
+    return ArticleCommentResponse(
+      message: json['message'] as String?,
+      code: json['code'] as int?,
+      data:
+          (json['data'] as List<dynamic>?)
+              ?.map(
+                (e) => ArticleCommentItem.fromJson(e as Map<String, dynamic>),
+              )
+              .toList(),
+    );
+  }
+
+  @override
+  Map<String, dynamic> toJson(
+    Object? Function(List<ArticleCommentItem>) toJsonT,
+  ) => <String, dynamic>{'message': message, 'code': code, 'data': data};
+}
+
+@JsonSerializable()
+class ArticleCommentItem {
+  const ArticleCommentItem({
+    this.id,
+    this.content,
+    this.userId,
+    this.commentTo,
+    this.toType,
+    this.createdAt,
+    this.updatedAt,
+    this.parentComment,
+    this.commentTouid,
+    this.groupid,
+    this.isDel,
+    this.updatetime,
+    this.reply,
+    this.currentUserCanDel,
+    this.user,
+  });
+
+  factory ArticleCommentItem.fromJson(Map<String, dynamic> json) =>
+      _$ArticleCommentItemFromJson(json);
+
+  @JsonKey(name: 'id')
+  final int? id;
+
+  @JsonKey(name: 'content')
+  final String? content;
+
+  @JsonKey(name: 'user_id')
+  final int? userId;
+
+  @JsonKey(name: 'comment_to')
+  final int? commentTo;
+
+  @JsonKey(name: 'to_type')
+  final String? toType;
+
+  @JsonKey(name: 'created_at')
+  final String? createdAt;
+
+  @JsonKey(name: 'updated_at')
+  final String? updatedAt;
+
+  @JsonKey(name: 'parent_comment')
+  final int? parentComment;
+
+  @JsonKey(name: 'comment_touid')
+  final int? commentTouid;
+
+  @JsonKey(name: 'groupid')
+  final int? groupid;
+
+  @JsonKey(name: 'is_del')
+  final int? isDel;
+
+  @JsonKey(name: 'updatetime')
+  final int? updatetime;
+
+  @JsonKey(name: 'reply')
+  final List<ArticleCommentReply>? reply;
+
+  @JsonKey(name: 'current_user_can_del')
+  final int? currentUserCanDel;
+
+  @JsonKey(name: 'user')
+  final ArticleCommentUser? user;
+
+  Map<String, dynamic> toJson() => _$ArticleCommentItemToJson(this);
+}
+
+@JsonSerializable()
+class ArticleCommentReply {
+  const ArticleCommentReply({
+    this.id,
+    this.content,
+    this.userId,
+    this.commentTo,
+    this.toType,
+    this.createdAt,
+    this.updatedAt,
+    this.parentComment,
+    this.commentTouid,
+    this.groupid,
+    this.isDel,
+    this.updatetime,
+    this.user,
+  });
+
+  factory ArticleCommentReply.fromJson(Map<String, dynamic> json) =>
+      _$ArticleCommentReplyFromJson(json);
+
+  @JsonKey(name: 'id')
+  final int? id;
+
+  @JsonKey(name: 'content')
+  final String? content;
+
+  @JsonKey(name: 'user_id')
+  final int? userId;
+
+  @JsonKey(name: 'comment_to')
+  final int? commentTo;
+
+  @JsonKey(name: 'to_type')
+  final String? toType;
+
+  @JsonKey(name: 'created_at')
+  final String? createdAt;
+
+  @JsonKey(name: 'updated_at')
+  final String? updatedAt;
+
+  @JsonKey(name: 'parent_comment')
+  final int? parentComment;
+
+  @JsonKey(name: 'comment_touid')
+  final int? commentTouid;
+
+  @JsonKey(name: 'groupid')
+  final int? groupid;
+
+  @JsonKey(name: 'is_del')
+  final int? isDel;
+
+  @JsonKey(name: 'updatetime')
+  final int? updatetime;
+
+  @JsonKey(name: 'user')
+  final ArticleCommentUser? user;
+
+  Map<String, dynamic> toJson() => _$ArticleCommentReplyToJson(this);
 }

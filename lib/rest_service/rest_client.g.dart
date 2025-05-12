@@ -554,6 +554,110 @@ Map<String, dynamic> _$ArticleDetailDataToJson(ArticleDetailData instance) =>
       'rel_news': instance.relNews,
     };
 
+ArticleCommentResponse _$ArticleCommentResponseFromJson(
+  Map<String, dynamic> json,
+) => ArticleCommentResponse(
+  message: json['message'] as String?,
+  code: (json['code'] as num?)?.toInt(),
+  data:
+      (json['data'] as List<dynamic>?)
+          ?.map((e) => ArticleCommentItem.fromJson(e as Map<String, dynamic>))
+          .toList(),
+);
+
+Map<String, dynamic> _$ArticleCommentResponseToJson(
+  ArticleCommentResponse instance,
+) => <String, dynamic>{
+  'message': instance.message,
+  'code': instance.code,
+  'data': instance.data,
+};
+
+ArticleCommentItem _$ArticleCommentItemFromJson(
+  Map<String, dynamic> json,
+) => ArticleCommentItem(
+  id: (json['id'] as num?)?.toInt(),
+  content: json['content'] as String?,
+  userId: (json['user_id'] as num?)?.toInt(),
+  commentTo: (json['comment_to'] as num?)?.toInt(),
+  toType: json['to_type'] as String?,
+  createdAt: json['created_at'] as String?,
+  updatedAt: json['updated_at'] as String?,
+  parentComment: (json['parent_comment'] as num?)?.toInt(),
+  commentTouid: (json['comment_touid'] as num?)?.toInt(),
+  groupid: (json['groupid'] as num?)?.toInt(),
+  isDel: (json['is_del'] as num?)?.toInt(),
+  updatetime: (json['updatetime'] as num?)?.toInt(),
+  reply:
+      (json['reply'] as List<dynamic>?)
+          ?.map((e) => ArticleCommentReply.fromJson(e as Map<String, dynamic>))
+          .toList(),
+  currentUserCanDel: (json['current_user_can_del'] as num?)?.toInt(),
+  user:
+      json['user'] == null
+          ? null
+          : ArticleCommentUser.fromJson(json['user'] as Map<String, dynamic>),
+);
+
+Map<String, dynamic> _$ArticleCommentItemToJson(ArticleCommentItem instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'content': instance.content,
+      'user_id': instance.userId,
+      'comment_to': instance.commentTo,
+      'to_type': instance.toType,
+      'created_at': instance.createdAt,
+      'updated_at': instance.updatedAt,
+      'parent_comment': instance.parentComment,
+      'comment_touid': instance.commentTouid,
+      'groupid': instance.groupid,
+      'is_del': instance.isDel,
+      'updatetime': instance.updatetime,
+      'reply': instance.reply,
+      'current_user_can_del': instance.currentUserCanDel,
+      'user': instance.user,
+    };
+
+ArticleCommentReply _$ArticleCommentReplyFromJson(Map<String, dynamic> json) =>
+    ArticleCommentReply(
+      id: (json['id'] as num?)?.toInt(),
+      content: json['content'] as String?,
+      userId: (json['user_id'] as num?)?.toInt(),
+      commentTo: (json['comment_to'] as num?)?.toInt(),
+      toType: json['to_type'] as String?,
+      createdAt: json['created_at'] as String?,
+      updatedAt: json['updated_at'] as String?,
+      parentComment: (json['parent_comment'] as num?)?.toInt(),
+      commentTouid: (json['comment_touid'] as num?)?.toInt(),
+      groupid: (json['groupid'] as num?)?.toInt(),
+      isDel: (json['is_del'] as num?)?.toInt(),
+      updatetime: (json['updatetime'] as num?)?.toInt(),
+      user:
+          json['user'] == null
+              ? null
+              : ArticleCommentUser.fromJson(
+                json['user'] as Map<String, dynamic>,
+              ),
+    );
+
+Map<String, dynamic> _$ArticleCommentReplyToJson(
+  ArticleCommentReply instance,
+) => <String, dynamic>{
+  'id': instance.id,
+  'content': instance.content,
+  'user_id': instance.userId,
+  'comment_to': instance.commentTo,
+  'to_type': instance.toType,
+  'created_at': instance.createdAt,
+  'updated_at': instance.updatedAt,
+  'parent_comment': instance.parentComment,
+  'comment_touid': instance.commentTouid,
+  'groupid': instance.groupid,
+  'is_del': instance.isDel,
+  'updatetime': instance.updatetime,
+  'user': instance.user,
+};
+
 // **************************************************************************
 // RetrofitGenerator
 // **************************************************************************
@@ -804,6 +908,40 @@ class _RestClient implements RestClient {
         _result.data!,
         (json) => ArticleDetailData.fromJson(json as Map<String, dynamic>),
       );
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
+  Future<ArticleCommentResponse> getArticleComments(
+    String articleId,
+    int lang,
+    String platform,
+  ) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'lang': lang,
+      r'PLATFORM': platform,
+    };
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<ArticleCommentResponse>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/bbs-article/comment/${articleId}',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late ArticleCommentResponse _value;
+    try {
+      _value = ArticleCommentResponse.fromJson(_result.data!);
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options);
       rethrow;
