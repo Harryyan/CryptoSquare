@@ -32,13 +32,31 @@ class _ForumViewState extends State<ForumView>
   WebViewController? _webViewController;
   final RxInt webViewProgress = 0.obs; // WebView加载进度
 
-  // 论坛文章数据
+  // 论坛文章数据 - 全部
   final RxList<ArticleItem> forumArticles = <ArticleItem>[].obs;
   final RxBool isLoading = true.obs; // 初始加载状态
   final RxBool isError = false.obs; // 错误状态
   final RxString errorMessage = ''.obs; // 错误信息
   final RxInt currentPage = 1.obs; // 当前页码
   final RxBool hasMoreData = true.obs; // 是否有更多数据
+
+  // 行业动态文章数据 - cat_id: 32
+  final RxList<ArticleItem> industryArticles = <ArticleItem>[].obs;
+  final RxBool isIndustryLoading = false.obs; // 初始加载状态
+  final RxBool isIndustryError = false.obs; // 错误状态
+  final RxString industryErrorMessage = ''.obs; // 错误信息
+  final RxInt industryCurrentPage = 1.obs; // 当前页码
+  final RxBool hasMoreIndustryData = true.obs; // 是否有更多数据
+  final RxBool industryInitialized = false.obs; // 是否已初始化
+
+  // 闲谈天地文章数据 - cat_id: 47
+  final RxList<ArticleItem> casualArticles = <ArticleItem>[].obs;
+  final RxBool isCasualLoading = false.obs; // 初始加载状态
+  final RxBool isCasualError = false.obs; // 错误状态
+  final RxString casualErrorMessage = ''.obs; // 错误信息
+  final RxInt casualCurrentPage = 1.obs; // 当前页码
+  final RxBool hasMoreCasualData = true.obs; // 是否有更多数据
+  final RxBool casualInitialized = false.obs; // 是否已初始化
 
   // RestClient实例
   late RestClient _restClient;
@@ -54,9 +72,23 @@ class _ForumViewState extends State<ForumView>
       if (!_tabController.indexIsChanging) {
         currentTabIndex.value = _tabController.index;
 
-        // 当切换到加密百科标签时，检查网络连接
-        if (currentTabIndex.value == 3) {
-          _checkNetworkAndLoadWebView();
+        // 根据当前标签加载相应数据（仅首次加载）
+        switch (currentTabIndex.value) {
+          case 1: // 行业动态
+            if (!industryInitialized.value) {
+              _loadIndustryArticles();
+              industryInitialized.value = true;
+            }
+            break;
+          case 2: // 闲谈天地
+            if (!casualInitialized.value) {
+              _loadCasualArticles();
+              casualInitialized.value = true;
+            }
+            break;
+          case 3: // 加密百科
+            _checkNetworkAndLoadWebView();
+            break;
         }
       }
     });
@@ -153,7 +185,7 @@ class _ForumViewState extends State<ForumView>
     super.dispose();
   }
 
-  // 加载论坛文章数据
+  // 加载论坛文章数据 - 全部分类
   Future<void> _loadForumArticles() async {
     try {
       isLoading.value = true;
@@ -205,27 +237,169 @@ class _ForumViewState extends State<ForumView>
     }
   }
 
+  // 加载行业动态文章数据 - cat_id: 32
+  Future<void> _loadIndustryArticles() async {
+    try {
+      isIndustryLoading.value = true;
+      isIndustryError.value = false;
+      industryErrorMessage.value = '';
+
+      // 获取平台信息
+      String platform = 'ios';
+      if (Platform.isAndroid) {
+        platform = 'android';
+      }
+
+      // 调用RestClient的getArticleList API获取行业动态文章
+      final response = await _restClient.getArticleList(
+        32, // cat_id: 32表示行业动态分类
+        30, // page_size: 每页30条
+        industryCurrentPage.value, // page: 当前页码
+        GStorage().getLanguageCN() ? 1 : 0, // lang: 1是中文，0是英文
+        platform, // platform: 平台信息
+      );
+
+      // 处理响应数据
+      if (response.data?.data != null && response.data!.data!.isNotEmpty) {
+        // 如果是第一页，清空现有数据
+        if (industryCurrentPage.value == 1) {
+          industryArticles.clear();
+        }
+
+        // 添加新数据
+        industryArticles.addAll(response.data!.data!);
+
+        // 更新分页信息
+        hasMoreIndustryData.value =
+            response.data!.total != null &&
+            industryArticles.length < response.data!.total!;
+      } else {
+        // 没有数据
+        if (industryCurrentPage.value == 1) {
+          industryArticles.clear();
+        }
+        hasMoreIndustryData.value = false;
+      }
+    } catch (e) {
+      isIndustryError.value = true;
+      industryErrorMessage.value = '加载失败: $e';
+      print('加载行业动态文章失败: $e');
+    } finally {
+      isIndustryLoading.value = false;
+    }
+  }
+
+  // 加载闲谈天地文章数据 - cat_id: 47
+  Future<void> _loadCasualArticles() async {
+    try {
+      isCasualLoading.value = true;
+      isCasualError.value = false;
+      casualErrorMessage.value = '';
+
+      // 获取平台信息
+      String platform = 'ios';
+      if (Platform.isAndroid) {
+        platform = 'android';
+      }
+
+      // 调用RestClient的getArticleList API获取闲谈天地文章
+      final response = await _restClient.getArticleList(
+        47, // cat_id: 47表示闲谈天地分类
+        30, // page_size: 每页30条
+        casualCurrentPage.value, // page: 当前页码
+        GStorage().getLanguageCN() ? 1 : 0, // lang: 1是中文，0是英文
+        platform, // platform: 平台信息
+      );
+
+      // 处理响应数据
+      if (response.data?.data != null && response.data!.data!.isNotEmpty) {
+        // 如果是第一页，清空现有数据
+        if (casualCurrentPage.value == 1) {
+          casualArticles.clear();
+        }
+
+        // 添加新数据
+        casualArticles.addAll(response.data!.data!);
+
+        // 更新分页信息
+        hasMoreCasualData.value =
+            response.data!.total != null &&
+            casualArticles.length < response.data!.total!;
+      } else {
+        // 没有数据
+        if (casualCurrentPage.value == 1) {
+          casualArticles.clear();
+        }
+        hasMoreCasualData.value = false;
+      }
+    } catch (e) {
+      isCasualError.value = true;
+      casualErrorMessage.value = '加载失败: $e';
+      print('加载闲谈天地文章失败: $e');
+    } finally {
+      isCasualLoading.value = false;
+    }
+  }
+
   // 下拉刷新
   Future<void> _onRefresh() async {
     isRefreshing.value = true;
-    // 重置分页参数
-    currentPage.value = 1;
 
-    // 加载第一页数据
-    await _loadForumArticles();
+    // 根据当前标签选择刷新的数据源
+    switch (currentTabIndex.value) {
+      case 0: // 全部
+        // 重置分页参数
+        currentPage.value = 1;
+        // 加载第一页数据
+        await _loadForumArticles();
+        break;
+      case 1: // 行业动态
+        // 重置分页参数
+        industryCurrentPage.value = 1;
+        // 加载第一页数据
+        await _loadIndustryArticles();
+        break;
+      case 2: // 闲谈天地
+        // 重置分页参数
+        casualCurrentPage.value = 1;
+        // 加载第一页数据
+        await _loadCasualArticles();
+        break;
+    }
+
     isRefreshing.value = false;
   }
 
   // 上拉加载更多
   Future<void> _onLoadMore() async {
-    if (isLoadingMore.value || !hasMoreData.value) return;
+    // 根据当前标签选择加载更多的数据源
+    switch (currentTabIndex.value) {
+      case 0: // 全部
+        if (isLoadingMore.value || !hasMoreData.value) return;
+        isLoadingMore.value = true;
+        // 增加页码
+        currentPage.value++;
+        // 加载更多数据
+        await _loadForumArticles();
+        break;
+      case 1: // 行业动态
+        if (isLoadingMore.value || !hasMoreIndustryData.value) return;
+        isLoadingMore.value = true;
+        // 增加页码
+        industryCurrentPage.value++;
+        // 加载更多数据
+        await _loadIndustryArticles();
+        break;
+      case 2: // 闲谈天地
+        if (isLoadingMore.value || !hasMoreCasualData.value) return;
+        isLoadingMore.value = true;
+        // 增加页码
+        casualCurrentPage.value++;
+        // 加载更多数据
+        await _loadCasualArticles();
+        break;
+    }
 
-    isLoadingMore.value = true;
-    // 增加页码
-    currentPage.value++;
-
-    // 加载更多数据
-    await _loadForumArticles();
     isLoadingMore.value = false;
   }
 
@@ -405,21 +579,56 @@ class _ForumViewState extends State<ForumView>
   Widget _buildTabContent() {
     switch (currentTabIndex.value) {
       case 0:
-        return _buildForumList(null); // 全部
+        return _buildForumList(0); // 全部
       case 1:
-        return _buildForumList('行业动态'); // 行业动态
+        return _buildForumList(1); // 行业动态
       case 2:
-        return _buildForumList('闲谈天地'); // 闲谈天地
+        return _buildForumList(2); // 闲谈天地
       case 3:
         return _buildEncyclopediaWebView(); // 加密百科
       default:
-        return _buildForumList(null);
+        return _buildForumList(0);
     }
   }
 
   // 论坛列表
-  Widget _buildForumList(String? category) {
-    final filteredList = forumArticles;
+  Widget _buildForumList(int tabIndex) {
+    // 根据标签选择对应的数据源和状态
+    late RxList<ArticleItem> articleList;
+    late RxBool isLoadingState;
+    late RxBool isErrorState;
+    late RxString errorMessageState;
+    late RxBool hasMoreDataState;
+
+    switch (tabIndex) {
+      case 0: // 全部
+        articleList = forumArticles;
+        isLoadingState = isLoading;
+        isErrorState = isError;
+        errorMessageState = errorMessage;
+        hasMoreDataState = hasMoreData;
+        break;
+      case 1: // 行业动态
+        articleList = industryArticles;
+        isLoadingState = isIndustryLoading;
+        isErrorState = isIndustryError;
+        errorMessageState = industryErrorMessage;
+        hasMoreDataState = hasMoreIndustryData;
+        break;
+      case 2: // 闲谈天地
+        articleList = casualArticles;
+        isLoadingState = isCasualLoading;
+        isErrorState = isCasualError;
+        errorMessageState = casualErrorMessage;
+        hasMoreDataState = hasMoreCasualData;
+        break;
+      default:
+        articleList = forumArticles;
+        isLoadingState = isLoading;
+        isErrorState = isError;
+        errorMessageState = errorMessage;
+        hasMoreDataState = hasMoreData;
+    }
 
     return RefreshIndicator(
       onRefresh: _onRefresh,
@@ -432,7 +641,7 @@ class _ForumViewState extends State<ForumView>
           return false;
         },
         child: Obx(() {
-          if (isLoading.value && forumArticles.isEmpty) {
+          if (isLoadingState.value && articleList.isEmpty) {
             // 首次加载显示加载指示器
             return const Center(
               child: Padding(
@@ -440,7 +649,7 @@ class _ForumViewState extends State<ForumView>
                 child: CircularProgressIndicator(),
               ),
             );
-          } else if (isError.value && forumArticles.isEmpty) {
+          } else if (isErrorState.value && articleList.isEmpty) {
             // 显示错误信息
             return Center(
               child: Column(
@@ -458,7 +667,7 @@ class _ForumViewState extends State<ForumView>
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    errorMessage.value,
+                    errorMessageState.value,
                     style: TextStyle(color: Colors.grey[600]),
                     textAlign: TextAlign.center,
                   ),
@@ -481,7 +690,7 @@ class _ForumViewState extends State<ForumView>
                 ],
               ),
             );
-          } else if (filteredList.isEmpty) {
+          } else if (articleList.isEmpty) {
             // 没有数据
             return Center(
               child: Column(
@@ -516,10 +725,10 @@ class _ForumViewState extends State<ForumView>
           return ListView.builder(
             padding: const EdgeInsets.only(bottom: 70), // 为底部发布按钮留出空间
             itemCount:
-                filteredList.length +
-                (isLoadingMore.value || hasMoreData.value ? 1 : 0),
+                articleList.length +
+                (isLoadingMore.value || hasMoreDataState.value ? 1 : 0),
             itemBuilder: (context, index) {
-              if (index == filteredList.length) {
+              if (index == articleList.length) {
                 // 底部加载更多指示器
                 return Center(
                   child: Padding(
@@ -527,7 +736,7 @@ class _ForumViewState extends State<ForumView>
                     child:
                         isLoadingMore.value
                             ? const CircularProgressIndicator()
-                            : hasMoreData.value
+                            : hasMoreDataState.value
                             ? TextButton(
                               onPressed: _onLoadMore,
                               child: const Text('加载更多'),
@@ -539,7 +748,7 @@ class _ForumViewState extends State<ForumView>
                   ),
                 );
               }
-              return _buildForumCard(filteredList[index]);
+              return _buildForumCard(articleList[index]);
             },
           );
         }),
