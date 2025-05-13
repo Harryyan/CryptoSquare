@@ -129,6 +129,7 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
           _isLoading
               ? const Center(child: CircularProgressIndicator())
               : _buildArticleDetail(),
+      bottomSheet: _buildBottomCommentBar(),
     );
   }
 
@@ -531,5 +532,69 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
     } catch (e) {
       return timeStr;
     }
+  }
+
+  // 底部评论栏
+  Widget _buildBottomCommentBar() {
+    return Container(
+      height: 80,
+      padding: EdgeInsets.only(
+        left: 16,
+        right: 16,
+        top: 8,
+        bottom: 18, // 底部padding增加安全区域高度
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 5,
+            offset: const Offset(0, -1),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Image.asset('assets/images/coin-icon.png', width: 24, height: 24),
+          const SizedBox(width: 8),
+          Text(
+            '贡献内容可获4积分',
+            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+          ),
+          const Spacer(flex: 6),
+          ElevatedButton.icon(
+            onPressed: () {
+              // 跳转到发布评论页面
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder:
+                      (context) => Scaffold(
+                        appBar: AppBar(title: const Text('发布评论')),
+                        body: const Center(child: Text('评论发布页面')),
+                      ),
+                ),
+              );
+            },
+            icon: Image.asset(
+              'assets/images/write.png',
+              width: 20,
+              height: 20,
+              color: Colors.white,
+            ),
+            label: const Text('发布评论', style: TextStyle(color: Colors.white)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF2563EB),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(6),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            ),
+          ),
+          const Spacer(flex: 1),
+        ],
+      ),
+    );
   }
 }
