@@ -25,11 +25,25 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
   bool _isLoading = true;
   bool _isLoadingComments = true;
 
+  // 评论相关状态
+  final TextEditingController _commentController = TextEditingController();
+  bool _isSubmitting = false;
+
+  // 回复信息
+  ArticleCommentItem? _replyToComment;
+  String? _replyToUsername;
+
   @override
   void initState() {
     super.initState();
     _loadArticleDetail();
     _loadArticleComments();
+  }
+
+  @override
+  void dispose() {
+    _commentController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadArticleDetail() async {
@@ -396,11 +410,21 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
                           height: 24,
                         ),
                         const SizedBox(width: 4),
-                        Text(
-                          '回复',
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 12,
+                        GestureDetector(
+                          onTap: () {
+                            // 设置回复评论
+                            setState(() {
+                              _replyToComment = comment;
+                              _replyToUsername = comment.user?.userNicename;
+                            });
+                            _showCommentBottomSheet();
+                          },
+                          child: Text(
+                            '回复',
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 12,
+                            ),
                           ),
                         ),
                       ],
@@ -501,11 +525,22 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
                                   height: 20,
                                 ),
                                 const SizedBox(width: 4),
-                                Text(
-                                  '回复',
-                                  style: TextStyle(
-                                    color: Colors.grey[600],
-                                    fontSize: 11,
+                                GestureDetector(
+                                  onTap: () {
+                                    // 设置回复评论
+                                    setState(() {
+                                      _replyToComment = comment;
+                                      _replyToUsername =
+                                          reply.user?.userNicename;
+                                    });
+                                    _showCommentBottomSheet();
+                                  },
+                                  child: Text(
+                                    '回复',
+                                    style: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontSize: 11,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -565,17 +600,12 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
           const Spacer(flex: 6),
           ElevatedButton.icon(
             onPressed: () {
-              // 跳转到发布评论页面
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder:
-                      (context) => Scaffold(
-                        appBar: AppBar(title: const Text('发布评论')),
-                        body: const Center(child: Text('评论发布页面')),
-                      ),
-                ),
-              );
+              // 清除回复信息，直接评论文章
+              setState(() {
+                _replyToComment = null;
+                _replyToUsername = null;
+              });
+              _showCommentBottomSheet();
             },
             icon: Image.asset(
               'assets/images/write.png',
@@ -596,5 +626,165 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
         ],
       ),
     );
+  }
+
+  // 显示评论输入底部弹窗
+  void _showCommentBottomSheet() {
+    // 清空输入框
+    _commentController.clear();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      _replyToUsername != null ? '回复评论' : '发表评论',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _commentController,
+                  maxLines: 3,
+                  autofocus: true,
+                  decoration: InputDecoration(
+                    hintText:
+                        _replyToUsername != null
+                            ? '回复@$_replyToUsername：'
+                            : '回复：',
+                    hintStyle: TextStyle(color: Colors.grey[400]),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: Colors.grey[300]!),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: Colors.grey[300]!),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFF2563EB)),
+                    ),
+                    contentPadding: const EdgeInsets.all(12),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _isSubmitting ? null : _submitComment,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF2563EB),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child:
+                        _isSubmitting
+                            ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
+                                ),
+                              ),
+                            )
+                            : const Text(
+                              '发布',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                              ),
+                            ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // 提交评论
+  Future<void> _submitComment() async {
+    final comment = _commentController.text.trim();
+    if (comment.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('评论内容不能为空')));
+      return;
+    }
+
+    setState(() {
+      _isSubmitting = true;
+    });
+
+    try {
+      final client = RestClient();
+      final response = await client.postArticleComment(
+        widget.articleId,
+        Platform.isAndroid ? "android" : "ios",
+        comment,
+        _replyToComment?.id, // 如果是回复评论，传入评论ID
+        GStorage().getLanguageCN() ? 1 : 0,
+      );
+
+      if (response.code == 0) {
+        // 评论成功，关闭底部弹窗
+        Navigator.pop(context);
+
+        // 重新加载评论列表
+        _loadArticleComments();
+
+        // 显示成功提示
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('评论发布成功')));
+      } else {
+        // 显示错误信息
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(response.message ?? '评论发布失败')));
+      }
+    } catch (e) {
+      // 显示错误信息
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('评论发布失败: ${e.toString()}')));
+    } finally {
+      setState(() {
+        _isSubmitting = false;
+      });
+    }
   }
 }
