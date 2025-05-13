@@ -1,11 +1,11 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:dio/io.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:retrofit/retrofit.dart';
 import 'package:cryptosquare/util/storage.dart';
 import 'package:cryptosquare/model/article_list.dart';
+import 'package:cryptosquare/model/article_comment_post.dart';
 
 part 'rest_client.g.dart';
 
@@ -154,6 +154,15 @@ abstract class RestClient {
     @Query('page') int page,
     @Query('lang') int lang,
     @Query('PLATFORM') String platform,
+  );
+
+  @POST('/bbs-article/comment/{article_id}')
+  Future<ArticleCommentPostResponse> postArticleComment(
+    @Path('article_id') String articleId,
+    @Field('PLATFORM') String platform,
+    @Field('comment') String comment,
+    @Field('comment_id') int? commentId,
+    @Field('lang') int lang,
   );
 }
 
