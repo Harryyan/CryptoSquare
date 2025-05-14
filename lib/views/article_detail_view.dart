@@ -1,11 +1,13 @@
 import 'dart:io';
 
+import 'package:cryptosquare/controllers/user_controller.dart';
 import 'package:cryptosquare/l10n/l18n_keywords.dart';
 import 'package:cryptosquare/util/storage.dart';
+import 'package:cryptosquare/views/page_login.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:cryptosquare/rest_service/rest_client.dart';
-import 'package:get/utils.dart';
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:dio/dio.dart';
 
@@ -20,6 +22,7 @@ class ArticleDetailView extends StatefulWidget {
 }
 
 class _ArticleDetailViewState extends State<ArticleDetailView> {
+  final UserController userController = Get.find<UserController>();
   ArticleDetailData? _articleData;
   List<ArticleCommentItem>? _comments;
   bool _isLoading = true;
@@ -608,7 +611,14 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
           const Spacer(flex: 6),
           ElevatedButton.icon(
             onPressed: () {
-              // 清除回复信息，直接评论文章
+              // 检查用户是否已登录
+              if (!userController.isLoggedIn && !GStorage().getLoginStatus()) {
+                // 未登录，跳转到登录页面
+                Get.to(() => const LoginPage());
+                return;
+              }
+
+              // 已登录，清除回复信息，直接评论文章
               setState(() {
                 _replyToComment = null;
                 _replyToUsername = null;
@@ -638,6 +648,13 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
 
   // 显示评论输入底部弹窗
   void _showCommentBottomSheet() {
+    // 再次检查用户是否已登录（以防用户状态在此期间发生变化）
+    if (!userController.isLoggedIn && !GStorage().getLoginStatus()) {
+      // 未登录，跳转到登录页面
+      Get.to(() => const LoginPage());
+      return;
+    }
+
     // 清空输入框
     _commentController.clear();
 
