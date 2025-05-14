@@ -29,6 +29,7 @@ class JobController extends GetxController {
   final RxBool hasSearched = false.obs;
   final RxBool noResults = false.obs;
   final RxBool isLoading = false.obs;
+  final RxBool isLoadingMore = false.obs;
 
   // 筛选条件
   final RxString selectedJobType = ''.obs;
@@ -114,19 +115,21 @@ class JobController extends GetxController {
     }
   }
 
-  // 加载更多数据
-  void onLoading() {
-    if (hasMore.value) {
+  // 下拉刷新
+  Future<void> onRefresh() async {
+    await fetchJobs(isRefresh: true);
+  }
+
+  // 上拉加载更多
+  Future<void> onLoading() async {
+    if (hasMore.value && !isLoadingMore.value) {
+      isLoadingMore.value = true;
       currentPage.value++;
-      fetchJobs(isRefresh: false);
+      await fetchJobs(isRefresh: false);
+      isLoadingMore.value = false;
     } else {
       refreshController.loadNoData();
     }
-  }
-
-  // 下拉刷新
-  void onRefresh() {
-    fetchJobs(isRefresh: true);
   }
 
   // 搜索工作

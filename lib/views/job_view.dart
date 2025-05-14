@@ -7,12 +7,38 @@ import 'package:cryptosquare/models/app_models.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:cryptosquare/util/tag_utils.dart';
 import 'package:cryptosquare/views/job_detail_view.dart';
-import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 class JobView extends StatelessWidget {
   final JobController jobController = Get.put(JobController());
 
   JobView({super.key});
+
+  // 格式化薪资为 $1,500 - $2,500 格式
+  String _formatSalary(int minSalary, int maxSalary, String currency) {
+    // 转换货币符号，确保大写的货币代码转为符号
+    String currencySymbol = '';
+    if (currency.toUpperCase() == 'USD') {
+      currencySymbol = '\$';
+    } else if (currency.toUpperCase() == 'RMB') {
+      currencySymbol = '¥';
+    } else {
+      // 如果是其他货币代码，尝试转换为符号，否则使用原代码
+      currencySymbol = currency;
+    }
+
+    // 添加千位分隔符
+    String formattedMinSalary = minSalary.toString().replaceAllMapped(
+      RegExp(r'\d{1,3}(?=(\d{3})+(?!\d))'),
+      (Match m) => '${m[0]},',
+    );
+
+    String formattedMaxSalary = maxSalary.toString().replaceAllMapped(
+      RegExp(r'\d{1,3}(?=(\d{3})+(?!\d))'),
+      (Match m) => '${m[0]},',
+    );
+
+    return "$currencySymbol$formattedMinSalary - $currencySymbol$formattedMaxSalary";
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -449,38 +475,58 @@ class JobView extends StatelessWidget {
   }
 
   Widget _buildJobList() {
-    return SmartRefresher(
-      controller: jobController.refreshController,
-      enablePullDown: true,
-      enablePullUp: true,
-      header: const WaterDropHeader(),
-      footer: CustomFooter(
-        builder: (context, mode) {
-          Widget body;
-          if (mode == LoadStatus.idle) {
-            body = const Text("上拉加载更多");
-          } else if (mode == LoadStatus.loading) {
-            body = const CircularProgressIndicator();
-          } else if (mode == LoadStatus.failed) {
-            body = const Text("加载失败，点击重试");
-          } else if (mode == LoadStatus.canLoading) {
-            body = const Text("松开加载更多");
-          } else {
-            body = const Text("没有更多数据了");
-          }
-          return SizedBox(height: 55.0, child: Center(child: body));
-        },
-      ),
+    return RefreshIndicator(
       onRefresh: jobController.onRefresh,
-      onLoading: jobController.onLoading,
-      child: ListView.separated(
-        padding: const EdgeInsets.all(16.0),
-        itemCount: jobController.jobs.length,
-        separatorBuilder: (context, index) => const SizedBox(height: 16),
-        itemBuilder: (context, index) {
-          final job = jobController.jobs[index];
-          return _buildJobItem(job);
+      child: NotificationListener<ScrollNotification>(
+        onNotification: (ScrollNotification scrollInfo) {
+          if (!jobController.isLoadingMore.value &&
+              scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent) {
+            jobController.onLoading();
+          }
+          return false;
         },
+        child: Stack(
+          children: [
+            ListView.separated(
+              padding: const EdgeInsets.all(16.0),
+              itemCount: jobController.jobs.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 16),
+              itemBuilder: (context, index) {
+                final job = jobController.jobs[index];
+                return _buildJobItem(job);
+              },
+            ),
+            // 加载更多指示器
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Obx(
+                () =>
+                    jobController.isLoadingMore.value
+                        ? Container(
+                          height: 50,
+                          color: Colors.transparent,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text(
+                                "加载更多",
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              const CircularProgressIndicator(strokeWidth: 2),
+                            ],
+                          ),
+                        )
+                        : const SizedBox(),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -489,8 +535,11 @@ class JobView extends StatelessWidget {
     // 解析标签
     List<String> tagList = job.tags?.split(',') ?? [];
     // 格式化薪资
-    String salary =
-        "${job.minSalary ?? 0}-${job.maxSalary ?? 0} ${job.jobSalaryCurrency ?? ''}";
+    String salary = _formatSalary(
+      job.minSalary ?? 0,
+      job.maxSalary ?? 0,
+      job.jobSalaryCurrency ?? '',
+    );
     // 计算发布时间（简化处理，实际应该根据createdAt计算）
     String timeAgo =
         job.createdAt != null

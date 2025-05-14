@@ -1,14 +1,11 @@
 import 'package:cryptosquare/util/storage.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
-import 'package:cryptosquare/theme/app_theme.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'dart:io';
 import 'package:cryptosquare/views/article_list_example.dart';
 import 'package:cryptosquare/rest_service/rest_client.dart';
 import 'package:cryptosquare/model/article_list.dart';
-import 'package:dio/dio.dart';
 import 'package:cryptosquare/controllers/article_controller.dart';
 
 class ForumView extends StatefulWidget {

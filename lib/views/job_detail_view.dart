@@ -100,7 +100,17 @@ class JobDetailView extends GetView<JobController> {
         unitDisplay = LanguageManagement.language() == 1 ? '/月' : '/month';
       }
 
-      displaySalary = '$currencySymbol$minSalary-$maxSalary$unitDisplay';
+      // 添加千位分隔符并在减号两侧添加空格，与首页列表项保持一致
+      final formattedMinSalary = minSalary.toString().replaceAllMapped(
+        RegExp(r'\d{1,3}(?=(\d{3})+(?!\d))'),
+        (Match m) => '${m[0]},',
+      );
+      final formattedMaxSalary = maxSalary.toString().replaceAllMapped(
+        RegExp(r'\d{1,3}(?=(\d{3})+(?!\d))'),
+        (Match m) => '${m[0]},',
+      );
+      displaySalary =
+          '$currencySymbol$formattedMinSalary - $formattedMaxSalary$unitDisplay';
     }
 
     // 处理标签
@@ -321,8 +331,35 @@ extension JobDetailNavigation on JobController {
       () => JobDetailView(
         title: job.jobTitle ?? "",
         company: job.jobCompany ?? "",
-        salary:
-            "${job.minSalary ?? 0}-${job.maxSalary ?? 0} ${job.jobSalaryCurrency ?? ''}",
+        salary: () {
+          // 获取货币符号
+          String currencySymbol = '¥';
+          if (job.jobSalaryCurrency?.toLowerCase() == 'usd') {
+            currencySymbol = '\$';
+          } else if (job.jobSalaryCurrency?.toLowerCase() == 'rmb') {
+            currencySymbol = '¥';
+          }
+
+          // 添加千位分隔符
+          final minSalary = job.minSalary ?? 0;
+          final maxSalary = job.maxSalary ?? 0;
+          final formattedMinSalary = minSalary.toString().replaceAllMapped(
+            RegExp(r'\d{1,3}(?=(\d{3})+(?!\d))'),
+            (Match m) => '${m[0]},',
+          );
+          final formattedMaxSalary = maxSalary.toString().replaceAllMapped(
+            RegExp(r'\d{1,3}(?=(\d{3})+(?!\d))'),
+            (Match m) => '${m[0]},',
+          );
+
+          // 获取单位
+          String unitDisplay = job.jobSalaryUnit ?? 'K';
+          if (unitDisplay.toLowerCase() == 'month') {
+            unitDisplay = LanguageManagement.language() == 1 ? '/月' : '/month';
+          }
+
+          return '$currencySymbol$formattedMinSalary - $formattedMaxSalary$unitDisplay';
+        }(),
         publishTime: job.createdAt ?? "",
         tags: job.tags?.split(',') ?? [],
         description: '', // 初始为空，将通过API获取
