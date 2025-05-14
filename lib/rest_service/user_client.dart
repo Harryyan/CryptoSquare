@@ -123,7 +123,4 @@ abstract class UserRestClient {
     @Query("page") int page = 1,
     @Query("lang") int lang = 1,
   });
-
-  @POST('/bbs/user_check_in')
-  Future<CSUserResp> userCheckIn();
 }
