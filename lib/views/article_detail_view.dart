@@ -300,9 +300,15 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
 
     final comments = _comments;
     if (comments == null || comments.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Center(child: Text('暂无评论')),
+      return Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            const Center(child: Text('暂无评论')),
+            // 添加底部间距，确保不被底部评论栏遮挡
+            const SizedBox(height: 100),
+          ],
+        ),
       );
     }
 
@@ -345,6 +351,8 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
             return _buildCommentItem(comment, comments);
           },
         ),
+        // 添加底部间距，确保最后一条评论不被底部评论栏遮挡
+        const SizedBox(height: 100),
       ],
     );
   }
