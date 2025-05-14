@@ -52,6 +52,41 @@ Map<String, dynamic> _$FeaturedJobResponseToJson(
   'data': instance.data,
 };
 
+JobListResponse _$JobListResponseFromJson(Map<String, dynamic> json) =>
+    JobListResponse(
+      message: json['message'] as String?,
+      code: (json['code'] as num?)?.toInt(),
+      data:
+          json['data'] == null
+              ? null
+              : JobListData.fromJson(json['data'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$JobListResponseToJson(JobListResponse instance) =>
+    <String, dynamic>{
+      'message': instance.message,
+      'code': instance.code,
+      'data': instance.data,
+    };
+
+JobListData _$JobListDataFromJson(Map<String, dynamic> json) => JobListData(
+  list:
+      (json['list'] as List<dynamic>?)
+          ?.map((e) => JobData.fromJson(e as Map<String, dynamic>))
+          .toList(),
+  page: (json['page'] as num?)?.toInt(),
+  pageSize: (json['page_size'] as num?)?.toInt(),
+  totalPage: (json['total_page'] as num?)?.toInt(),
+);
+
+Map<String, dynamic> _$JobListDataToJson(JobListData instance) =>
+    <String, dynamic>{
+      'list': instance.list,
+      'page': instance.page,
+      'page_size': instance.pageSize,
+      'total_page': instance.totalPage,
+    };
+
 Task _$TaskFromJson(Map<String, dynamic> json) => Task(
   id: json['id'] as String?,
   name: json['name'] as String?,
@@ -981,6 +1016,45 @@ class _RestClient implements RestClient {
     late ArticleListResponse _value;
     try {
       _value = ArticleListResponse.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
+  Future<JobListResponse> getJobList(
+    String platform, {
+    int pageSize = 30,
+    int page = 1,
+    String keyword = '',
+    int lang = 1,
+  }) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'PLATFORM': platform,
+      r'page_size': pageSize,
+      r'page': page,
+      r'keyword': keyword,
+      r'lang': lang,
+    };
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<JobListResponse>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/job/index/job_list',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late JobListResponse _value;
+    try {
+      _value = JobListResponse.fromJson(_result.data!);
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options);
       rethrow;

@@ -6,6 +6,7 @@ import 'package:retrofit/retrofit.dart';
 import 'package:cryptosquare/util/storage.dart';
 import 'package:cryptosquare/model/article_list.dart';
 import 'package:cryptosquare/model/article_comment_post.dart';
+import 'package:cryptosquare/model/job_collect_list.dart';
 
 part 'rest_client.g.dart';
 
@@ -60,6 +61,63 @@ class FeaturedJobResponse extends BaseResponse<List<JobData>> {
   @override
   Map<String, dynamic> toJson(Object? Function(List<JobData>) toJsonT) =>
       <String, dynamic>{'message': message, 'code': code, 'data': data};
+}
+
+@JsonSerializable()
+class JobListResponse {
+  const JobListResponse({this.message, this.code, this.data});
+
+  factory JobListResponse.fromJson(Map<String, dynamic> json) {
+    return JobListResponse(
+      message: json['message'] as String?,
+      code: json['code'] as int?,
+      data:
+          json['data'] == null
+              ? null
+              : JobListData.fromJson(json['data'] as Map<String, dynamic>),
+    );
+  }
+
+  final String? message;
+  final int? code;
+  final JobListData? data;
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+    'message': message,
+    'code': code,
+    'data': data?.toJson(),
+  };
+}
+
+@JsonSerializable()
+class JobListData {
+  const JobListData({this.list, this.page, this.pageSize, this.totalPage});
+
+  factory JobListData.fromJson(Map<String, dynamic> json) {
+    return JobListData(
+      list:
+          (json['list'] as List<dynamic>?)
+              ?.map((e) => JobData.fromJson(e as Map<String, dynamic>))
+              .toList(),
+      page: json['page'] as int?,
+      pageSize: json['page_size'] as int?,
+      totalPage: json['total_page'] as int?,
+    );
+  }
+
+  final List<JobData>? list;
+  final int? page;
+  @JsonKey(name: 'page_size')
+  final int? pageSize;
+  @JsonKey(name: 'total_page')
+  final int? totalPage;
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+    'list': list,
+    'page': page,
+    'page_size': pageSize,
+    'total_page': totalPage,
+  };
 }
 
 Dio? _dio;
@@ -155,6 +213,15 @@ abstract class RestClient {
     @Query('lang') int lang,
     @Query('PLATFORM') String platform,
   );
+
+  @GET('/job/index/job_list')
+  Future<JobListResponse> getJobList(
+    @Query('PLATFORM') String platform, {
+    @Query('page_size') int pageSize = 30,
+    @Query('page') int page = 1,
+    @Query('keyword') String keyword = '',
+    @Query('lang') int lang = 1,
+  });
 
   @POST('/bbs-article/comment/{article_id}')
   Future<ArticleCommentPostResponse> postArticleComment(
