@@ -1,4 +1,5 @@
 import 'package:cryptosquare/controllers/job_controller.dart';
+import 'package:cryptosquare/rest_service/rest_client.dart';
 import 'package:cryptosquare/views/job_detail_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -401,14 +402,19 @@ class HomeView extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         // 导航到岗位详情页面
-        Get.find<JobController>().navigateToJobDetail(
-          job.jobKey ?? job.id.toString(),
-          title: job.title,
-          company: job.company,
-          salary: job.salary,
-          publishTime: job.getFormattedTime(),
-          tags: job.tags,
+        // 创建一个JobData对象传递给navigateToJobDetail方法
+        final jobData = JobData(
+          jobKey: job.jobKey ?? job.id.toString(),
+          jobTitle: job.title,
+          jobCompany: job.company,
+          minSalary: 0, // 使用默认值
+          maxSalary: 0, // 使用默认值
+          jobSalaryCurrency: job.salary, // 临时使用salary字段
+          createdAt: job.getFormattedTime(),
+          tags: job.tags.join(','), // 将tags数组转换为逗号分隔的字符串
+          jobIsCollect: job.isFavorite ? 1 : 0, // 转换收藏状态
         );
+        Get.find<JobController>().navigateToJobDetail(jobData);
       },
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

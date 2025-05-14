@@ -5,13 +5,23 @@ import 'package:cryptosquare/models/app_models.dart';
 import 'package:cryptosquare/rest_service/rest_client.dart';
 import 'package:cryptosquare/views/job_detail_view.dart';
 import 'package:cryptosquare/util/storage.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 class JobController extends GetxController {
   final RestClient _restClient = RestClient();
 
   // 工作列表数据
-  final RxList<JobPost> jobs = <JobPost>[].obs;
+  final RxList<JobData> jobs = <JobData>[].obs;
   final Rx<JobDetailData?> currentJobDetail = Rx<JobDetailData?>(null);
+
+  // 分页相关
+  final RefreshController refreshController = RefreshController(
+    initialRefresh: false,
+  );
+  final RxInt currentPage = 1.obs;
+  final RxInt totalPage = 1.obs;
+  final RxBool hasMore = true.obs;
+  final RxBool isFirstLoad = true.obs;
 
   // 搜索相关状态
   final RxString searchQuery = ''.obs;
@@ -36,76 +46,103 @@ class JobController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    fetchJobs();
+    fetchJobs(isRefresh: true);
+  }
+
+  @override
+  void onClose() {
+    refreshController.dispose();
+    super.onClose();
   }
 
   // 获取工作列表
-  Future<void> fetchJobs() async {
+  Future<void> fetchJobs({bool isRefresh = false}) async {
+    if (isRefresh) {
+      currentPage.value = 1;
+      isFirstLoad.value = true;
+    }
+
     isLoading.value = true;
     try {
-      // 这里应该调用实际的API
-      // 暂时使用模拟数据
-      await Future.delayed(const Duration(milliseconds: 800));
-      jobs.value = _getMockJobs();
+      final response = await _restClient.getJobList(
+        'app',
+        pageSize: 10,
+        page: currentPage.value,
+        keyword: searchQuery.value,
+        lang: LanguageManagement.language(),
+      );
+
+      if (response.code == 0 && response.data != null) {
+        if (isRefresh) {
+          jobs.clear();
+        }
+
+        if (response.data!.list != null) {
+          jobs.addAll(response.data!.list!);
+        }
+
+        totalPage.value = response.data!.totalPage ?? 1;
+        hasMore.value = currentPage.value < totalPage.value;
+
+        if (isRefresh) {
+          refreshController.refreshCompleted();
+        } else if (hasMore.value) {
+          refreshController.loadComplete();
+        } else {
+          refreshController.loadNoData();
+        }
+      } else {
+        if (isRefresh) {
+          refreshController.refreshFailed();
+        } else {
+          refreshController.loadFailed();
+        }
+      }
+
+      isFirstLoad.value = false;
       isLoading.value = false;
     } catch (e) {
       print('获取工作列表失败: $e');
       isLoading.value = false;
+      isFirstLoad.value = false;
+
+      if (isRefresh) {
+        refreshController.refreshFailed();
+      } else {
+        refreshController.loadFailed();
+      }
     }
+  }
+
+  // 加载更多数据
+  void onLoading() {
+    if (hasMore.value) {
+      currentPage.value++;
+      fetchJobs(isRefresh: false);
+    } else {
+      refreshController.loadNoData();
+    }
+  }
+
+  // 下拉刷新
+  void onRefresh() {
+    fetchJobs(isRefresh: true);
   }
 
   // 搜索工作
   void searchJobs(String query) {
     searchQuery.value = query;
     hasSearched.value = true;
-    isLoading.value = true;
-
-    // 模拟搜索过程
-    Future.delayed(const Duration(milliseconds: 800), () {
-      if (query.isEmpty) {
-        jobs.value = _getMockJobs();
-        noResults.value = false;
-      } else {
-        final filteredJobs =
-            _getMockJobs().where((job) {
-              return job.title.toLowerCase().contains(query.toLowerCase()) ||
-                  job.company.toLowerCase().contains(query.toLowerCase());
-            }).toList();
-
-        jobs.value = filteredJobs;
-        noResults.value = filteredJobs.isEmpty;
-      }
-      isLoading.value = false;
-    });
+    refreshController.resetNoData();
+    fetchJobs(isRefresh: true);
   }
 
   // 应用筛选条件
   void applyFilters() {
-    isLoading.value = true;
-
-    // 模拟筛选过程
-    Future.delayed(const Duration(milliseconds: 800), () {
-      final allJobs = _getMockJobs();
-      final filteredJobs =
-          allJobs.where((job) {
-            bool matchesJobType =
-                selectedJobType.isEmpty ||
-                job.tags.contains(selectedJobType.value);
-            bool matchesWorkMode =
-                selectedWorkMode.isEmpty ||
-                job.location == selectedWorkMode.value;
-            // 语言要求通常会在tags中
-            bool matchesLanguage =
-                selectedLanguage.isEmpty ||
-                job.tags.contains(selectedLanguage.value);
-
-            return matchesJobType && matchesWorkMode && matchesLanguage;
-          }).toList();
-
-      jobs.value = filteredJobs;
-      noResults.value = filteredJobs.isEmpty;
-      isLoading.value = false;
-    });
+    // 注意：这里需要根据API支持的筛选参数进行调整
+    // 目前API只支持keyword参数，所以这里只是重置并刷新数据
+    refreshController.resetNoData();
+    fetchJobs(isRefresh: true);
   }
 
   // 重置筛选条件
@@ -113,12 +150,9 @@ class JobController extends GetxController {
     selectedJobType.value = '';
     selectedWorkMode.value = '';
     selectedLanguage.value = '';
-
-    if (searchQuery.isEmpty) {
-      fetchJobs();
-    } else {
-      searchJobs(searchQuery.value);
-    }
+    searchQuery.value = '';
+    refreshController.resetNoData();
+    fetchJobs(isRefresh: true);
   }
 
   // 获取岗位详情
@@ -140,12 +174,11 @@ class JobController extends GetxController {
   }
 
   // 切换收藏状态
-  void toggleFavorite(int jobId) {
+  void toggleFavorite(int? jobId, String jobKey) {
     final index = jobs.indexWhere((job) => job.id == jobId);
     if (index != -1) {
       final job = jobs[index];
-      final String jobKey = job.jobKey ?? "";
-      final newFavoriteStatus = !job.isFavorite;
+      final bool isCurrentlyCollected = job.jobIsCollect == 1;
 
       // 检查用户是否已登录
       if (!GStorage().getLoginStatus()) {
@@ -169,9 +202,24 @@ class JobController extends GetxController {
               // value为1表示收藏成功，为0表示取消收藏
               final bool isCollected = response.data?.value == 1;
 
-              // 更新收藏状态
-              job.isFavorite = isCollected;
-              jobs[index] = job;
+              // 更新收藏状态 - 创建新的JobData实例，因为jobIsCollect是final的
+              final updatedJob = JobData(
+                slug: job.slug,
+                id: job.id,
+                jobKey: job.jobKey,
+                jobTitle: job.jobTitle,
+                jobPosition: job.jobPosition,
+                createdAt: job.createdAt,
+                tags: job.tags,
+                jobCompany: job.jobCompany,
+                jobSalaryType: job.jobSalaryType,
+                jobSalaryUnit: job.jobSalaryUnit,
+                jobSalaryCurrency: job.jobSalaryCurrency,
+                minSalary: job.minSalary,
+                maxSalary: job.maxSalary,
+                jobIsCollect: isCollected ? 1 : 0,
+              );
+              jobs[index] = updatedJob;
               jobs.refresh();
 
               print('收藏状态更新成功: ${isCollected ? "已收藏" : "取消收藏"}');
@@ -202,25 +250,25 @@ class JobController extends GetxController {
   }
 
   // 导航到岗位详情页面
-  void navigateToJobDetail(
-    String jobKey, {
-    String? title,
-    String? company,
-    String? salary,
-    String? publishTime,
-    List<String>? tags,
-  }) async {
+  void navigateToJobDetail(JobData job) async {
+    String jobKey = job.jobKey ?? "";
+    String title = job.jobTitle ?? "";
+    String company = job.jobCompany ?? "";
+    String salary =
+        "${job.minSalary ?? 0}-${job.maxSalary ?? 0} ${job.jobSalaryCurrency ?? ''}";
+    String publishTime = job.createdAt ?? "";
+    List<String> tags = job.tags?.split(',') ?? [];
     // 清空当前岗位详情，以显示加载状态
     currentJobDetail.value = null;
 
     // 导航到岗位详情页面
     Get.to(
       () => JobDetailView(
-        title: title ?? '',
-        company: company ?? '',
-        salary: salary ?? '',
-        publishTime: publishTime ?? '',
-        tags: tags ?? [],
+        title: title,
+        company: company,
+        salary: salary,
+        publishTime: publishTime,
+        tags: tags,
         description: '', // 初始为空，将通过API获取
       ),
     );
@@ -241,55 +289,5 @@ class JobController extends GetxController {
       print('导航到岗位详情页面失败: $e');
       Get.snackbar('提示', '获取岗位详情失败，请稍后重试', snackPosition: SnackPosition.BOTTOM);
     }
-  }
-
-  // 模拟数据
-  List<JobPost> _getMockJobs() {
-    return [
-      JobPost(
-        id: 1,
-        title: 'Finance',
-        company: 'Gate.io',
-        location: '远程',
-        salary: '\$1,500-2,500',
-        timeAgo: 37,
-        tags: ['全职', '本科', '需要英语', 'AWS', 'Development', 'React', 'UI/UX'],
-        jobKey: 'job_1',
-        isFavorite: true,
-      ),
-      JobPost(
-        id: 2,
-        title: 'Finance',
-        company: 'Gate.io',
-        location: '远程',
-        salary: '\$1,500-2,500',
-        timeAgo: 37,
-        tags: ['全职', '本科', '需要英语', 'AWS', 'Development', 'React', 'UI/UX'],
-        jobKey: 'job_2',
-        isFavorite: false,
-      ),
-      JobPost(
-        id: 3,
-        title: 'Finance',
-        company: 'Gate.io',
-        location: '远程',
-        salary: '\$1,500-2,500',
-        timeAgo: 37,
-        tags: ['全职', '本科', '需要英语', 'AWS', 'Development', 'React', 'UI/UX'],
-        jobKey: 'job_3',
-        isFavorite: false,
-      ),
-      JobPost(
-        id: 4,
-        title: 'Finance',
-        company: 'Gate.io',
-        location: '远程',
-        salary: '\$1,500-2,500',
-        timeAgo: 37,
-        tags: ['全职', '本科', '需要英语', 'AWS', 'Development', 'React', 'UI/UX'],
-        jobKey: 'job_4',
-        isFavorite: false,
-      ),
-    ];
   }
 }

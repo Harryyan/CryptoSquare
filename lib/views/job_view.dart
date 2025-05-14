@@ -1,3 +1,4 @@
+import 'package:cryptosquare/rest_service/rest_client.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cryptosquare/controllers/job_controller.dart';
@@ -6,6 +7,7 @@ import 'package:cryptosquare/models/app_models.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:cryptosquare/util/tag_utils.dart';
 import 'package:cryptosquare/views/job_detail_view.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 class JobView extends StatelessWidget {
   final JobController jobController = Get.put(JobController());
@@ -447,28 +449,58 @@ class JobView extends StatelessWidget {
   }
 
   Widget _buildJobList() {
-    return ListView.separated(
-      padding: const EdgeInsets.all(16.0),
-      itemCount: jobController.jobs.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 16),
-      itemBuilder: (context, index) {
-        final job = jobController.jobs[index];
-        return _buildJobItem(job);
-      },
+    return SmartRefresher(
+      controller: jobController.refreshController,
+      enablePullDown: true,
+      enablePullUp: true,
+      header: const WaterDropHeader(),
+      footer: CustomFooter(
+        builder: (context, mode) {
+          Widget body;
+          if (mode == LoadStatus.idle) {
+            body = const Text("上拉加载更多");
+          } else if (mode == LoadStatus.loading) {
+            body = const CircularProgressIndicator();
+          } else if (mode == LoadStatus.failed) {
+            body = const Text("加载失败，点击重试");
+          } else if (mode == LoadStatus.canLoading) {
+            body = const Text("松开加载更多");
+          } else {
+            body = const Text("没有更多数据了");
+          }
+          return SizedBox(height: 55.0, child: Center(child: body));
+        },
+      ),
+      onRefresh: jobController.onRefresh,
+      onLoading: jobController.onLoading,
+      child: ListView.separated(
+        padding: const EdgeInsets.all(16.0),
+        itemCount: jobController.jobs.length,
+        separatorBuilder: (context, index) => const SizedBox(height: 16),
+        itemBuilder: (context, index) {
+          final job = jobController.jobs[index];
+          return _buildJobItem(job);
+        },
+      ),
     );
   }
 
-  Widget _buildJobItem(JobPost job) {
+  Widget _buildJobItem(JobData job) {
+    // 解析标签
+    List<String> tagList = job.tags?.split(',') ?? [];
+    // 格式化薪资
+    String salary =
+        "${job.minSalary ?? 0}-${job.maxSalary ?? 0} ${job.jobSalaryCurrency ?? ''}";
+    // 计算发布时间（简化处理，实际应该根据createdAt计算）
+    String timeAgo =
+        job.createdAt != null
+            ? '${DateTime.now().difference(DateTime.parse(job.createdAt!)).inDays}天前'
+            : '未知';
+
     return GestureDetector(
-      onTap:
-          () => jobController.navigateToJobDetail(
-            job.jobKey ?? job.id.toString(),
-            title: job.title,
-            company: job.company,
-            salary: job.salary,
-            publishTime: job.getFormattedTime(),
-            tags: job.tags,
-          ), // 直接传递jobKey和必要的参数
+      onTap: () {
+        jobController.navigateToJobDetail(job);
+      },
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         decoration: BoxDecoration(
@@ -493,7 +525,7 @@ class JobView extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      job.getFormattedTitle(),
+                      job.jobTitle ?? '未知职位',
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
@@ -504,7 +536,7 @@ class JobView extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    job.salary,
+                    salary,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.orange[700],
@@ -516,7 +548,7 @@ class JobView extends StatelessWidget {
               Row(
                 children: [
                   Text(
-                    job.company,
+                    job.jobCompany ?? '未知公司',
                     style: const TextStyle(
                       color: Colors.black,
                       fontSize: 14,
@@ -525,7 +557,7 @@ class JobView extends StatelessWidget {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    job.getFormattedTime(),
+                    timeAgo,
                     style: TextStyle(color: Colors.grey[500], fontSize: 14),
                   ),
                 ],
@@ -537,9 +569,9 @@ class JobView extends StatelessWidget {
                   Flexible(
                     child: Row(
                       children: [
-                        _buildJobTag(job.location),
+                        _buildJobTag(job.jobPosition ?? '远程'),
                         const SizedBox(width: 8),
-                        ...job.tags.take(2).map((tag) {
+                        ...tagList.take(2).map((tag) {
                           return Padding(
                             padding: const EdgeInsets.only(right: 8),
                             child: _buildJobTag(tag),
@@ -550,9 +582,13 @@ class JobView extends StatelessWidget {
                   ),
                   const SizedBox(width: 16),
                   GestureDetector(
-                    onTap: () => jobController.toggleFavorite(job.id),
+                    onTap:
+                        () => jobController.toggleFavorite(
+                          job.id,
+                          job.jobKey ?? "",
+                        ),
                     child: Image.asset(
-                      job.isFavorite
+                      job.jobIsCollect == 1
                           ? 'assets/images/star_fill.png'
                           : 'assets/images/star.png',
                       width: 20,

@@ -1,4 +1,5 @@
 import 'package:cryptosquare/controllers/job_controller.dart';
+import 'package:cryptosquare/rest_service/rest_client.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_html/flutter_html.dart';
@@ -311,31 +312,26 @@ class JobDetailView extends GetView<JobController> {
 
 // 扩展JobController，添加导航到岗位详情页的方法
 extension JobDetailNavigation on JobController {
-  void navigateToJobDetail(int jobId) async {
-    // 查找本地岗位数据以获取jobKey
-    final job = jobs.firstWhere(
-      (job) => job.id == jobId,
-      orElse: () => jobs.first,
-    );
-
+  void navigateToJobDetail(JobData job) async {
     // 清空当前岗位详情，以显示加载状态
     currentJobDetail.value = null;
 
     // 导航到岗位详情页面
     Get.to(
       () => JobDetailView(
-        title: job.title,
-        company: job.company,
-        salary: job.salary,
-        publishTime: job.getFormattedTime(),
-        tags: job.tags,
+        title: job.jobTitle ?? "",
+        company: job.jobCompany ?? "",
+        salary:
+            "${job.minSalary ?? 0}-${job.maxSalary ?? 0} ${job.jobSalaryCurrency ?? ''}",
+        publishTime: job.createdAt ?? "",
+        tags: job.tags?.split(',') ?? [],
         description: '', // 初始为空，将通过API获取
       ),
     );
 
     try {
-      // 使用jobId作为jobKey调用API获取详细信息
-      await fetchJobDetail(jobId.toString());
+      // 直接使用传入的jobKey调用API获取详细信息
+      await fetchJobDetail(job.jobKey ?? "");
 
       // 如果获取失败，显示错误提示
       if (currentJobDetail.value == null) {
