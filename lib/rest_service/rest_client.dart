@@ -6,6 +6,7 @@ import 'package:retrofit/retrofit.dart';
 import 'package:cryptosquare/util/storage.dart';
 import 'package:cryptosquare/model/article_list.dart';
 import 'package:cryptosquare/model/article_comment_post.dart';
+import 'package:cryptosquare/model/cs_user_resp.dart';
 
 part 'rest_client.g.dart';
 
