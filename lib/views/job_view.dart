@@ -485,47 +485,53 @@ class JobView extends StatelessWidget {
           }
           return false;
         },
-        child: Stack(
-          children: [
-            ListView.separated(
-              padding: const EdgeInsets.all(16.0),
-              itemCount: jobController.jobs.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 16),
-              itemBuilder: (context, index) {
-                final job = jobController.jobs[index];
-                return _buildJobItem(job);
-              },
-            ),
-            // 加载更多指示器
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: Obx(
-                () =>
-                    jobController.isLoadingMore.value
-                        ? Container(
-                          height: 50,
-                          color: Colors.transparent,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text(
-                                "加载更多",
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey,
+        child: ListView.builder(
+          padding: const EdgeInsets.all(16.0),
+          itemCount: jobController.jobs.length + 1, // 增加一个项用于显示底部加载更多
+          itemBuilder: (context, index) {
+            if (index == jobController.jobs.length) {
+              // 底部加载更多指示器
+              return Obx(
+                () => Container(
+                  height: 60,
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Center(
+                    child:
+                        jobController.isLoadingMore.value
+                            ? Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Text(
+                                  "加载更多",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(width: 10),
-                              const CircularProgressIndicator(strokeWidth: 2),
-                            ],
-                          ),
-                        )
-                        : const SizedBox(),
-              ),
-            ),
-          ],
+                                const SizedBox(width: 10),
+                                const CircularProgressIndicator(strokeWidth: 2),
+                              ],
+                            )
+                            : jobController.hasMore.value
+                            ? TextButton(
+                              onPressed: () => jobController.onLoading(),
+                              child: const Text("加载更多"),
+                            )
+                            : Text(
+                              "没有更多职位了",
+                              style: TextStyle(color: Colors.grey[500]),
+                            ),
+                  ),
+                ),
+              );
+            }
+            // 正常的工作项
+            final job = jobController.jobs[index];
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: _buildJobItem(job),
+            );
+          },
         ),
       ),
     );
