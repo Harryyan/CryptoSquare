@@ -39,6 +39,9 @@ class _ProfileViewState extends State<ProfileView>
   final RxString userAvatar = ''.obs;
   final RxInt userScore = 0.obs;
 
+  // 签到状态
+  final RxBool isCheckedIn = false.obs;
+
   @override
   void initState() {
     super.initState();
@@ -47,6 +50,9 @@ class _ProfileViewState extends State<ProfileView>
 
     currentTabIndex.value = 0; // 默认选中我的发布
     postTabIndex.value = 2; // 默认选中岗位
+
+    // 检查签到状态
+    _checkInStatus();
 
     _tabController.addListener(() {
       if (_tabController.indexIsChanging) {
@@ -119,6 +125,25 @@ class _ProfileViewState extends State<ProfileView>
       userName.value = userInfo['userName'] ?? '未登录';
       userAvatar.value = userInfo['avatar'] ?? '';
       userScore.value = userInfo['score'] ?? 0;
+
+      // 检查签到状态
+      _checkInStatus();
+    }
+  }
+
+  /// 检查签到状态
+  void _checkInStatus() {
+    if (isUserLoggedIn.value) {
+      UserRestClient()
+          .checkInStatus()
+          .then((resp) {
+            if (resp.code == 0 && resp.data != null) {
+              isCheckedIn.value = resp.data!.isCheckIn ?? false;
+            }
+          })
+          .catchError((error) {
+            print('获取签到状态失败: $error');
+          });
     }
   }
 
@@ -305,25 +330,87 @@ class _ProfileViewState extends State<ProfileView>
               alignment: Alignment.center,
               child: Container(
                 height: 36,
-                child: ElevatedButton(
-                  onPressed: () {
-                    // 点击签到
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: AppTheme.primaryColor,
-                    elevation: 0,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 0,
+                child: Obx(
+                  () => ElevatedButton(
+                    onPressed:
+                        isCheckedIn.value
+                            ? null
+                            : () {
+                              // 点击签到
+                              if (isUserLoggedIn.value) {
+                                UserRestClient()
+                                    .checkIn()
+                                    .then((resp) {
+                                      if (resp.code == 0) {
+                                        // 签到成功
+                                        isCheckedIn.value = true;
+                                        Get.snackbar(
+                                          '提示',
+                                          '签到成功',
+                                          snackPosition: SnackPosition.TOP,
+                                          backgroundColor: Colors.green[100],
+                                          colorText: Colors.green[800],
+                                          duration: const Duration(seconds: 2),
+                                        );
+
+                                        // 更新积分
+                                        _loadUserInfo();
+                                      } else {
+                                        // 签到失败
+                                        Get.snackbar(
+                                          '提示',
+                                          '签到失败: ${resp.message}',
+                                          snackPosition: SnackPosition.TOP,
+                                          backgroundColor: Colors.red[100],
+                                          colorText: Colors.red[800],
+                                          duration: const Duration(seconds: 2),
+                                        );
+                                      }
+                                    })
+                                    .catchError((error) {
+                                      // 签到异常
+                                      Get.snackbar(
+                                        '提示',
+                                        '签到异常: $error',
+                                        snackPosition: SnackPosition.TOP,
+                                        backgroundColor: Colors.red[100],
+                                        colorText: Colors.red[800],
+                                        duration: const Duration(seconds: 2),
+                                      );
+                                    });
+                              } else {
+                                // 未登录提示
+                                Get.snackbar(
+                                  '提示',
+                                  '请先登录',
+                                  snackPosition: SnackPosition.TOP,
+                                  backgroundColor: Colors.amber[100],
+                                  colorText: Colors.amber[800],
+                                  duration: const Duration(seconds: 2),
+                                );
+                              }
+                            },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: AppTheme.primaryColor,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 0,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      disabledBackgroundColor: Colors.grey[200],
+                      disabledForegroundColor: Colors.grey[600],
                     ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                    child: Text(
+                      isCheckedIn.value ? '已签到' : '签到',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  child: const Text(
-                    '签到',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
