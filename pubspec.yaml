@@ -53,7 +53,6 @@ dependencies:
   google_sign_in: ^6.3.0
   sign_in_with_apple: ^7.0.1
   image_picker: ^1.1.2
-  pull_to_refresh: ^2.0.0
 
 dev_dependencies:
   flutter_test:

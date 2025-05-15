@@ -1,11 +1,9 @@
 import 'package:cryptosquare/l10n/l18n_keywords.dart';
 import 'package:cryptosquare/util/language_management.dart';
 import 'package:get/get.dart';
-import 'package:cryptosquare/models/app_models.dart';
 import 'package:cryptosquare/rest_service/rest_client.dart';
 import 'package:cryptosquare/views/job_detail_view.dart';
 import 'package:cryptosquare/util/storage.dart';
-import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 class JobController extends GetxController {
   final RestClient _restClient = RestClient();
@@ -15,9 +13,6 @@ class JobController extends GetxController {
   final Rx<JobDetailData?> currentJobDetail = Rx<JobDetailData?>(null);
 
   // 分页相关
-  final RefreshController refreshController = RefreshController(
-    initialRefresh: false,
-  );
   final RxInt currentPage = 1.obs;
   final RxInt totalPage = 1.obs;
   final RxBool hasMore = true.obs;
@@ -52,7 +47,6 @@ class JobController extends GetxController {
 
   @override
   void onClose() {
-    refreshController.dispose();
     super.onClose();
   }
 
@@ -84,21 +78,7 @@ class JobController extends GetxController {
 
         totalPage.value = response.data!.totalPage ?? 1;
         hasMore.value = currentPage.value < totalPage.value;
-
-        if (isRefresh) {
-          refreshController.refreshCompleted();
-        } else if (hasMore.value) {
-          refreshController.loadComplete();
-        } else {
-          refreshController.loadNoData();
-        }
-      } else {
-        if (isRefresh) {
-          refreshController.refreshFailed();
-        } else {
-          refreshController.loadFailed();
-        }
-      }
+      } else {}
 
       isFirstLoad.value = false;
       isLoading.value = false;
@@ -106,12 +86,6 @@ class JobController extends GetxController {
       print('获取工作列表失败: $e');
       isLoading.value = false;
       isFirstLoad.value = false;
-
-      if (isRefresh) {
-        refreshController.refreshFailed();
-      } else {
-        refreshController.loadFailed();
-      }
     }
   }
 
@@ -127,8 +101,6 @@ class JobController extends GetxController {
       currentPage.value++;
       await fetchJobs(isRefresh: false);
       isLoadingMore.value = false;
-    } else {
-      refreshController.loadNoData();
     }
   }
 
@@ -136,7 +108,7 @@ class JobController extends GetxController {
   void searchJobs(String query) {
     searchQuery.value = query;
     hasSearched.value = true;
-    refreshController.resetNoData();
+
     fetchJobs(isRefresh: true);
   }
 
@@ -144,7 +116,7 @@ class JobController extends GetxController {
   void applyFilters() {
     // 注意：这里需要根据API支持的筛选参数进行调整
     // 目前API只支持keyword参数，所以这里只是重置并刷新数据
-    refreshController.resetNoData();
+
     fetchJobs(isRefresh: true);
   }
 
@@ -154,7 +126,7 @@ class JobController extends GetxController {
     selectedWorkMode.value = '';
     selectedLanguage.value = '';
     searchQuery.value = '';
-    refreshController.resetNoData();
+
     fetchJobs(isRefresh: true);
   }
 

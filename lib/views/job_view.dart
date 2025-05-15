@@ -3,10 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cryptosquare/controllers/job_controller.dart';
 import 'package:cryptosquare/theme/app_theme.dart';
-import 'package:cryptosquare/models/app_models.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:cryptosquare/util/tag_utils.dart';
-import 'package:cryptosquare/views/job_detail_view.dart';
 
 class JobView extends StatelessWidget {
   final JobController jobController = Get.put(JobController());
@@ -485,54 +483,50 @@ class JobView extends StatelessWidget {
           }
           return false;
         },
-        child: ListView.builder(
-          padding: const EdgeInsets.all(16.0),
-          itemCount: jobController.jobs.length + 1, // 增加一个项用于显示底部加载更多
-          itemBuilder: (context, index) {
-            if (index == jobController.jobs.length) {
-              // 底部加载更多指示器
-              return Obx(
-                () => Container(
-                  height: 60,
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  child: Center(
+        child: Obx(() {
+          // 检查是否有数据
+          if (jobController.jobs.isEmpty && jobController.isLoading.value) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(16.0),
+            itemCount:
+                jobController.jobs.length +
+                (jobController.isLoadingMore.value ||
+                        jobController.hasMore.value
+                    ? 1
+                    : 0),
+            itemBuilder: (context, index) {
+              if (index == jobController.jobs.length) {
+                // 底部加载更多指示器
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
                     child:
                         jobController.isLoadingMore.value
-                            ? Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Text(
-                                  "加载更多",
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                const CircularProgressIndicator(strokeWidth: 2),
-                              ],
-                            )
+                            ? const CircularProgressIndicator()
                             : jobController.hasMore.value
                             ? TextButton(
                               onPressed: () => jobController.onLoading(),
-                              child: const Text("加载更多"),
+                              child: const Text('加载更多'),
                             )
                             : Text(
-                              "没有更多职位了",
+                              '没有更多职位了',
                               style: TextStyle(color: Colors.grey[500]),
                             ),
                   ),
-                ),
+                );
+              }
+              // 正常的工作项
+              final job = jobController.jobs[index];
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: _buildJobItem(job),
               );
-            }
-            // 正常的工作项
-            final job = jobController.jobs[index];
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: _buildJobItem(job),
-            );
-          },
-        ),
+            },
+          );
+        }),
       ),
     );
   }
