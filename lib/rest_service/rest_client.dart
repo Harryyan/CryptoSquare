@@ -212,6 +212,7 @@ abstract class RestClient {
     @Query('page') int page,
     @Query('lang') int lang,
     @Query('PLATFORM') String platform,
+    @Query('keyword') String? keyword,
   );
 
   @GET('/job/index/job_list')

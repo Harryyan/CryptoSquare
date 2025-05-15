@@ -201,7 +201,8 @@ class _ForumViewState extends State<ForumView>
         30, // page_size: 每页30条
         currentPage.value, // page: 当前页码
         GStorage().getLanguageCN() ? 1 : 0, // lang: 1是中文，0是英文
-        platform, // platform: 平台信息
+        platform,
+        '',
       );
 
       // 处理响应数据
@@ -253,7 +254,8 @@ class _ForumViewState extends State<ForumView>
         30, // page_size: 每页30条
         industryCurrentPage.value, // page: 当前页码
         GStorage().getLanguageCN() ? 1 : 0, // lang: 1是中文，0是英文
-        platform, // platform: 平台信息
+        platform,
+        '',
       );
 
       // 处理响应数据
@@ -305,7 +307,8 @@ class _ForumViewState extends State<ForumView>
         30, // page_size: 每页30条
         casualCurrentPage.value, // page: 当前页码
         GStorage().getLanguageCN() ? 1 : 0, // lang: 1是中文，0是英文
-        platform, // platform: 平台信息
+        platform,
+        '',
       );
 
       // 处理响应数据

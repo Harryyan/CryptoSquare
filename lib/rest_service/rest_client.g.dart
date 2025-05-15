@@ -991,6 +991,7 @@ class _RestClient implements RestClient {
     int page,
     int lang,
     String platform,
+    String? keyword,
   ) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
@@ -999,7 +1000,9 @@ class _RestClient implements RestClient {
       r'page': page,
       r'lang': lang,
       r'PLATFORM': platform,
+      r'keyword': keyword,
     };
+    queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
     final _options = _setStreamType<ArticleListResponse>(
