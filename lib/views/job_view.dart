@@ -47,9 +47,6 @@ class JobView extends StatelessWidget {
           _buildFilterSection(),
           Expanded(
             child: Obx(() {
-              if (jobController.isLoading.value) {
-                return const Center(child: CircularProgressIndicator());
-              }
               return jobController.noResults.value
                   ? _buildEmptyState()
                   : _buildJobList();
