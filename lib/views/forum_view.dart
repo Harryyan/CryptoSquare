@@ -490,118 +490,122 @@ class _ForumViewState extends State<ForumView>
 
   // 搜索栏
   Widget _buildSearchBar() {
-    // 如果当前是加密百科标签，则不显示搜索栏
-    if (currentTabIndex.value == 3) {
-      return const SizedBox.shrink();
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color: Colors.white,
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.grey[100],
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
-                children: [
-                  const SizedBox(width: 12),
-                  // 搜索图标，搜索中显示加载动画
-                  Obx(
-                    () =>
-                        isSearching.value
-                            ? SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.grey[400],
-                              ),
-                            )
-                            : Icon(
-                              Icons.search,
-                              color: Colors.grey[400],
-                              size: 20,
+    return Obx(
+      () =>
+          currentTabIndex.value == 3
+              ? const SizedBox.shrink() // 如果当前是加密百科标签，则不显示搜索栏
+              : Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                color: Colors.white,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          children: [
+                            const SizedBox(width: 12),
+                            // 搜索图标，搜索中显示加载动画
+                            Obx(
+                              () =>
+                                  isSearching.value
+                                      ? SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Colors.grey[400],
+                                        ),
+                                      )
+                                      : Icon(
+                                        Icons.search,
+                                        color: Colors.grey[400],
+                                        size: 20,
+                                      ),
                             ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: TextField(
-                      controller: _searchController,
-                      onChanged: (value) {
-                        hasSearchText.value = value.isNotEmpty;
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: TextField(
+                                controller: _searchController,
+                                onChanged: (value) {
+                                  hasSearchText.value = value.isNotEmpty;
 
-                        // 防抖处理，避免频繁请求
-                        if (_debounce?.isActive ?? false) _debounce?.cancel();
+                                  // 防抖处理，避免频繁请求
+                                  if (_debounce?.isActive ?? false)
+                                    _debounce?.cancel();
 
-                        // 如果输入为空，重置搜索
-                        if (value.isEmpty) {
-                          searchKeyword.value = '';
-                          _resetSearch();
-                          return;
-                        }
+                                  // 如果输入为空，重置搜索
+                                  if (value.isEmpty) {
+                                    searchKeyword.value = '';
+                                    _resetSearch();
+                                    return;
+                                  }
 
-                        // 至少2个字符才触发搜索
-                        if (value.length < 2) return;
+                                  // 至少2个字符才触发搜索
+                                  if (value.length < 2) return;
 
-                        // 设置防抖，500ms后触发搜索
-                        _debounce = Timer(
-                          const Duration(milliseconds: 500),
-                          () {
-                            searchKeyword.value = value;
-                            _performSearch();
-                          },
-                        );
-                      },
-                      decoration: InputDecoration(
-                        hintText: '搜索',
-                        hintStyle: TextStyle(
-                          color: Colors.grey[400],
-                          fontSize: 14,
-                        ),
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(
-                          vertical: 10,
-                        ),
-                        isDense: true,
-                      ),
-                      textAlignVertical: TextAlignVertical.center,
-                    ),
-                  ),
-                  Obx(
-                    () =>
-                        hasSearchText.value
-                            ? Container(
-                              width: 40,
-                              child: IconButton(
-                                icon: Icon(
-                                  Icons.clear,
-                                  color: Colors.grey[400],
-                                  size: 18,
-                                ),
-                                onPressed: () {
-                                  _searchController.clear();
-                                  hasSearchText.value = false;
-                                  searchKeyword.value = '';
-                                  _resetSearch();
+                                  // 设置防抖，500ms后触发搜索
+                                  _debounce = Timer(
+                                    const Duration(milliseconds: 500),
+                                    () {
+                                      searchKeyword.value = value;
+                                      _performSearch();
+                                    },
+                                  );
                                 },
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(),
-                                splashRadius: 16,
+                                decoration: InputDecoration(
+                                  hintText: '搜索',
+                                  hintStyle: TextStyle(
+                                    color: Colors.grey[400],
+                                    fontSize: 14,
+                                  ),
+                                  border: InputBorder.none,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    vertical: 10,
+                                  ),
+                                  isDense: true,
+                                ),
+                                textAlignVertical: TextAlignVertical.center,
                               ),
-                            )
-                            : const SizedBox(width: 12),
-                  ),
-                ],
+                            ),
+                            Obx(
+                              () =>
+                                  hasSearchText.value
+                                      ? Container(
+                                        width: 40,
+                                        child: IconButton(
+                                          icon: Icon(
+                                            Icons.clear,
+                                            color: Colors.grey[400],
+                                            size: 18,
+                                          ),
+                                          onPressed: () {
+                                            _searchController.clear();
+                                            hasSearchText.value = false;
+                                            searchKeyword.value = '';
+                                            _resetSearch();
+                                          },
+                                          padding: EdgeInsets.zero,
+                                          constraints: const BoxConstraints(),
+                                          splashRadius: 16,
+                                        ),
+                                      )
+                                      : const SizedBox(width: 12),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 
