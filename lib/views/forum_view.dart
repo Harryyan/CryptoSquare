@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'dart:io';
+import 'dart:async';
 import 'package:cryptosquare/views/article_list_example.dart';
 import 'package:cryptosquare/rest_service/rest_client.dart';
 import 'package:cryptosquare/model/article_list.dart';
@@ -24,6 +25,11 @@ class _ForumViewState extends State<ForumView>
   final RxBool isLoadingMore = false.obs;
   final RxBool hasSearchText = false.obs;
   final RxBool isNetworkAvailable = true.obs; // 网络连接状态
+  final RxBool isSearching = false.obs; // 搜索状态
+  final RxString searchKeyword = ''.obs; // 搜索关键词
+
+  // 防抖计时器
+  Timer? _debounce;
 
   // WebView相关
   WebViewController? _webViewController;
@@ -179,13 +185,23 @@ class _ForumViewState extends State<ForumView>
   void dispose() {
     _tabController.dispose();
     _searchController.dispose();
+    _debounce?.cancel(); // 取消防抖计时器
     super.dispose();
   }
 
   // 加载论坛文章数据 - 全部分类
   Future<void> _loadForumArticles() async {
     try {
-      isLoading.value = true;
+      // 如果是第一页，显示加载状态
+      if (currentPage.value == 1) {
+        isLoading.value = true;
+      }
+
+      // 如果是搜索，显示搜索状态
+      if (searchKeyword.value.isNotEmpty) {
+        isSearching.value = true;
+      }
+
       isError.value = false;
       errorMessage.value = '';
 
@@ -202,7 +218,7 @@ class _ForumViewState extends State<ForumView>
         currentPage.value, // page: 当前页码
         GStorage().getLanguageCN() ? 1 : 0, // lang: 1是中文，0是英文
         platform,
-        '',
+        searchKeyword.value, // 传入搜索关键词
       );
 
       // 处理响应数据
@@ -232,13 +248,24 @@ class _ForumViewState extends State<ForumView>
       print('加载论坛文章失败: $e');
     } finally {
       isLoading.value = false;
+      isSearching.value = false;
+      isLoadingMore.value = false;
     }
   }
 
   // 加载行业动态文章数据 - cat_id: 32
   Future<void> _loadIndustryArticles() async {
     try {
-      isIndustryLoading.value = true;
+      // 如果是第一页，显示加载状态
+      if (industryCurrentPage.value == 1) {
+        isIndustryLoading.value = true;
+      }
+
+      // 如果是搜索，显示搜索状态
+      if (searchKeyword.value.isNotEmpty) {
+        isSearching.value = true;
+      }
+
       isIndustryError.value = false;
       industryErrorMessage.value = '';
 
@@ -255,7 +282,7 @@ class _ForumViewState extends State<ForumView>
         industryCurrentPage.value, // page: 当前页码
         GStorage().getLanguageCN() ? 1 : 0, // lang: 1是中文，0是英文
         platform,
-        '',
+        searchKeyword.value, // 传入搜索关键词
       );
 
       // 处理响应数据
@@ -285,13 +312,24 @@ class _ForumViewState extends State<ForumView>
       print('加载行业动态文章失败: $e');
     } finally {
       isIndustryLoading.value = false;
+      isSearching.value = false;
+      isLoadingMore.value = false;
     }
   }
 
   // 加载闲谈天地文章数据 - cat_id: 47
   Future<void> _loadCasualArticles() async {
     try {
-      isCasualLoading.value = true;
+      // 如果是第一页，显示加载状态
+      if (casualCurrentPage.value == 1) {
+        isCasualLoading.value = true;
+      }
+
+      // 如果是搜索，显示搜索状态
+      if (searchKeyword.value.isNotEmpty) {
+        isSearching.value = true;
+      }
+
       isCasualError.value = false;
       casualErrorMessage.value = '';
 
@@ -308,7 +346,7 @@ class _ForumViewState extends State<ForumView>
         casualCurrentPage.value, // page: 当前页码
         GStorage().getLanguageCN() ? 1 : 0, // lang: 1是中文，0是英文
         platform,
-        '',
+        searchKeyword.value, // 传入搜索关键词
       );
 
       // 处理响应数据
@@ -338,6 +376,8 @@ class _ForumViewState extends State<ForumView>
       print('加载闲谈天地文章失败: $e');
     } finally {
       isCasualLoading.value = false;
+      isSearching.value = false;
+      isLoadingMore.value = false;
     }
   }
 
@@ -450,6 +490,11 @@ class _ForumViewState extends State<ForumView>
 
   // 搜索栏
   Widget _buildSearchBar() {
+    // 如果当前是加密百科标签，则不显示搜索栏
+    if (currentTabIndex.value == 3) {
+      return const SizedBox.shrink();
+    }
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       color: Colors.white,
@@ -465,16 +510,55 @@ class _ForumViewState extends State<ForumView>
               child: Row(
                 children: [
                   const SizedBox(width: 12),
-                  Icon(Icons.search, color: Colors.grey[400], size: 20),
+                  // 搜索图标，搜索中显示加载动画
+                  Obx(
+                    () =>
+                        isSearching.value
+                            ? SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.grey[400],
+                              ),
+                            )
+                            : Icon(
+                              Icons.search,
+                              color: Colors.grey[400],
+                              size: 20,
+                            ),
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: TextField(
                       controller: _searchController,
                       onChanged: (value) {
                         hasSearchText.value = value.isNotEmpty;
+
+                        // 防抖处理，避免频繁请求
+                        if (_debounce?.isActive ?? false) _debounce?.cancel();
+
+                        // 如果输入为空，重置搜索
+                        if (value.isEmpty) {
+                          searchKeyword.value = '';
+                          _resetSearch();
+                          return;
+                        }
+
+                        // 至少2个字符才触发搜索
+                        if (value.length < 2) return;
+
+                        // 设置防抖，500ms后触发搜索
+                        _debounce = Timer(
+                          const Duration(milliseconds: 500),
+                          () {
+                            searchKeyword.value = value;
+                            _performSearch();
+                          },
+                        );
                       },
                       decoration: InputDecoration(
-                        hintText: '学习手册',
+                        hintText: '搜索',
                         hintStyle: TextStyle(
                           color: Colors.grey[400],
                           fontSize: 14,
@@ -502,6 +586,8 @@ class _ForumViewState extends State<ForumView>
                                 onPressed: () {
                                   _searchController.clear();
                                   hasSearchText.value = false;
+                                  searchKeyword.value = '';
+                                  _resetSearch();
                                 },
                                 padding: EdgeInsets.zero,
                                 constraints: const BoxConstraints(),
@@ -517,6 +603,44 @@ class _ForumViewState extends State<ForumView>
         ],
       ),
     );
+  }
+
+  // 执行搜索
+  void _performSearch() {
+    // 根据当前标签执行搜索
+    switch (currentTabIndex.value) {
+      case 0: // 全部
+        currentPage.value = 1;
+        _loadForumArticles();
+        break;
+      case 1: // 行业动态
+        industryCurrentPage.value = 1;
+        _loadIndustryArticles();
+        break;
+      case 2: // 闲谈天地
+        casualCurrentPage.value = 1;
+        _loadCasualArticles();
+        break;
+    }
+  }
+
+  // 重置搜索
+  void _resetSearch() {
+    // 根据当前标签重置搜索
+    switch (currentTabIndex.value) {
+      case 0: // 全部
+        currentPage.value = 1;
+        _loadForumArticles();
+        break;
+      case 1: // 行业动态
+        industryCurrentPage.value = 1;
+        _loadIndustryArticles();
+        break;
+      case 2: // 闲谈天地
+        casualCurrentPage.value = 1;
+        _loadCasualArticles();
+        break;
+    }
   }
 
   // 标签栏
