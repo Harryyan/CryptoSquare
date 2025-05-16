@@ -123,6 +123,7 @@ class JobListData {
 Dio? _dio;
 
 @RestApi(baseUrl: 'https://d3qx0f55wsubto.cloudfront.net/api')
+// @RestApi(baseUrl: 'https://terminal-cn2.bitpush.news/api')
 abstract class RestClient {
   factory RestClient() {
     _dio ??= Dio();
@@ -227,6 +228,9 @@ abstract class RestClient {
     @Query('job_lang') int jobLang = -1,
   });
 
+  @GET('/v3/job/scoreconfig')
+  Future<ScoreConfigResponse> getScoreConfig();
+
   @POST('/bbs-article/comment/{article_id}')
   Future<ArticleCommentPostResponse> postArticleComment(
     @Path('article_id') String articleId,
@@ -249,6 +253,66 @@ class Task {
   final String? createdAt;
 
   Map<String, dynamic> toJson() => _$TaskToJson(this);
+}
+
+@JsonSerializable()
+class ScoreConfigResponse {
+  const ScoreConfigResponse({this.message, this.code, this.data});
+
+  factory ScoreConfigResponse.fromJson(Map<String, dynamic> json) {
+    Map<String, ScoreConfigItem> scoreItems = {};
+    if (json['data'] != null) {
+      final dataMap = json['data'] as Map<String, dynamic>;
+      dataMap.forEach((key, value) {
+        scoreItems[key] = ScoreConfigItem.fromJson(
+          value as Map<String, dynamic>,
+        );
+      });
+    }
+
+    return ScoreConfigResponse(
+      message: json['message'] as String?,
+      code: json['code'] as int?,
+      data: scoreItems,
+    );
+  }
+
+  final String? message;
+  final int? code;
+  final Map<String, ScoreConfigItem>? data;
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+    'message': message,
+    'code': code,
+    'data': data,
+  };
+}
+
+@JsonSerializable()
+class ScoreConfigItem {
+  const ScoreConfigItem({this.title, this.titleEn, this.score, this.id});
+
+  factory ScoreConfigItem.fromJson(Map<String, dynamic> json) {
+    return ScoreConfigItem(
+      title: json['title'] as String?,
+      titleEn: json['title_en'] as String?,
+      score: json['score'] as int?,
+      id: json['id'] as int?,
+    );
+  }
+
+  final String? title;
+  @JsonKey(name: 'title_en')
+  final String? titleEn;
+  final int? score;
+  final int? id;
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+    'title': title,
+    'title_en': titleEn,
+    'score': score,
+    'id': id,
+  };
 }
 
 @JsonSerializable()

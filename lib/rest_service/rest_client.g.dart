@@ -101,6 +101,40 @@ Map<String, dynamic> _$TaskToJson(Task instance) => <String, dynamic>{
   'createdAt': instance.createdAt,
 };
 
+ScoreConfigResponse _$ScoreConfigResponseFromJson(Map<String, dynamic> json) =>
+    ScoreConfigResponse(
+      message: json['message'] as String?,
+      code: (json['code'] as num?)?.toInt(),
+      data: (json['data'] as Map<String, dynamic>?)?.map(
+        (k, e) =>
+            MapEntry(k, ScoreConfigItem.fromJson(e as Map<String, dynamic>)),
+      ),
+    );
+
+Map<String, dynamic> _$ScoreConfigResponseToJson(
+  ScoreConfigResponse instance,
+) => <String, dynamic>{
+  'message': instance.message,
+  'code': instance.code,
+  'data': instance.data,
+};
+
+ScoreConfigItem _$ScoreConfigItemFromJson(Map<String, dynamic> json) =>
+    ScoreConfigItem(
+      title: json['title'] as String?,
+      titleEn: json['title_en'] as String?,
+      score: (json['score'] as num?)?.toInt(),
+      id: (json['id'] as num?)?.toInt(),
+    );
+
+Map<String, dynamic> _$ScoreConfigItemToJson(ScoreConfigItem instance) =>
+    <String, dynamic>{
+      'title': instance.title,
+      'title_en': instance.titleEn,
+      'score': instance.score,
+      'id': instance.id,
+    };
+
 JobData _$JobDataFromJson(Map<String, dynamic> json) => JobData(
   slug: json['slug'] as String?,
   id: (json['id'] as num?)?.toInt(),
@@ -1064,6 +1098,33 @@ class _RestClient implements RestClient {
     late JobListResponse _value;
     try {
       _value = JobListResponse.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
+  Future<ScoreConfigResponse> getScoreConfig() async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<ScoreConfigResponse>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/v3/job/scoreconfig',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late ScoreConfigResponse _value;
+    try {
+      _value = ScoreConfigResponse.fromJson(_result.data!);
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options);
       rethrow;
