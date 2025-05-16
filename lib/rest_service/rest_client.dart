@@ -250,6 +250,9 @@ abstract class RestClient {
     @Field("origin_link") String originLink,
     @Field("body") String body,
   );
+
+  @GET("/bbs/category")
+  Future<CSBBSCategoryResp> category(@Query("lang") int lang);
 }
 
 @JsonSerializable()
@@ -264,6 +267,57 @@ class Task {
   final String? createdAt;
 
   Map<String, dynamic> toJson() => _$TaskToJson(this);
+}
+
+class CSBBSCategoryResp {
+  String? message;
+  int? code;
+  List<Data>? data;
+
+  CSBBSCategoryResp({this.message, this.code, this.data});
+
+  CSBBSCategoryResp.fromJson(Map<String, dynamic> json) {
+    message = json['message'];
+    code = json['code'];
+    if (json['data'] != null) {
+      data = <Data>[];
+      json['data'].forEach((v) {
+        data!.add(new Data.fromJson(v));
+      });
+    }
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['message'] = this.message;
+    data['code'] = this.code;
+    if (this.data != null) {
+      data['data'] = this.data!.map((v) => v.toJson()).toList();
+    }
+    return data;
+  }
+}
+
+class Data {
+  int? id;
+  String? name;
+  String? slug;
+
+  Data({this.id, this.name, this.slug});
+
+  Data.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    name = json['name'];
+    slug = json['slug'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['id'] = this.id;
+    data['name'] = this.name;
+    data['slug'] = this.slug;
+    return data;
+  }
 }
 
 @JsonSerializable()
