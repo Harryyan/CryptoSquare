@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:cryptosquare/l10n/l18n_keywords.dart';
 import 'package:cryptosquare/util/language_management.dart';
 import 'package:get/get.dart';
@@ -7,6 +8,9 @@ import 'package:cryptosquare/util/storage.dart';
 
 class JobController extends GetxController {
   final RestClient _restClient = RestClient();
+
+  // 防抖计时器
+  Timer? _debounce;
 
   // 工作列表数据
   final RxList<JobData> jobs = <JobData>[].obs;
@@ -47,6 +51,7 @@ class JobController extends GetxController {
 
   @override
   void onClose() {
+    _debounce?.cancel();
     super.onClose();
   }
 
@@ -104,11 +109,44 @@ class JobController extends GetxController {
     }
   }
 
-  // 搜索工作
+  // 搜索工作 - 带防抖功能
   void searchJobs(String query) {
-    searchQuery.value = query;
-    hasSearched.value = true;
+    // 取消之前的计时器
+    if (_debounce?.isActive ?? false) {
+      _debounce?.cancel();
+    }
 
+    // 设置搜索查询
+    searchQuery.value = query;
+
+    // 如果查询为空，立即重置搜索并加载数据
+    if (query.isEmpty) {
+      hasSearched.value = false;
+      noResults.value = false;
+      fetchJobs(isRefresh: true);
+      return;
+    }
+
+    // 设置防抖延迟
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      // 只有当查询至少有2个字符时才执行搜索
+      if (query.length >= 2) {
+        isSearching.value = true;
+        hasSearched.value = true;
+        fetchJobs(isRefresh: true).then((_) {
+          isSearching.value = false;
+          // 检查是否有搜索结果
+          noResults.value = jobs.isEmpty && hasSearched.value;
+        });
+      }
+    });
+  }
+
+  // 清除搜索
+  void clearSearch() {
+    searchQuery.value = '';
+    hasSearched.value = false;
+    noResults.value = false;
     fetchJobs(isRefresh: true);
   }
 

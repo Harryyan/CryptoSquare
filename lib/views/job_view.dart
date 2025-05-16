@@ -6,10 +6,18 @@ import 'package:cryptosquare/theme/app_theme.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:cryptosquare/util/tag_utils.dart';
 
-class JobView extends StatelessWidget {
+class JobView extends StatefulWidget {
+  JobView({super.key});
+
+  @override
+  State<JobView> createState() => _JobViewState();
+}
+
+class _JobViewState extends State<JobView> {
   final JobController jobController = Get.put(JobController());
 
-  JobView({super.key});
+  // 搜索框的文本控制器
+  final TextEditingController _searchController = TextEditingController();
 
   // 格式化薪资为 $1,500 - $2,500 格式
   String _formatSalary(int minSalary, int maxSalary, String currency) {
@@ -36,6 +44,25 @@ class JobView extends StatelessWidget {
     );
 
     return "$currencySymbol$formattedMinSalary - $currencySymbol$formattedMaxSalary";
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // 初始化搜索控制器
+    _searchController.text = jobController.searchQuery.value;
+    // 监听搜索查询变化，更新搜索框
+    jobController.searchQuery.listen((query) {
+      if (_searchController.text != query) {
+        _searchController.text = query;
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -67,24 +94,44 @@ class JobView extends StatelessWidget {
           borderRadius: BorderRadius.circular(22),
         ),
         child: TextField(
+          controller: _searchController,
           onChanged: (value) {
-            jobController.searchQuery.value = value;
+            // 直接调用搜索方法，内部已实现防抖
+            jobController.searchJobs(value);
           },
           onSubmitted: (value) {
-            jobController.searchJobs(value);
+            // 提交时立即搜索
+            if (value.length >= 2) {
+              jobController.searchJobs(value);
+            }
           },
           decoration: InputDecoration(
             hintText: '请输入关键字搜岗位',
             hintStyle: TextStyle(color: Colors.grey[500], fontSize: 14),
-            prefixIcon: Icon(Icons.search, color: Colors.grey[500]),
+            prefixIcon: Obx(
+              () =>
+                  jobController.isSearching.value
+                      ? Container(
+                        padding: const EdgeInsets.all(10),
+                        height: 24,
+                        width: 24,
+                        child: const CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.grey,
+                          ),
+                        ),
+                      )
+                      : Icon(Icons.search, color: Colors.grey[500]),
+            ),
             suffixIcon: Obx(
               () =>
                   jobController.searchQuery.isNotEmpty
                       ? IconButton(
                         icon: const Icon(Icons.clear, color: Colors.grey),
                         onPressed: () {
-                          jobController.searchQuery.value = '';
-                          jobController.searchJobs('');
+                          // 使用控制器的清除方法
+                          jobController.clearSearch();
                         },
                       )
                       : const SizedBox(),
@@ -441,18 +488,8 @@ class JobView extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          SvgPicture.asset(
-            'assets/images/job.svg',
-            width: 120,
-            height: 120,
-            colorFilter: ColorFilter.mode(
-              Colors.grey[400] ?? Colors.grey,
-              BlendMode.srcIn,
-            ),
-          ),
-          const SizedBox(height: 16),
           Text(
-            '没有符合条件的职位',
+            jobController.hasSearched.value ? '没有找到相关职位' : '没有符合条件的职位',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -461,9 +498,28 @@ class JobView extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            '请尝试其他搜索条件',
+            jobController.hasSearched.value ? '请尝试其他关键词' : '请尝试其他搜索条件',
             style: TextStyle(fontSize: 14, color: Colors.grey[500]),
           ),
+          if (jobController.hasSearched.value) ...[
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                jobController.clearSearch();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
+              ),
+              child: const Text('清除搜索', style: TextStyle(color: Colors.white)),
+            ),
+          ],
         ],
       ),
     );
@@ -481,9 +537,16 @@ class JobView extends StatelessWidget {
           return false;
         },
         child: Obx(() {
-          // 检查是否有数据
+          // 检查是否正在加载
           if (jobController.jobs.isEmpty && jobController.isLoading.value) {
             return const Center(child: CircularProgressIndicator());
+          }
+
+          // 检查是否搜索无结果
+          if (jobController.jobs.isEmpty &&
+              jobController.hasSearched.value &&
+              jobController.noResults.value) {
+            return _buildEmptyState();
           }
 
           return ListView.builder(
