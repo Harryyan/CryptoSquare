@@ -128,6 +128,9 @@ class _ForumViewState extends State<ForumView>
 
   // 初始化WebView控制器
   void _initWebViewController() {
+    // 添加一个标志，表示是否是初始加载
+    bool isInitialLoad = true;
+
     final controller =
         WebViewController()
           ..setJavaScriptMode(JavaScriptMode.unrestricted)
@@ -138,37 +141,43 @@ class _ForumViewState extends State<ForumView>
                 // 如果进度大于0，说明网络连接正常
                 if (progress > 0) {
                   isNetworkAvailable.value = true;
+                  isInitialLoad = false; // 已经开始加载，不再是初始状态
                 }
               },
               onPageStarted: (String url) {
                 webViewProgress.value = 0;
                 isNetworkAvailable.value = true; // 页面开始加载，网络应该是可用的
+                isInitialLoad = false; // 已经开始加载，不再是初始状态
               },
               onPageFinished: (String url) {
                 webViewProgress.value = 100;
                 isNetworkAvailable.value = true; // 页面加载完成，网络是可用的
+                isInitialLoad = false; // 已经完成加载，不再是初始状态
               },
               onWebResourceError: (WebResourceError error) {
                 print(
                   'WebView error: ${error.description} (${error.errorCode})',
                 );
-                webViewProgress.value = 0;
 
                 // 根据错误类型判断网络状态
                 if (error.description.contains('SocketException') ||
                     error.description.contains('Connection refused') ||
                     error.description.contains('net::ERR_') ||
                     error.description.contains('Failed host lookup')) {
-                  isNetworkAvailable.value = false;
+                  // 只有在初始加载时才更新状态和显示错误
+                  if (isInitialLoad) {
+                    webViewProgress.value = 0;
+                    isNetworkAvailable.value = false;
 
-                  Get.snackbar(
-                    '网络连接错误',
-                    '无法连接到服务器，请检查您的网络连接',
-                    snackPosition: SnackPosition.BOTTOM,
-                    backgroundColor: Colors.red[100],
-                    colorText: Colors.red[900],
-                    duration: const Duration(seconds: 3),
-                  );
+                    Get.snackbar(
+                      '网络连接错误',
+                      '无法连接到服务器，请检查您的网络连接',
+                      snackPosition: SnackPosition.BOTTOM,
+                      backgroundColor: Colors.red[100],
+                      colorText: Colors.red[900],
+                      duration: const Duration(seconds: 3),
+                    );
+                  }
                 }
               },
             ),
@@ -930,13 +939,12 @@ class _ForumViewState extends State<ForumView>
                   : Stack(
                     children: [
                       WebViewWidget(controller: _webViewController!),
-                      // 错误视图 - 当发生网络错误时显示
+                      // 错误视图 - 只在初始加载时显示网络错误
                       Obx(
                         () =>
-                            (!isNetworkAvailable.value ||
-                                        webViewProgress.value == 0) &&
+                            !isNetworkAvailable.value &&
                                     currentTabIndex.value == 3 &&
-                                    webViewProgress.value != 100
+                                    webViewProgress.value == 0
                                 ? Center(
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
