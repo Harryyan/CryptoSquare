@@ -1033,6 +1033,9 @@ class _RestClient implements RestClient {
     int page = 1,
     String keyword = '',
     int lang = 1,
+    String jobType = '',
+    int officeMode = -1,
+    int jobLang = -1,
   }) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
@@ -1041,6 +1044,9 @@ class _RestClient implements RestClient {
       r'page': page,
       r'keyword': keyword,
       r'lang': lang,
+      r'job_type': jobType,
+      r'office_mode': officeMode,
+      r'job_lang': jobLang,
     };
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;

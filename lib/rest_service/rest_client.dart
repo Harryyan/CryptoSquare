@@ -222,6 +222,9 @@ abstract class RestClient {
     @Query('page') int page = 1,
     @Query('keyword') String keyword = '',
     @Query('lang') int lang = 1,
+    @Query('job_type') String jobType = '',
+    @Query('office_mode') int officeMode = -1,
+    @Query('job_lang') int jobLang = -1,
   });
 
   @POST('/bbs-article/comment/{article_id}')
