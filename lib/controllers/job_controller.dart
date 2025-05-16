@@ -64,12 +64,41 @@ class JobController extends GetxController {
 
     isLoading.value = true;
     try {
+      // 处理办公方式参数
+      int officeMode = -1; // 默认不限
+      if (selectedWorkMode.value.isNotEmpty) {
+        if (selectedWorkMode.value == '远程办公') {
+          officeMode = 0;
+        } else if (selectedWorkMode.value == '实地办公') {
+          officeMode = 1;
+        }
+      }
+
+      // 处理语言要求参数
+      int jobLang = -1; // 默认不限
+      if (selectedLanguage.value.isNotEmpty) {
+        if (selectedLanguage.value == '中文') {
+          jobLang = 0;
+        } else if (selectedLanguage.value == '英文') {
+          jobLang = 1;
+        }
+      }
+
+      // 处理工作类型参数
+      String jobType = '';
+      if (selectedJobType.value.isNotEmpty) {
+        jobType = selectedJobType.value;
+      }
+
       final response = await _restClient.getJobList(
         'app',
         pageSize: 10,
         page: currentPage.value,
         keyword: searchQuery.value,
         lang: LanguageManagement.language(),
+        jobType: jobType,
+        officeMode: officeMode,
+        jobLang: jobLang,
       );
 
       if (response.code == 0 && response.data != null) {
