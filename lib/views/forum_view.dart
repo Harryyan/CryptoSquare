@@ -1158,9 +1158,7 @@ class _ForumViewState extends State<ForumView>
 
                       // 发布时间
                       Text(
-                        article.createTime != null
-                            ? _formatTime(article.createTime!)
-                            : '',
+                        article.updatedAt ?? "",
                         style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                       ),
                     ],
