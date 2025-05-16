@@ -19,8 +19,13 @@ class _JobViewState extends State<JobView> {
   // 搜索框的文本控制器
   final TextEditingController _searchController = TextEditingController();
 
-  // 格式化薪资为 $1,500 - $2,500 格式
+  // 格式化薪资为 $1,500 - $2,500 格式，如果最低和最高都是0则显示面议
   String _formatSalary(int minSalary, int maxSalary, String currency) {
+    // 如果最低和最高薪资都为0，则显示面议
+    if (minSalary == 0 && maxSalary == 0) {
+      return "面议";
+    }
+
     // 转换货币符号，确保大写的货币代码转为符号
     String currencySymbol = '';
     if (currency.toUpperCase() == 'USD') {
@@ -634,7 +639,12 @@ class _JobViewState extends State<JobView> {
                 children: [
                   Expanded(
                     child: Text(
-                      job.jobTitle ?? '未知职位',
+                      // 如果薪资为面议且标题以|面议结尾，则删除|面议
+                      (job.minSalary == 0 &&
+                              job.maxSalary == 0 &&
+                              (job.jobTitle?.endsWith('|面议') ?? false))
+                          ? job.jobTitle!.substring(0, job.jobTitle!.length - 3)
+                          : job.jobTitle ?? '未知职位',
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
