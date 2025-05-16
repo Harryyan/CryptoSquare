@@ -239,6 +239,17 @@ abstract class RestClient {
     @Field('comment_id') int? commentId,
     @Field('lang') int lang,
   );
+
+  @POST("/bbs-article")
+  Future<PostCreateResp> createPost(
+    @Field("title") String title,
+    @Field("tag") String tag,
+    @Field("cat_id") int catId,
+    @Field("lang") int lang,
+    @Field("origin") String origin,
+    @Field("origin_link") String originLink,
+    @Field("body") String body,
+  );
 }
 
 @JsonSerializable()
@@ -253,6 +264,31 @@ class Task {
   final String? createdAt;
 
   Map<String, dynamic> toJson() => _$TaskToJson(this);
+}
+
+@JsonSerializable()
+class PostCreateResp {
+  String? message;
+  int? code;
+  int? data;
+
+  PostCreateResp({this.message, this.code, this.data});
+
+  factory PostCreateResp.fromJson(Map<String, dynamic> json) {
+    return PostCreateResp(
+      message: json['message'],
+      code: json['code'],
+      data: json['data'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['message'] = this.message;
+    data['code'] = this.code;
+    data['data'] = this.data;
+    return data;
+  }
 }
 
 @JsonSerializable()
