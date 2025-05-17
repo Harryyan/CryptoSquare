@@ -54,6 +54,7 @@ dependencies:
   sign_in_with_apple: ^7.0.1
   image_picker: ^1.1.2
   flutter_quill: ^11.4.1
+  vsc_quill_delta_to_html: ^1.0.5
 
 dev_dependencies:
   flutter_test:

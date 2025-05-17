@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:vsc_quill_delta_to_html/vsc_quill_delta_to_html.dart';
 import 'package:cryptosquare/rest_service/rest_client.dart';
 import 'dart:convert';
 
@@ -16,6 +17,25 @@ class _PostCreateViewState extends State<PostCreateView> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _tagsController = TextEditingController();
   final QuillController _contentController = QuillController.basic();
+
+  // 将QuillController的内容转换为HTML
+  String convertDeltaToHtml() {
+    // 获取Delta格式的JSON数据并进行类型转换
+    final List<dynamic> rawDeltaJson =
+        _contentController.document.toDelta().toJson();
+    final List<Map<String, dynamic>> deltaJson =
+        rawDeltaJson.map((item) => item as Map<String, dynamic>).toList();
+
+    // 创建转换器
+    final converter = QuillDeltaToHtmlConverter(
+      deltaJson,
+      ConverterOptions.forEmail(), // 使用邮件格式，也可以使用默认选项：ConverterOptions()
+    );
+
+    // 转换为HTML
+    final html = converter.convert();
+    return html;
+  }
 
   // 分类数据
   final RxList<BBSCategoryData> categories = <BBSCategoryData>[].obs;
@@ -61,16 +81,15 @@ class _PostCreateViewState extends State<PostCreateView> {
   }
 
   // 发布帖子
-  Future<void> _submitPost2() async {
+  Future<void> _submitPost() async {
     if (_titleController.text.isEmpty) {
       Get.snackbar('提示', '请输入帖子标题');
     }
     if (selectedCategory == null) {
       Get.snackbar('提示', '请选择帖子分类');
     }
-    final String content = jsonEncode(
-      _contentController.document.toDelta().toJson(),
-    );
+    // 将Delta格式转换为HTML
+    final String content = convertDeltaToHtml();
     if (content.isEmpty || content == '[]') {
       Get.snackbar('提示', '请输入帖子内容');
     }
@@ -96,48 +115,47 @@ class _PostCreateViewState extends State<PostCreateView> {
     }
   }
 
-  // 发布帖子
-  Future<void> _submitPost() async {
-    if (_titleController.text.isEmpty) {
-      Get.snackbar('提示', '请输入帖子标题');
-      return;
-    }
+  // // 发布帖子
+  // Future<void> _submitPost() async {
+  //   if (_titleController.text.isEmpty) {
+  //     Get.snackbar('提示', '请输入帖子标题');
+  //     return;
+  //   }
 
-    if (selectedCategory == null) {
-      Get.snackbar('提示', '请选择帖子分类');
-      return;
-    }
+  //   if (selectedCategory == null) {
+  //     Get.snackbar('提示', '请选择帖子分类');
+  //     return;
+  //   }
 
-    final String content = jsonEncode(
-      _contentController.document.toDelta().toJson(),
-    );
-    if (content.isEmpty || content == '[]') {
-      Get.snackbar('提示', '请输入帖子内容');
-      return;
-    }
+  //   // 将Delta格式转换为HTML
+  //   final String content = convertDeltaToHtml();
+  //   if (content.isEmpty || content == '<p><br></p>') {
+  //     Get.snackbar('提示', '请输入帖子内容');
+  //     return;
+  //   }
 
-    try {
-      final response = await _restClient.createPost(
-        _titleController.text,
-        _tagsController.text,
-        selectedCategory!.id!,
-        0, // 0表示中文，1表示英文
-        '', // origin
-        '', // originLink
-        content,
-      );
+  //   try {
+  //     final response = await _restClient.createPost(
+  //       _titleController.text,
+  //       _tagsController.text,
+  //       selectedCategory!.id!,
+  //       0, // 0表示中文，1表示英文
+  //       '', // origin
+  //       '', // originLink
+  //       content,
+  //     );
 
-      if (response.code == 0) {
-        Get.back(result: true);
-        Get.snackbar('成功', '帖子发布成功');
-      } else {
-        Get.snackbar('错误', response.message ?? '发布失败，请稍后重试');
-      }
-    } catch (e) {
-      print('发布帖子失败: $e');
-      Get.snackbar('错误', '发布失败，请稍后重试');
-    }
-  }
+  //     if (response.code == 0) {
+  //       Get.back(result: true);
+  //       Get.snackbar('成功', '帖子发布成功');
+  //     } else {
+  //       Get.snackbar('错误', response.message ?? '发布失败，请稍后重试');
+  //     }
+  //   } catch (e) {
+  //     print('发布帖子失败: $e');
+  //     Get.snackbar('错误', '发布失败，请稍后重试');
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
