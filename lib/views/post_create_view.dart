@@ -147,7 +147,10 @@ class _PostCreateViewState extends State<PostCreateView> {
         actions: [
           TextButton(
             onPressed: _submitPost,
-            child: const Text('发布', style: TextStyle(color: Colors.blue)),
+            child: const Text(
+              '发布',
+              style: TextStyle(color: Colors.blue, fontSize: 16),
+            ),
           ),
         ],
       ),
