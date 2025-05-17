@@ -1243,6 +1243,36 @@ class _RestClient implements RestClient {
   }
 
   @override
+  Future<BaseResponse<dynamic>> applyJobCharge(String jobkey) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final _data = {'jobkey': jobkey};
+    final _options = _setStreamType<BaseResponse<dynamic>>(
+      Options(method: 'POST', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/job/charge/apply',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late BaseResponse<dynamic> _value;
+    try {
+      _value = BaseResponse<dynamic>.fromJson(
+        _result.data!,
+        (json) => json as dynamic,
+      );
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
   Future<CSBBSCategoryResp> category(int lang) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{r'lang': lang};

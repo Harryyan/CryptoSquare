@@ -251,6 +251,9 @@ abstract class RestClient {
     @Field("body") String body,
   );
 
+  @POST("/job/charge/apply")
+  Future<BaseResponse<dynamic>> applyJobCharge(@Field("jobkey") String jobkey);
+
   @GET("/bbs/category")
   Future<CSBBSCategoryResp> category(@Query("lang") int lang);
 }
