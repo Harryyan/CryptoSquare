@@ -8,6 +8,7 @@ import 'package:cryptosquare/views/article_list_example.dart';
 import 'package:cryptosquare/rest_service/rest_client.dart';
 import 'package:cryptosquare/model/article_list.dart';
 import 'package:cryptosquare/controllers/article_controller.dart';
+import 'package:cryptosquare/views/post_create_view.dart';
 
 class ForumView extends StatefulWidget {
   const ForumView({super.key});
@@ -124,6 +125,68 @@ class _ForumViewState extends State<ForumView>
         duration: const Duration(seconds: 3),
       );
     }
+  }
+
+  // 底部发布栏
+  Widget _buildBottomPublishBar() {
+    // 获取底部安全区域高度
+    return Container(
+      // 高度包含内容高度(60)加上底部安全区域高度
+      height: 80,
+      padding: EdgeInsets.only(
+        left: 16,
+        right: 16,
+        top: 8,
+        bottom: 18, // 底部padding增加安全区域高度
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 5,
+            offset: const Offset(0, -1),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Image.asset('assets/images/coin-icon.png', width: 24, height: 24),
+          const SizedBox(width: 8),
+          Text(
+            '贡献内容可获4积分',
+            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+          ),
+          const Spacer(flex: 6),
+          ElevatedButton.icon(
+            onPressed: () {
+              // 导航到发布动态页面
+              Get.to(() => const PostCreateView())?.then((result) {
+                // 如果发布成功，刷新论坛列表
+                if (result == true) {
+                  _loadForumArticles();
+                }
+              });
+            },
+            icon: Image.asset(
+              'assets/images/write.png',
+              width: 20,
+              height: 20,
+              color: Colors.white,
+            ),
+            label: const Text('发布动态', style: TextStyle(color: Colors.white)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF2563EB),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(6),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            ),
+          ),
+          const Spacer(flex: 1),
+        ],
+      ),
+    );
   }
 
   // 初始化WebView控制器
@@ -1217,60 +1280,4 @@ String _formatTime(int timestamp) {
   } else {
     return '刚刚';
   }
-}
-
-// 底部发布栏
-Widget _buildBottomPublishBar() {
-  // 获取底部安全区域高度
-  return Container(
-    // 高度包含内容高度(60)加上底部安全区域高度
-    height: 80,
-    padding: EdgeInsets.only(
-      left: 16,
-      right: 16,
-      top: 8,
-      bottom: 18, // 底部padding增加安全区域高度
-    ),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withOpacity(0.05),
-          blurRadius: 5,
-          offset: const Offset(0, -1),
-        ),
-      ],
-    ),
-    child: Row(
-      children: [
-        Image.asset('assets/images/coin-icon.png', width: 24, height: 24),
-        const SizedBox(width: 8),
-        Text(
-          '贡献内容可获4积分',
-          style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-        ),
-        const Spacer(flex: 6),
-        ElevatedButton.icon(
-          onPressed: () {
-            // 发布动态逻辑
-          },
-          icon: Image.asset(
-            'assets/images/write.png',
-            width: 20,
-            height: 20,
-            color: Colors.white,
-          ),
-          label: const Text('发布动态', style: TextStyle(color: Colors.white)),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF2563EB),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(6),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          ),
-        ),
-        const Spacer(flex: 1),
-      ],
-    ),
-  );
 }

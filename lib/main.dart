@@ -10,6 +10,8 @@ import 'package:cryptosquare/l10n/translation.dart';
 import 'package:cryptosquare/util/environment_config.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_quill/flutter_quill.dart';
 
 void main() async {
   // 默认使用正式环境
@@ -41,6 +43,13 @@ class MyApp extends StatelessWidget {
       fallbackLocale: const Locale('en', 'US'),
       home: MainView(),
       debugShowCheckedModeBanner: false,
+      // 添加本地化代理
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        FlutterQuillLocalizations.delegate,
+      ],
       // 添加SmartDialog配置
       builder: FlutterSmartDialog.init(),
       navigatorObservers: [FlutterSmartDialog.observer],

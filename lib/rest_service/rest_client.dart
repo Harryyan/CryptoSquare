@@ -272,7 +272,7 @@ class Task {
 class CSBBSCategoryResp {
   String? message;
   int? code;
-  List<Data>? data;
+  List<BBSCategoryData>? data;
 
   CSBBSCategoryResp({this.message, this.code, this.data});
 
@@ -280,9 +280,9 @@ class CSBBSCategoryResp {
     message = json['message'];
     code = json['code'];
     if (json['data'] != null) {
-      data = <Data>[];
+      data = <BBSCategoryData>[];
       json['data'].forEach((v) {
-        data!.add(new Data.fromJson(v));
+        data!.add(new BBSCategoryData.fromJson(v));
       });
     }
   }
@@ -298,14 +298,14 @@ class CSBBSCategoryResp {
   }
 }
 
-class Data {
+class BBSCategoryData {
   int? id;
   String? name;
   String? slug;
 
-  Data({this.id, this.name, this.slug});
+  BBSCategoryData({this.id, this.name, this.slug});
 
-  Data.fromJson(Map<String, dynamic> json) {
+  BBSCategoryData.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     name = json['name'];
     slug = json['slug'];
@@ -1359,4 +1359,32 @@ class ArticleCommentReply {
   final ArticleCommentUser? user;
 
   Map<String, dynamic> toJson() => _$ArticleCommentReplyToJson(this);
+}
+
+@JsonSerializable()
+class CategoryItem {
+  const CategoryItem({this.id, this.name, this.nameEn});
+
+  factory CategoryItem.fromJson(Map<String, dynamic> json) {
+    return CategoryItem(
+      id: json['id'] as int?,
+      name: json['name'] as String?,
+      nameEn: json['name_en'] as String?,
+    );
+  }
+
+  @JsonKey(name: 'id')
+  final int? id;
+
+  @JsonKey(name: 'name')
+  final String? name;
+
+  @JsonKey(name: 'name_en')
+  final String? nameEn;
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+    'id': id,
+    'name': name,
+    'name_en': nameEn,
+  };
 }

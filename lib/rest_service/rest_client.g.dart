@@ -741,6 +741,19 @@ Map<String, dynamic> _$ArticleCommentReplyToJson(
   'user': instance.user,
 };
 
+CategoryItem _$CategoryItemFromJson(Map<String, dynamic> json) => CategoryItem(
+  id: (json['id'] as num?)?.toInt(),
+  name: json['name'] as String?,
+  nameEn: json['name_en'] as String?,
+);
+
+Map<String, dynamic> _$CategoryItemToJson(CategoryItem instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'name': instance.name,
+      'name_en': instance.nameEn,
+    };
+
 // **************************************************************************
 // RetrofitGenerator
 // **************************************************************************
