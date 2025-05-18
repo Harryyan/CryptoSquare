@@ -6,6 +6,7 @@ import 'package:flutter_html/flutter_html.dart';
 import 'package:cryptosquare/theme/app_theme.dart';
 import 'package:cryptosquare/controllers/user_controller.dart';
 import 'package:cryptosquare/util/language_management.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class JobDetailView extends GetView<JobController> {
   final String title;
@@ -15,7 +16,10 @@ class JobDetailView extends GetView<JobController> {
   final List<String> tags;
   final String description;
 
-  const JobDetailView({
+  // RestClient实例
+  final RestClient _restClient = RestClient();
+
+  JobDetailView({
     Key? key,
     required this.title,
     required this.company,
@@ -279,40 +283,112 @@ class JobDetailView extends GetView<JobController> {
           // 右侧 - 查看HR联系方式按钮
           Expanded(
             flex: 2,
-            child: ElevatedButton(
-              onPressed: () {
-                // 检查用户是否登录
-                if (!userController.isLoggedIn) {
-                  Get.snackbar(
-                    '提示',
-                    '请先登录后再查看HR联系方式',
-                    snackPosition: SnackPosition.BOTTOM,
-                    backgroundColor: Colors.grey[800],
-                    colorText: Colors.white,
-                    margin: const EdgeInsets.all(16),
-                  );
-                  return;
-                }
+            child: Obx(() {
+              final jobDetail = controller.currentJobDetail.value;
+              final apply = jobDetail?.apply;
+              final bool isBuyed = apply?.isBuyed ?? false;
+              final String applyVal = apply?.applyVal ?? '';
 
-                // 已登录，实现查看HR联系方式功能
-                // TODO: 实现查看HR联系方式的逻辑
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryColor,
-                minimumSize: const Size(double.infinity, 48),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(6),
+              // 根据isBuyed状态决定按钮文字
+              String buttonText = '查看HR联系方式';
+              if (isBuyed) {
+                if (applyVal.toLowerCase().contains('http')) {
+                  buttonText = '点击链接查看';
+                } else if (applyVal.contains('@')) {
+                  buttonText = applyVal;
+                } else {
+                  buttonText = applyVal.isNotEmpty ? applyVal : '查看HR联系方式';
+                }
+              }
+
+              return ElevatedButton(
+                onPressed: () {
+                  // 检查用户是否登录
+                  if (!userController.isLoggedIn) {
+                    Get.snackbar(
+                      '提示',
+                      '请先登录后再查看HR联系方式',
+                      snackPosition: SnackPosition.BOTTOM,
+                      backgroundColor: Colors.grey[800],
+                      colorText: Colors.white,
+                      margin: const EdgeInsets.all(16),
+                    );
+                    return;
+                  }
+
+                  // 已登录，根据isBuyed状态处理
+                  if (isBuyed) {
+                    // 已购买，如果是链接则打开外部浏览器
+                    if (applyVal.toLowerCase().contains('http')) {
+                      // 使用url_launcher打开链接
+                      launchUrl(
+                        Uri.parse(applyVal),
+                        mode: LaunchMode.externalApplication,
+                      );
+
+                      // 同时打印链接用于调试
+                      print('打开链接: $applyVal');
+                    }
+                    // 如果是邮箱或其他信息，已经在按钮文字中显示了
+                  } else {
+                    // 未购买，调用applyJobCharge接口
+                    if (jobDetail?.jobKey != null) {
+                      _restClient
+                          .applyJobCharge(jobDetail!.jobKey!)
+                          .then((response) {
+                            if (response.code == 0) {
+                              // 扣分成功，重新加载页面显示联系方式
+                              controller.fetchJobDetail(jobDetail.jobKey!);
+                              Get.snackbar(
+                                '成功',
+                                '已成功获取HR联系方式',
+                                snackPosition: SnackPosition.BOTTOM,
+                                backgroundColor: Colors.green,
+                                colorText: Colors.white,
+                                margin: const EdgeInsets.all(16),
+                              );
+                            } else {
+                              // 扣分失败，提示用户
+                              Get.snackbar(
+                                '提示',
+                                response.message ?? '获取HR联系方式失败，请稍后再试',
+                                snackPosition: SnackPosition.BOTTOM,
+                                backgroundColor: Colors.red,
+                                colorText: Colors.white,
+                                margin: const EdgeInsets.all(16),
+                              );
+                            }
+                          })
+                          .catchError((error) {
+                            Get.snackbar(
+                              '错误',
+                              '网络错误，请稍后再试',
+                              snackPosition: SnackPosition.BOTTOM,
+                              backgroundColor: Colors.red,
+                              colorText: Colors.white,
+                              margin: const EdgeInsets.all(16),
+                            );
+                          });
+                    }
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryColor,
+                  minimumSize: const Size(double.infinity, 48),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(6),
+                  ),
                 ),
-              ),
-              child: const Text(
-                '查看HR联系方式',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+                child: Text(
+                  buttonText,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-            ),
+              );
+            }),
           ),
         ],
       ),
