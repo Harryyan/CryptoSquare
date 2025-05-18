@@ -503,7 +503,7 @@ class JobDetailApply {
   final int? expTime;
 
   @JsonKey(name: 'apply_type')
-  final int? applyType;
+  final dynamic applyType;
 
   @JsonKey(name: 'apply_val')
   final String? applyVal;
