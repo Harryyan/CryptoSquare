@@ -260,29 +260,34 @@ class JobDetailView extends GetView<JobController> {
       ),
       child: Row(
         children: [
-          // 左侧 - 预计消耗积分
-          Expanded(
-            flex: 2,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset(
-                  'assets/images/coin-icon.png',
-                  width: 24,
-                  height: 24,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  '预计消耗${controller.currentJobDetail.value?.apply?.score ?? 5}积分',
-                  style: const TextStyle(fontSize: 14, color: Colors.black87),
-                ),
-              ],
+          // 左侧 - 预计消耗积分 (仅在未购买时显示)
+          if (!(controller.currentJobDetail.value?.apply?.isBuyed == true))
+            Expanded(
+              flex: 2,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset(
+                    'assets/images/coin-icon.png',
+                    width: 24,
+                    height: 24,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    '预计消耗${controller.currentJobDetail.value?.apply?.score ?? 5}积分',
+                    style: const TextStyle(fontSize: 14, color: Colors.black87),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: 12),
-          // 右侧 - 查看HR联系方式按钮
+          if (!(controller.currentJobDetail.value?.apply?.isBuyed == true))
+            const SizedBox(width: 12),
+          // 右侧 - 查看HR联系方式按钮 (当已购买时占据整行)
           Expanded(
-            flex: 2,
+            flex:
+                controller.currentJobDetail.value?.apply?.isBuyed == true
+                    ? 4
+                    : 2,
             child: Obx(() {
               final jobDetail = controller.currentJobDetail.value;
               final apply = jobDetail?.apply;
