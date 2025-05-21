@@ -635,7 +635,7 @@ class _JobViewState extends State<JobView> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
                     child: Text(
@@ -651,9 +651,10 @@ class _JobViewState extends State<JobView> {
                         color: Colors.black,
                       ),
                       overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
+                      maxLines: 2,
                     ),
                   ),
+                  const SizedBox(width: 16), // 添加固定间距
                   Text(
                     salary,
                     style: TextStyle(
