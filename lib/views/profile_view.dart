@@ -50,7 +50,7 @@ class _ProfileViewState extends State<ProfileView>
     _tabController = TabController(length: 4, vsync: this, initialIndex: 2);
 
     currentTabIndex.value = 0; // 默认选中我的发布
-    postTabIndex.value = 2; // 默认选中岗位
+    postTabIndex.value = 3; // 默认选中帖子
 
     // 检查签到状态
     _checkInStatus();
@@ -543,9 +543,14 @@ class _ProfileViewState extends State<ProfileView>
                             ),
                             child: Text(
                               '岗位',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 17,
                                 fontWeight: FontWeight.bold,
+                                // 当选择"我的发布"时，岗位tab文字显示为灰色
+                                color:
+                                    currentTabIndex.value == 0
+                                        ? Colors.grey[400]
+                                        : null,
                               ),
                             ),
                           ),
@@ -565,6 +570,10 @@ class _ProfileViewState extends State<ProfileView>
                         },
                         groupValue: segValue,
                         onValueChanged: (int value) {
+                          // 当选择"我的发布"时，不允许切换到岗位tab
+                          if (currentTabIndex.value == 0 && value == 2) {
+                            return; // 不执行任何操作
+                          }
                           postTabIndex.value = value;
                           // 如要同步TabController:
                           // _tabController.animateTo(value);
@@ -595,8 +604,16 @@ class _ProfileViewState extends State<ProfileView>
           currentTabIndex.value = index;
           _tabController.animateTo(index);
 
+          // 当点击"我的发布"标签时，自动切换到帖子tab
+          if (index == 0) {
+            postTabIndex.value = 3; // 切换到帖子tab
+            // 如果用户已登录，加载用户发布的帖子列表
+            if (isUserLoggedIn.value) {
+              _loadUserPosts(isRefresh: true);
+            }
+          }
           // 当点击"我的收藏"标签且用户已登录时
-          if (index == 1 && isUserLoggedIn.value) {
+          else if (index == 1 && isUserLoggedIn.value) {
             // 加载收藏的岗位列表
             _loadFavoriteJobs();
 
