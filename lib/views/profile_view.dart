@@ -11,6 +11,7 @@ import 'package:cryptosquare/util/storage.dart';
 import 'package:cryptosquare/util/event_bus.dart';
 import 'package:cryptosquare/models/app_models.dart';
 import 'package:cryptosquare/views/profile_edit_view.dart';
+import 'package:cryptosquare/views/main_view.dart';
 import 'package:cryptosquare/rest_service/user_client.dart';
 import 'package:cryptosquare/model/collected_post.dart';
 
@@ -223,8 +224,76 @@ class _ProfileViewState extends State<ProfileView>
                   IconButton(
                     icon: const Icon(Icons.menu, color: Colors.white),
                     onPressed: () {
-                      // 跳转到个人信息编辑页面
-                      Get.to(() => const ProfileEditView());
+                      // 显示底部菜单
+                      Get.bottomSheet(
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(20),
+                              topRight: Radius.circular(20),
+                            ),
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              ListTile(
+                                leading: const Icon(Icons.edit),
+                                title: const Text('编辑个人信息'),
+                                onTap: () {
+                                  Get.back(); // 关闭底部菜单
+                                  Get.to(() => const ProfileEditView());
+                                },
+                              ),
+                              const Divider(),
+                              ListTile(
+                                leading: const Icon(
+                                  Icons.logout,
+                                  color: Colors.red,
+                                ),
+                                title: const Text(
+                                  '退出登录',
+                                  style: TextStyle(color: Colors.red),
+                                ),
+                                onTap: () {
+                                  Get.back(); // 关闭底部菜单
+                                  // 显示确认对话框
+                                  Get.dialog(
+                                    AlertDialog(
+                                      title: const Text('退出登录'),
+                                      content: const Text('确定要退出登录吗？'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Get.back(),
+                                          child: const Text('取消'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () {
+                                            // 清除用户登录信息
+                                            GStorage().setLoginStatus(false);
+                                            GStorage().setToken("");
+                                            GStorage().setUserInfo({});
+
+                                            // 通知其他页面用户已登出
+                                            eventBus.emit('logoutSuccessful');
+
+                                            Get.back(); // 关闭对话框
+                                            Get.offAll(
+                                              () => MainView(),
+                                            ); // 跳转到主页
+                                          },
+                                          child: const Text('确认'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
                     },
                   ),
                 ],
