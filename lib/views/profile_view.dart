@@ -1,4 +1,5 @@
 import 'package:cryptosquare/model/user_post.dart';
+import 'package:cryptosquare/rest_service/rest_client.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
@@ -856,86 +857,120 @@ class _ProfileViewState extends State<ProfileView>
 
   /// 岗位样式卡片
   Widget _buildJobCard(Map<String, dynamic> job) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 6),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 第一行：title + salary
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Text(
-                  job["title"] ?? "",
+    return GestureDetector(
+      onTap: () {
+        // 从extraTags中提取jobKey
+        String jobKey = "";
+        List<String> extraTags = job["extraTags"] ?? [];
+        for (String tag in extraTags) {
+          if (tag.startsWith("#")) {
+            jobKey = tag.substring(1); // 去掉#前缀
+            break;
+          }
+        }
+
+        if (jobKey.isNotEmpty) {
+          // 创建一个JobData对象，用于传递给navigateToJobDetail方法
+          JobData jobData = JobData(
+            jobKey: jobKey,
+            jobTitle: job["title"] ?? "",
+            jobCompany: job["company"] ?? "",
+            jobSalaryCurrency: job["salary"]?.contains("\$") ? "USD" : "RMB",
+            // 其他字段可以根据需要设置
+          );
+
+          // 使用JobController跳转到岗位详情页面
+          jobController.navigateToJobDetail(jobData);
+        } else {
+          // 如果没有找到jobKey，显示提示信息
+          Get.snackbar(
+            '提示',
+            '无法获取岗位详情，请稍后重试',
+            snackPosition: SnackPosition.BOTTOM,
+          );
+        }
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 6),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 第一行：title + salary
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Text(
+                    job["title"] ?? "",
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 16), // 添加固定间距
+                Text(
+                  job["salary"] ?? "",
                   style: const TextStyle(
                     fontSize: 16,
+                    color: Colors.orange,
                     fontWeight: FontWeight.bold,
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-              const SizedBox(width: 16), // 添加固定间距
-              Text(
-                job["salary"] ?? "",
-                style: const TextStyle(
-                  fontSize: 16,
-                  color: Colors.orange,
-                  fontWeight: FontWeight.bold,
+              ],
+            ),
+            const SizedBox(height: 4),
+            // 第二行：company + time
+            Row(
+              children: [
+                Text(
+                  job["company"] ?? "",
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          // 第二行：company + time
-          Row(
-            children: [
-              Text(
-                job["company"] ?? "",
-                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                job["time"] ?? "",
-                style: TextStyle(fontSize: 14, color: Colors.grey[500]),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          // 标签部分已移除，因为后台没有返回相关数据
-          const SizedBox(height: 0),
-          const SizedBox(height: 6),
-          // // 额外标签
-          // Text(
-          //   (job["extraTags"] as List)
-          //       .map((tag) => TagUtils.formatTag(tag))
-          //       .join(" "),
-          //   style: TextStyle(fontSize: 13, color: Colors.grey[500]),
-          // ),
-          const SizedBox(height: 6),
-          // 收藏图标
-          Align(
-            alignment: Alignment.centerRight,
-            child:
-                job["isFavorite"] == true
-                    ? Image.asset(
-                      "assets/images/star_fill.png",
-                      width: 20,
-                      height: 20,
-                    )
-                    : Image.asset(
-                      "assets/images/star.png",
-                      width: 20,
-                      height: 20,
-                    ),
-          ),
-        ],
+                const SizedBox(width: 8),
+                Text(
+                  job["time"] ?? "",
+                  style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            // 标签部分已移除，因为后台没有返回相关数据
+            const SizedBox(height: 0),
+            const SizedBox(height: 6),
+            // // 额外标签
+            // Text(
+            //   (job["extraTags"] as List)
+            //       .map((tag) => TagUtils.formatTag(tag))
+            //       .join(" "),
+            //   style: TextStyle(fontSize: 13, color: Colors.grey[500]),
+            // ),
+            const SizedBox(height: 6),
+            // 收藏图标
+            Align(
+              alignment: Alignment.centerRight,
+              child:
+                  job["isFavorite"] == true
+                      ? Image.asset(
+                        "assets/images/star_fill.png",
+                        width: 20,
+                        height: 20,
+                      )
+                      : Image.asset(
+                        "assets/images/star.png",
+                        width: 20,
+                        height: 20,
+                      ),
+            ),
+          ],
+        ),
       ),
     );
   }
