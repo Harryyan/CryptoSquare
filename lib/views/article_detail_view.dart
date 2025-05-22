@@ -76,6 +76,8 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(response.message ?? '获取文章详情失败')));
+        // 加载文章失败，返回上一页
+        Navigator.of(context).pop();
       }
     } catch (e) {
       setState(() {
@@ -85,6 +87,8 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('网络错误: ${e.toString()}')));
+      // 网络错误，返回上一页
+      Navigator.of(context).pop();
     }
   }
 

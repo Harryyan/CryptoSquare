@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:cryptosquare/controllers/user_controller.dart';
 import 'package:cryptosquare/controllers/home_controller.dart';
 import 'package:cryptosquare/controllers/job_controller.dart';
+import 'package:cryptosquare/controllers/article_controller.dart';
 import 'package:cryptosquare/theme/app_theme.dart';
 import 'package:cryptosquare/util/tag_utils.dart';
 import 'package:cryptosquare/util/storage.dart';
@@ -1277,74 +1278,86 @@ class _ProfileViewState extends State<ProfileView>
 
   /// 用户发布的帖子卡片
   Widget _buildUserPostCard(UserPostItem post) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 6),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 帖子标题
-          Text(
-            post.title,
-            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 8),
-          // 分类标签
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.blue.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(4),
+    return GestureDetector(
+      onTap: () {
+        // 使用ArticleController导航到文章详情页面
+        ArticleController().navigateToArticleDetail(
+          context,
+          post.id.toString(),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 6),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 帖子标题
+            Text(
+              post.title,
+              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
-            child: Text(
-              post.catName,
-              style: TextStyle(fontSize: 12, color: Colors.blue),
+            const SizedBox(height: 8),
+            // 分类标签
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.blue.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                post.catName,
+                style: TextStyle(fontSize: 12, color: Colors.blue),
+              ),
             ),
-          ),
-          const SizedBox(height: 12),
-          // 底部信息
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 10,
-                backgroundImage: NetworkImage(
-                  userController.user.avatarUrl ??
-                      'https://via.placeholder.com/20',
-                ),
-              ),
-              const SizedBox(width: 6),
-              Text(
-                userName.value,
-                style: TextStyle(fontSize: 12, color: Colors.grey),
-              ),
-              const Spacer(),
-              // 状态标签
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color:
-                      post.status == 1
-                          ? Colors.green.withOpacity(0.1)
-                          : Colors.grey.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  post.status == 1 ? '已发布' : '待审核',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: post.status == 1 ? Colors.green : Colors.grey,
+            const SizedBox(height: 12),
+            // 底部信息
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 10,
+                  backgroundImage: NetworkImage(
+                    userController.user.avatarUrl ??
+                        'https://via.placeholder.com/20',
                   ),
                 ),
-              ),
-            ],
-          ),
-        ],
+                const SizedBox(width: 6),
+                Text(
+                  userName.value,
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+                const Spacer(),
+                // 状态标签
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color:
+                        post.status == 1
+                            ? Colors.green.withOpacity(0.1)
+                            : Colors.grey.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    post.status == 1 ? '已发布' : '待审核',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: post.status == 1 ? Colors.green : Colors.grey,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1475,104 +1488,117 @@ class _ProfileViewState extends State<ProfileView>
             ? post.extension.auth.avatar
             : 'https://via.placeholder.com/20';
 
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 6),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 帖子标题
-          Text(
-            post.title,
-            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 12),
-          // 摘要 + 缩略图
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Text(
-                  summary,
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: Colors.grey[700],
-                    height: 1.3,
+    return GestureDetector(
+      onTap: () {
+        // 使用ArticleController导航到文章详情页面
+        ArticleController().navigateToArticleDetail(
+          context,
+          post.id.toString(),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 6),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 帖子标题
+            Text(
+              post.title,
+              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 12),
+            // 摘要 + 缩略图
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Text(
+                    summary,
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: Colors.grey[700],
+                      height: 1.3,
+                    ),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-              const SizedBox(width: 12),
-              // 如果有图片则显示，否则显示默认图片
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child:
-                    post.extension.auth.avatar.isNotEmpty
-                        ? Image.network(
-                          post.extension.auth.avatar,
-                          width: 80,
-                          height: 80,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Image.asset(
-                              'assets/images/logo.png',
-                              width: 80,
-                              height: 80,
-                              fit: BoxFit.cover,
-                            );
-                          },
-                        )
-                        : Image.asset(
-                          'assets/images/logo.png',
-                          width: 80,
-                          height: 80,
-                          fit: BoxFit.cover,
-                        ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          // 底部作者 + 时间 + 评论数
-          Row(
-            children: [
-              // 作者头像
-              CircleAvatar(
-                radius: 10,
-                backgroundImage: NetworkImage(authorAvatar),
-                onBackgroundImageError: (exception, stackTrace) {
-                  // 头像加载失败时使用默认头像
-                },
-              ),
-              const SizedBox(width: 6),
-              // 作者名称
-              Text(
-                authorName,
-                style: const TextStyle(fontSize: 12, color: Colors.grey),
-              ),
-              const SizedBox(width: 10),
-              // 发布时间
-              Text(
-                formattedTime,
-                style: const TextStyle(fontSize: 12, color: Colors.grey),
-              ),
-              const Spacer(),
-              // 评论图标和数量
-              const Icon(Icons.comment_outlined, size: 14, color: Colors.grey),
-              const SizedBox(width: 5),
-              Text(
-                '${post.replyNums}条评论',
-                style: const TextStyle(fontSize: 12, color: Colors.grey),
-              ),
-            ],
-          ),
-        ],
+                const SizedBox(width: 12),
+                // 如果有图片则显示，否则显示默认图片
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child:
+                      post.extension.auth.avatar.isNotEmpty
+                          ? Image.network(
+                            post.extension.auth.avatar,
+                            width: 80,
+                            height: 80,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Image.asset(
+                                'assets/images/logo.png',
+                                width: 80,
+                                height: 80,
+                                fit: BoxFit.cover,
+                              );
+                            },
+                          )
+                          : Image.asset(
+                            'assets/images/logo.png',
+                            width: 80,
+                            height: 80,
+                            fit: BoxFit.cover,
+                          ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            // 底部作者 + 时间 + 评论数
+            Row(
+              children: [
+                // 作者头像
+                CircleAvatar(
+                  radius: 10,
+                  backgroundImage: NetworkImage(authorAvatar),
+                  onBackgroundImageError: (exception, stackTrace) {
+                    // 头像加载失败时使用默认头像
+                  },
+                ),
+                const SizedBox(width: 6),
+                // 作者名称
+                Text(
+                  authorName,
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+                const SizedBox(width: 10),
+                // 发布时间
+                Text(
+                  formattedTime,
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+                const Spacer(),
+                // 评论图标和数量
+                const Icon(
+                  Icons.comment_outlined,
+                  size: 14,
+                  color: Colors.grey,
+                ),
+                const SizedBox(width: 5),
+                Text(
+                  '${post.replyNums}条评论',
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
