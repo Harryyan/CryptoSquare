@@ -251,6 +251,18 @@ abstract class RestClient {
     @Field("body") String body,
   );
 
+  @POST("/bbs-article/{id}")
+  Future<PostCreateResp> updatePost(
+    @Path("id") String id,
+    @Field("title") String title,
+    @Field("tag") String tag,
+    @Field("cat_id") int catId,
+    @Field("lang") int lang,
+    @Field("origin") String origin,
+    @Field("origin_link") String originLink,
+    @Field("body") String body,
+  );
+
   @POST("/job/charge/apply")
   Future<BaseResponse<dynamic>> applyJobCharge(@Field("jobkey") String jobkey);
 

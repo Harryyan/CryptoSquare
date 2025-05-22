@@ -1243,6 +1243,50 @@ class _RestClient implements RestClient {
   }
 
   @override
+  Future<PostCreateResp> updatePost(
+    String id,
+    String title,
+    String tag,
+    int catId,
+    int lang,
+    String origin,
+    String originLink,
+    String body,
+  ) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final _data = {
+      'title': title,
+      'tag': tag,
+      'cat_id': catId,
+      'lang': lang,
+      'origin': origin,
+      'origin_link': originLink,
+      'body': body,
+    };
+    final _options = _setStreamType<PostCreateResp>(
+      Options(method: 'POST', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/bbs-article/${id}',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late PostCreateResp _value;
+    try {
+      _value = PostCreateResp.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
   Future<BaseResponse<dynamic>> applyJobCharge(String jobkey) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
