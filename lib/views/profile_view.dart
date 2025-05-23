@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:cryptosquare/model/user_post.dart';
 import 'package:cryptosquare/rest_service/rest_client.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +17,7 @@ import 'package:cryptosquare/views/profile_edit_view.dart';
 import 'package:cryptosquare/views/main_view.dart';
 import 'package:cryptosquare/rest_service/user_client.dart';
 import 'package:cryptosquare/model/collected_post.dart';
+import 'package:cryptosquare/views/post_create_view.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
@@ -1296,12 +1298,44 @@ class _ProfileViewState extends State<ProfileView>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 帖子标题
-            Text(
-              post.title,
-              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 帖子标题
+                Expanded(
+                  child: Text(
+                    post.title,
+                    style: const TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                // 编辑按钮
+                if (post.status == 1) // 只有已发布的帖子才显示编辑按钮
+                  GestureDetector(
+                    onTap: () {
+                      // 获取文章详情并跳转到编辑页面
+                      _navigateToEditPost(post);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        '编辑',
+                        style: TextStyle(fontSize: 12, color: Colors.blue),
+                      ),
+                    ),
+                  ),
+              ],
             ),
             const SizedBox(height: 8),
             // 分类标签
@@ -1360,6 +1394,64 @@ class _ProfileViewState extends State<ProfileView>
         ),
       ),
     );
+  }
+
+  /// 导航到编辑帖子页面
+  Future<void> _navigateToEditPost(UserPostItem post) async {
+    try {
+      // 显示加载指示器
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return Center(child: CircularProgressIndicator());
+        },
+      );
+
+      // 获取文章详情
+      final client = RestClient();
+      final response = await client.getArticleDetail(
+        post.id.toString(),
+        GStorage().getLanguageCN() ? 1 : 0,
+        Platform.isAndroid ? "android" : "ios",
+      );
+
+      // 关闭加载指示器
+      Navigator.pop(context);
+
+      if (response.code == 0 && response.data != null) {
+        // 导航到编辑页面
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder:
+                (context) => PostCreateView(
+                  isEditMode: true,
+                  articleId: post.id.toString(),
+                  initialTitle: response.data!.title ?? '',
+                  initialContent: response.data!.content ?? '',
+                  initialCategoryId: response.data!.catId ?? 0,
+                  initialTags:
+                      response.data!.extension?.tag != null
+                          ? response.data!.extension!.tag!.join(',')
+                          : '',
+                ),
+          ),
+        );
+      } else {
+        // 显示错误信息
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(response.message ?? '获取文章详情失败')));
+      }
+    } catch (e) {
+      // 关闭加载指示器
+      Navigator.pop(context);
+      // 显示错误信息
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('网络错误: ${e.toString()}')));
+    }
   }
 
   /// 帖子样式卡片
