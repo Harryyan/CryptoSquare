@@ -1,12 +1,10 @@
 import 'dart:developer' as dev;
 import 'package:flutter/material.dart';
-import 'package:flutter_quill/quill_delta.dart';
 import 'package:get/get.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:vsc_quill_delta_to_html/vsc_quill_delta_to_html.dart';
 import 'package:flutter_quill_delta_from_html/flutter_quill_delta_from_html.dart';
 import 'package:cryptosquare/rest_service/rest_client.dart';
-import 'dart:convert';
 
 class PostCreateView extends StatefulWidget {
   final bool isEditMode;
@@ -90,10 +88,43 @@ class _PostCreateViewState extends State<PostCreateView> {
             processedHtml = '<p>内容为空</p>';
           }
 
+          // 清理CSS样式和属性，只保留基本HTML标签
+          // 移除style属性中的所有内容
+          processedHtml = processedHtml.replaceAll(
+            RegExp(r'\s+style="[^"]*"'),
+            '',
+          );
+          processedHtml = processedHtml.replaceAll(
+            RegExp(r"\s+style='[^']*'"),
+            '',
+          );
+
+          // 移除class属性
+          processedHtml = processedHtml.replaceAll(
+            RegExp(r'\s+class="[^"]*"'),
+            '',
+          );
+          processedHtml = processedHtml.replaceAll(
+            RegExp(r"\s+class='[^']*'"),
+            '',
+          );
+
+          // 移除id属性
+          processedHtml = processedHtml.replaceAll(
+            RegExp(r'\s+id="[^"]*"'),
+            '',
+          );
+          processedHtml = processedHtml.replaceAll(
+            RegExp(r"\s+id='[^']*'"),
+            '',
+          );
+
+          // 简化段落标签，移除所有属性
+          processedHtml = processedHtml.replaceAll(RegExp(r'<p[^>]*>'), '<p>');
+
           // 确保所有段落标签正确闭合
-          // 查找所有未闭合的<p>标签
           final RegExp pTagRegex = RegExp(
-            r'<p[^>]*>(?!.*?</p>).*?$',
+            r'<p>(?!.*?</p>).*?$',
             multiLine: true,
           );
           processedHtml = processedHtml.replaceAllMapped(pTagRegex, (match) {
@@ -106,110 +137,42 @@ class _PostCreateViewState extends State<PostCreateView> {
           // 处理可能的嵌套段落问题
           processedHtml = processedHtml.replaceAll('</p><p>', '</p>\n<p>');
 
+          // 在段落结束标签后添加换行符，确保段落之间有换行
+          processedHtml = processedHtml.replaceAll('</p>', '</p><br>');
+
+          // 清理多余的连续换行符
+          processedHtml = processedHtml.replaceAll(RegExp(r'\n+'), '\n');
+
+          // 移除开头和结尾的换行符
+          processedHtml = processedHtml.trim();
+
+          // 移除多余的空白字符
+          processedHtml = processedHtml.replaceAll(RegExp(r'\s+'), ' ').trim();
+
           dev.log('预处理后的HTML内容: $processedHtml');
-          final delta = HtmlToDelta().convert(processedHtml);
+
+          // 使用HtmlToDelta转换器
+          final converter = HtmlToDelta();
+          final delta = converter.convert(
+            processedHtml,
+            transformTableAsEmbed: false,
+          );
+
+          // String htmlContent = "<p>比特币的地方</p><p>聪已经成代代—通</p>";
+          // htmlContent = htmlContent.replaceAll('</p>', '</p><br>');
+          // var delta2 = HtmlToDelta().convert(
+          //   htmlContent,
+          //   transformTableAsEmbed: false,
+          // );
+
+          // print(delta2);
+
           dev.log('转换后的Delta类型: ${delta.runtimeType}');
           dev.log('转换后的Delta内容: $delta');
 
-          // 根据delta的类型选择合适的方法创建Document
-          if (delta is Delta) {
-            // 将Delta对象转换为Document对象
-            dev.log('使用Document.fromDelta方法');
-            _contentController.document = Document.fromDelta(delta);
-          } else if (delta is List) {
-            // 如果是List类型，使用fromJson方法
-            dev.log('使用Document.fromJson方法');
-            _contentController.document = Document.fromJson(delta as List);
-          } else {
-            dev.log('转换HTML到Delta失败: delta类型为 ${delta.runtimeType}，无法处理');
-
-            // 尝试将delta转换为JSON，然后使用Document.fromJson
-            try {
-              dev.log('尝试将delta转换为JSON');
-              final jsonData = jsonEncode(delta);
-              final jsonList = jsonDecode(jsonData) as List;
-              _contentController.document = Document.fromJson(jsonList);
-            } catch (e) {
-              dev.log('转换delta到JSON失败: $e');
-
-              // 如果上述方法都失败，尝试使用基本的文本插入
-              try {
-                dev.log('尝试使用基本文本插入并保留格式');
-                // 创建一个新的Document对象
-                final document = Document();
-
-                // 处理HTML内容，尝试保留基本格式
-                String html = widget.initialContent;
-
-                // 处理段落和换行
-                html = html.replaceAll(RegExp(r'<p[^>]*>'), '');
-                html = html.replaceAll('</p>', '\n\n');
-                html = html.replaceAll('<br>', '\n');
-                html = html.replaceAll('<br/>', '\n');
-                html = html.replaceAll('<br />', '\n');
-
-                // 提取加粗文本并应用样式
-                final boldRegex = RegExp(
-                  r'<strong>(.*?)</strong>|<b>(.*?)</b>',
-                );
-                String processedText = html;
-
-                // 处理加粗标签
-                processedText = processedText.replaceAllMapped(boldRegex, (
-                  match,
-                ) {
-                  final boldText = match.group(1) ?? match.group(2) ?? '';
-                  return boldText; // 先移除标签，稍后会应用样式
-                });
-
-                // 处理斜体标签
-                final italicRegex = RegExp(r'<em>(.*?)</em>|<i>(.*?)</i>');
-                processedText = processedText.replaceAllMapped(italicRegex, (
-                  match,
-                ) {
-                  final italicText = match.group(1) ?? match.group(2) ?? '';
-                  return italicText; // 先移除标签，稍后会应用样式
-                });
-
-                // 移除其他HTML标签
-                processedText = processedText.replaceAll(
-                  RegExp(r'<[^>]*>'),
-                  '',
-                );
-
-                // 处理连续的换行符
-                processedText = processedText.replaceAll(
-                  RegExp(r'\n{3,}'),
-                  '\n\n',
-                );
-
-                // 移除首尾空白
-                processedText = processedText.trim();
-
-                // 插入处理后的文本
-                document.insert(0, processedText);
-
-                // 尝试应用基本样式（这里只是一个简化的示例）
-                // 实际应用中，你需要更精确地定位样式位置
-                try {
-                  // 如果原始HTML包含加粗标签，为整个文档添加加粗样式
-                  if (html.contains('<strong>') || html.contains('<b>')) {
-                    document.format(0, processedText.length, Attribute.bold);
-                  }
-
-                  // 如果原始HTML包含斜体标签，为整个文档添加斜体样式
-                  if (html.contains('<em>') || html.contains('<i>')) {
-                    document.format(0, processedText.length, Attribute.italic);
-                  }
-                } catch (e) {
-                  dev.log('应用样式失败: $e');
-                }
-                _contentController.document = document;
-              } catch (e) {
-                dev.log('使用基本文本插入失败: $e');
-              }
-            }
-          }
+          // HtmlToDelta().convert()返回Delta对象，直接使用Document.fromDelta
+          _contentController.document = Document.fromDelta(delta);
+          dev.log('成功设置编辑器内容');
         } catch (e) {
           dev.log('转换HTML到Delta失败: $e');
         }
