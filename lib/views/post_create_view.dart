@@ -1,6 +1,4 @@
-import 'dart:math';
 import 'dart:developer' as dev;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/quill_delta.dart';
 import 'package:get/get.dart';
