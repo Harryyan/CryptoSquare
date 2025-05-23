@@ -134,20 +134,26 @@ class _PostCreateViewState extends State<PostCreateView> {
           // 确保换行标签格式一致
           processedHtml = processedHtml.replaceAll('<br>', '<br/>');
 
-          // 处理可能的嵌套段落问题
-          processedHtml = processedHtml.replaceAll('</p><p>', '</p>\n<p>');
+          // 处理段落之间的换行，确保段落分隔正确
+          processedHtml = processedHtml.replaceAll('</p><p>', '</p>\n\n<p>');
 
-          // 在段落结束标签后添加换行符，确保段落之间有换行
-          processedHtml = processedHtml.replaceAll('</p>', '</p><br>');
+          // 在段落结束后添加双换行符，确保段落分隔
+          processedHtml = processedHtml.replaceAll('</p>', '</p><br><br>');
 
-          // 清理多余的连续换行符
-          processedHtml = processedHtml.replaceAll(RegExp(r'\n+'), '\n');
+          // 清理多余的连续换行符，但保留段落间的双换行
+          processedHtml = processedHtml.replaceAll(
+            RegExp(r'\n{3,}'),
+            '<br><br>',
+          );
+
+          // 移除段落标签内部多余的空白字符，但保留段落间的换行
+          processedHtml = processedHtml.replaceAllMapped(
+            RegExp(r'<p>\s*([^<]*?)\s*</p>'),
+            (match) => '<p>${match.group(1)?.trim()}</p>',
+          );
 
           // 移除开头和结尾的换行符
           processedHtml = processedHtml.trim();
-
-          // 移除多余的空白字符
-          processedHtml = processedHtml.replaceAll(RegExp(r'\s+'), ' ').trim();
 
           dev.log('预处理后的HTML内容: $processedHtml');
 
