@@ -12,6 +12,7 @@ import 'package:cryptosquare/views/forum_view.dart';
 import 'package:cryptosquare/theme/app_theme.dart';
 import 'package:cryptosquare/util/storage.dart';
 import 'package:cryptosquare/util/event_bus.dart';
+import 'package:social_share_plus/social_share.dart';
 
 class MainView extends StatefulWidget {
   MainView({super.key});
@@ -41,6 +42,11 @@ class _MainViewState extends State<MainView>
         homeController.changeTab(_tabController.index);
       }
     });
+
+    ShareRegister register = ShareRegister();
+    // 3ad2e82de7431e5d7a20d2ced74b1503
+    register.setupWechat('wx510ea51166afc3ad', "https://cryptosquare.org/app");
+    SharePlugin.registerPlatforms(register);
 
     // 初始化登录状态
     isLoggedIn.value = GStorage().getLoginStatus();
