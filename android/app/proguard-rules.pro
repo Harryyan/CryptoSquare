@@ -21,7 +21,7 @@
 -keepattributes EnclosingMethod
 
 # 保留应用模型类
--keep class com.cryptosquare.app.models.** { *; }
+-keep class org.cryptosquare.app.models.** { *; }
 
 # 保留原始行号
 -keepattributes SourceFile,LineNumberTable

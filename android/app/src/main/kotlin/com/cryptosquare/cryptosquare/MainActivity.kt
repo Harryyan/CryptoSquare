@@ -1,4 +1,4 @@
-package com.cryptosquare.cryptosquare
+package org.cryptosquare.app
 
 import io.flutter.embedding.android.FlutterActivity
 

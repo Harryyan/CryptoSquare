@@ -21,7 +21,7 @@ android {
 
     defaultConfig {
         // 使用更具体的应用ID，避免与其他应用冲突
-        applicationId = "com.cryptosquare.qa"
+        applicationId = "org.cryptosquare.app"
         // 配置应用版本信息
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
