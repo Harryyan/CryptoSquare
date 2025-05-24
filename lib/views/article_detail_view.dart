@@ -352,31 +352,37 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
   Widget _buildArticleContent() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Html(
-        data: _articleData?.content ?? '',
-        style: {
-          'body': Style(fontSize: FontSize(16.0), lineHeight: LineHeight(1.6)),
-          'h2': Style(
-            fontSize: FontSize(20.0),
-            fontWeight: FontWeight.bold,
-            margin: Margins.only(top: 16, bottom: 8),
-          ),
-          'p': Style(margin: Margins.only(bottom: 12)),
-          'ul': Style(
-            // 清除 ul 默认内边距和外边距
-            padding: HtmlPaddings.zero,
-            margin: Margins.zero,
-            // 把 • 放到行内，避免额外的缩进
-            listStylePosition: ListStylePosition.inside,
-          ),
-          'li': Style(
-            // 清除 li 默认内边距
-            padding: HtmlPaddings.zero,
-            // 保留下边距
-            margin: Margins.only(bottom: 8),
-            listStylePosition: ListStylePosition.inside,
-          ),
-        },
+      // 使用 SelectionArea 包装 Html 组件，使其内容可选择和复制
+      child: SelectionArea(
+        child: Html(
+          data: _articleData?.content ?? '',
+          style: {
+            'body': Style(
+              fontSize: FontSize(16.0),
+              lineHeight: LineHeight(1.6),
+            ),
+            'h2': Style(
+              fontSize: FontSize(20.0),
+              fontWeight: FontWeight.bold,
+              margin: Margins.only(top: 16, bottom: 8),
+            ),
+            'p': Style(margin: Margins.only(bottom: 12)),
+            'ul': Style(
+              // 清除 ul 默认内边距和外边距
+              padding: HtmlPaddings.zero,
+              margin: Margins.zero,
+              // 把 • 放到行内，避免额外的缩进
+              listStylePosition: ListStylePosition.inside,
+            ),
+            'li': Style(
+              // 清除 li 默认内边距
+              padding: HtmlPaddings.zero,
+              // 保留下边距
+              margin: Margins.only(bottom: 8),
+              listStylePosition: ListStylePosition.inside,
+            ),
+          },
+        ),
       ),
     );
   }
