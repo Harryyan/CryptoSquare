@@ -340,7 +340,7 @@ class BBSCategoryData {
 class PostCreateResp {
   String? message;
   int? code;
-  int? data;
+  dynamic data;
 
   PostCreateResp({this.message, this.code, this.data});
 

@@ -105,7 +105,7 @@ PostCreateResp _$PostCreateRespFromJson(Map<String, dynamic> json) =>
     PostCreateResp(
       message: json['message'] as String?,
       code: (json['code'] as num?)?.toInt(),
-      data: (json['data'] as num?)?.toInt(),
+      data: json['data'],
     );
 
 Map<String, dynamic> _$PostCreateRespToJson(PostCreateResp instance) =>

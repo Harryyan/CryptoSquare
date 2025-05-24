@@ -1,4 +1,5 @@
 import 'dart:developer' as dev;
+import 'package:cryptosquare/util/storage.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_quill/flutter_quill.dart';
@@ -241,7 +242,7 @@ class _PostCreateViewState extends State<PostCreateView> {
           _titleController.text,
           _tagsController.text,
           selectedCategory!.id!,
-          0, // 0表示中文，1表示英文
+          GStorage().getLanguageCN() ? 1 : 0, // 1表示中文，0表示英文
           '', // origin
           '', // originLink
           content,
@@ -252,7 +253,7 @@ class _PostCreateViewState extends State<PostCreateView> {
           _titleController.text,
           _tagsController.text,
           selectedCategory!.id!,
-          0, // 0表示中文，1表示英文
+          GStorage().getLanguageCN() ? 1 : 0, // 1表示中文，0表示英文
           '', // origin
           '', // originLink
           content,
