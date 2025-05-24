@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:retrofit/retrofit.dart';
 part 'bitpush_client.g.dart';
 
 @JsonSerializable()
@@ -350,4 +351,55 @@ class BitpushClient {
       rethrow;
     }
   }
+}
+
+// 使用Retrofit库实现的BitpushNewsClient类
+@RestApi(baseUrl: "https://terminal-cn2.bitpush.news/")
+//https://www.bitpush.news/
+abstract class BitpushNewsClient {
+  static Dio? _dio;
+
+  factory BitpushNewsClient() {
+    _dio ??= Dio();
+
+    // 配置Dio实例
+    _dio?.options.headers = {'Accept': 'application/json'};
+
+    // 添加拦截器处理字符串响应
+    _dio?.interceptors.add(
+      InterceptorsWrapper(
+        onResponse: (response, handler) {
+          if (response.data is String) {
+            try {
+              // 尝试将字符串响应解析为JSON
+              final BitpushNewsResponse parsedResponse =
+                  BitpushNewsResponse.fromJsonString(response.data);
+              response.data = parsedResponse;
+              handler.next(response);
+            } catch (e) {
+              handler.reject(
+                DioException(
+                  requestOptions: response.requestOptions,
+                  error: 'Failed to parse response: $e',
+                ),
+              );
+            }
+          } else {
+            handler.next(response);
+          }
+        },
+      ),
+    );
+
+    return _BitpushNewsClient(_dio!);
+  }
+
+  // 新接口：获取网页新闻
+  @GET('/api/v3/news/webnews')
+  Future<BitpushNewsResponse> getWebNews(
+    @Query('category_id') int categoryId,
+    @Query('timestamp') int timestamp,
+    @Query('page') int page,
+    @Query('show_all') int showAll,
+  );
 }
