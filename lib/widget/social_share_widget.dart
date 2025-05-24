@@ -45,7 +45,7 @@ class SocialShareWidget extends StatelessWidget {
           Navigator.of(context).pop();
           // appId: "1491275361339092
         },
-        icon: Image.asset("assets/icon/facebook-share.png"),
+        icon: Image.asset("assets/images/facebook-share.png"),
       ),
       GFIconButton(
         color: Colors.transparent,
@@ -60,7 +60,7 @@ class SocialShareWidget extends StatelessWidget {
           _share(bean, context);
           Navigator.of(context).pop();
         },
-        icon: Image.asset("assets/icon/twitter-share.png"),
+        icon: Image.asset("assets/images/twitter-share.png"),
       ),
       GFIconButton(
         color: Colors.transparent,
@@ -124,7 +124,7 @@ class SocialShareWidget extends StatelessWidget {
 
           Navigator.of(context).pop();
         },
-        icon: Image.asset("assets/icon/wechat-share.png"),
+        icon: Image.asset("assets/images/wechat-share.png"),
       ),
       GFIconButton(
         color: Colors.transparent,
@@ -173,7 +173,7 @@ class SocialShareWidget extends StatelessWidget {
           }
           Navigator.of(context).pop();
         },
-        icon: Image.asset("assets/icon/session-share.png"),
+        icon: Image.asset("assets/images/session-share.png"),
       ),
       GFIconButton(
         color: Colors.transparent,
@@ -187,7 +187,7 @@ class SocialShareWidget extends StatelessWidget {
           Navigator.of(context).pop();
         },
         icon: SizedBox(
-          child: Icon(Icons.copy_sharp, size: 40, color: Colors.white),
+          child: Icon(Icons.copy_sharp, size: 40, color: Colors.black),
         ),
       ),
       GFIconButton(
@@ -198,9 +198,9 @@ class SocialShareWidget extends StatelessWidget {
           Navigator.pop(context);
         },
         icon: SizedBox(
-          child: Icon(Icons.more_horiz, size: 40, color: Colors.white),
+          child: Icon(Icons.more_horiz, size: 40, color: Colors.black),
         ),
-      ), //Image.asset("assets/icon/sns-share.png")),
+      ),
     ];
 
     return SizedBox(

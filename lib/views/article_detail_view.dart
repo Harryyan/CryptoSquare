@@ -4,12 +4,14 @@ import 'package:cryptosquare/controllers/user_controller.dart';
 import 'package:cryptosquare/l10n/l18n_keywords.dart';
 import 'package:cryptosquare/util/storage.dart';
 import 'package:cryptosquare/views/page_login.dart';
+import 'package:cryptosquare/widget/social_share_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:cryptosquare/rest_service/rest_client.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:dio/dio.dart';
+import 'package:share_plus/share_plus.dart';
 
 class ArticleDetailView extends StatefulWidget {
   final String articleId;
@@ -27,6 +29,9 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
   List<ArticleCommentItem>? _comments;
   bool _isLoading = true;
   bool _isLoadingComments = true;
+
+  // 存储文章中的图片URL列表，用于分享
+  List<String> imgList = [];
 
   // 评论相关状态
   final TextEditingController _commentController = TextEditingController();
@@ -68,6 +73,9 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
           _articleData = response.data;
           _isLoading = false;
         });
+
+        // 提取HTML内容中的图片URL
+        _extractImagesFromHtml(_articleData?.content ?? '');
       } else {
         setState(() {
           _isLoading = false;
@@ -142,6 +150,7 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
             icon: Image.asset('assets/images/share.png', width: 24, height: 24),
             onPressed: () {
               // 分享功能实现
+              _shareArticle();
             },
           ),
         ],
@@ -227,6 +236,117 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
         ],
       ),
     );
+  }
+
+  // 从HTML内容中提取图片URL
+  void _extractImagesFromHtml(String htmlContent) {
+    // 清空之前的图片列表
+    imgList.clear();
+
+    // 使用正则表达式匹配所有<img>标签的src属性
+    final RegExp imgRegExp = RegExp(
+      r'<img[^>]+src="([^"]+)"[^>]*>',
+      caseSensitive: false,
+    );
+    final matches = imgRegExp.allMatches(htmlContent);
+
+    // 提取所有匹配的图片URL
+    for (final match in matches) {
+      if (match.groupCount >= 1) {
+        final imgUrl = match.group(1);
+        if (imgUrl != null && imgUrl.isNotEmpty) {
+          imgList.add(imgUrl);
+        }
+      }
+    }
+
+    // 打印提取到的图片URL，用于调试
+    print('提取到的图片URL列表: $imgList');
+  }
+
+  // 从HTML内容中提取纯文本
+  String _extractPlainTextFromHtml(String htmlContent) {
+    // 移除所有HTML标签
+    String plainText = htmlContent.replaceAll(RegExp(r'<[^>]*>'), '');
+
+    // 移除多余的空白字符
+    plainText = plainText.replaceAll(RegExp(r'\s+'), ' ').trim();
+
+    // 解码HTML实体
+    plainText = plainText
+        .replaceAll('&nbsp;', ' ')
+        .replaceAll('&lt;', '<')
+        .replaceAll('&gt;', '>')
+        .replaceAll('&amp;', '&')
+        .replaceAll('&quot;', '"')
+        .replaceAll('&#39;', "'");
+
+    // 截取前50个字符作为描述（如果文本长度超过50个字符）
+    if (plainText.length > 50) {
+      plainText = plainText.substring(0, 50);
+    }
+
+    return plainText;
+  }
+
+  // 分享文章
+  void _shareArticle() {
+    String? sharedImg;
+
+    // 从图片列表中选择第一张有效图片
+    if (imgList.isEmpty) {
+      // 如果没有图片，使用作者头像
+      sharedImg ??= _articleData?.extension?.auth?.avatar;
+    } else {
+      // 遍历图片列表，选择第一张有效图片
+      for (var img in imgList) {
+        if (img.contains('.png') ||
+            img.contains('.jpg') ||
+            img.contains('.jpeg') ||
+            img.contains('.webp')) {
+          sharedImg = img;
+          break;
+        }
+      }
+    }
+
+    // 如果仍然没有图片，使用默认头像
+    sharedImg ??= "assets/images/avatar.png";
+
+    if (_articleData != null) {
+      // 根据用户是否是作者和语言设置构建前缀消息
+      final bool isOwner = _articleData?.user == userController.user.id;
+      final bool isWeb3 = _articleData?.type == 'web3';
+      final bool isLanguageCN = GStorage().getLanguageCN();
+
+      var prefixMessage =
+          isOwner
+              ? isLanguageCN
+                  ? isWeb3
+                      ? "我发布了一篇Web3笔记:"
+                      : "我发布了一篇笔记"
+                  : isWeb3
+                  ? "I posted a Web3 Note:"
+                  : "I posted a Note:"
+              : '';
+
+      // 构建分享链接
+      final String shareLink =
+          "https://cryptosquare.io/article/${_articleData?.id}";
+
+      // 显示分享底部弹窗
+      showModalBottomSheet(
+        context: context,
+        builder: (context) {
+          return SocialShareWidget(
+            title: "$prefixMessage${_articleData?.title}",
+            desc: _extractPlainTextFromHtml(_articleData!.content ?? ''),
+            url: shareLink,
+            imgUrl: sharedImg,
+          );
+        },
+      );
+    }
   }
 
   Widget _buildArticleContent() {
