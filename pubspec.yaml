@@ -56,6 +56,9 @@ dependencies:
   flutter_quill: ^11.4.1
   vsc_quill_delta_to_html: ^1.0.5
   flutter_quill_delta_from_html: ^1.5.2
+  social_share_plus: ^0.0.4
+  share_plus: ^11.0.0
+  image: ^4.0.16
 
 dev_dependencies:
   flutter_test:
