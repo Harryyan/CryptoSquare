@@ -234,8 +234,6 @@ class HomeController extends GetxController {
         });
   }
 
-  // 这里不需要重复的方法声明，已在上方定义
-
   Future<void> _fetchNewsAsync({bool isLoadMore = false}) {
     // 从Bitpush API获取Web3动态数据，支持分页
     return _bitpushClient

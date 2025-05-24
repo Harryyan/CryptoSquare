@@ -7,6 +7,7 @@ import 'package:cryptosquare/theme/app_theme.dart';
 import 'package:cryptosquare/controllers/user_controller.dart';
 import 'package:cryptosquare/util/language_management.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:cryptosquare/widget/social_share_widget.dart';
 
 class JobDetailView extends GetView<JobController> {
   final String title;
@@ -40,7 +41,7 @@ class JobDetailView extends GetView<JobController> {
           IconButton(
             icon: Image.asset('assets/images/share.png', width: 24, height: 24),
             onPressed: () {
-              // 分享功能实现
+              _shareJob();
             },
           ),
         ],
@@ -224,20 +225,71 @@ class JobDetailView extends GetView<JobController> {
           ),
           const SizedBox(height: 16),
           // 使用flutter_html渲染HTML内容
-          Html(
-            data: controller.currentJobDetail.value?.jobDesc ?? description,
-            style: {
-              "body": Style(
-                fontSize: FontSize(15),
-                lineHeight: LineHeight(1.6),
-                color: Colors.black87,
-              ),
-              "br": Style(margin: Margins.only(bottom: 12)),
-            },
+          SelectionArea(
+            child: Html(
+              data: controller.currentJobDetail.value?.jobDesc ?? description,
+              style: {
+                "body": Style(
+                  fontSize: FontSize(15),
+                  lineHeight: LineHeight(1.6),
+                  color: Colors.black87,
+                ),
+                "br": Style(margin: Margins.only(bottom: 12)),
+              },
+            ),
           ),
         ],
       ),
     );
+  }
+
+  // 从HTML内容中提取纯文本
+  String _extractPlainTextFromHtml(String htmlContent) {
+    // 移除所有HTML标签
+    String plainText = htmlContent.replaceAll(RegExp(r'<[^>]*>'), '');
+
+    // 移除多余的空白字符
+    plainText = plainText.replaceAll(RegExp(r'\s+'), ' ').trim();
+
+    // 解码HTML实体
+    plainText = plainText
+        .replaceAll('&nbsp;', ' ')
+        .replaceAll('&lt;', '<')
+        .replaceAll('&gt;', '>')
+        .replaceAll('&amp;', '&')
+        .replaceAll('&quot;', '"')
+        .replaceAll('&#39;', "'");
+
+    // 截取前50个字符作为描述（如果文本长度超过50个字符）
+    if (plainText.length > 50) {
+      plainText = plainText.substring(0, 50);
+    }
+
+    return plainText;
+  }
+
+  // 分享岗位
+  void _shareJob() {
+    final jobDetail = controller.currentJobDetail.value;
+
+    if (jobDetail != null) {
+      // 构建分享链接
+      final String shareLink =
+          "https://cryptosquare.org/jobs/${jobDetail.jobKey}?lng=zh-CN";
+
+      // 显示分享底部弹窗
+      showModalBottomSheet(
+        context: Get.context!,
+        builder: (context) {
+          return SocialShareWidget(
+            title: jobDetail.jobTitle,
+            desc: _extractPlainTextFromHtml(jobDetail.jobDesc ?? ''),
+            url: shareLink,
+            imgUrl: "https://images.bitpush.news/2024/csimgs/logo.jpg",
+          );
+        },
+      );
+    }
   }
 
   // HR联系方式按钮区域
