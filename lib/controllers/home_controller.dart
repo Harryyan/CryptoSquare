@@ -9,6 +9,7 @@ import 'package:dio/dio.dart';
 class HomeController extends GetxController {
   final RestClient _restClient = RestClient();
   final BitpushClient _bitpushClient = BitpushClient(Dio());
+  final BitpushNewsClient _bitpushNewsClient = BitpushNewsClient();
   // 使用自定义的BitpushClient实现，处理字符串响应
   final RxList<Banner> banners = <Banner>[].obs;
   final RxList<ServiceItem> services = <ServiceItem>[].obs;
@@ -229,15 +230,18 @@ class HomeController extends GetxController {
           // 网络错误时不加载默认数据，保持列表为空
           jobs.value = [];
           throw error; // 重新抛出错误，让上层知道这个请求失败了
-          // 不再抛出错误，而是返回成功，这样即使这个请求失败，其他请求仍然可以继续
-          return Future.value();
         });
   }
 
   Future<void> _fetchNewsAsync({bool isLoadMore = false}) {
     // 从Bitpush API获取Web3动态数据，支持分页
-    return _bitpushClient
-        .getTagnews(page: currentNewsPage.value)
+    return _bitpushNewsClient
+        .getWebNews(
+          1551, // category_id
+          DateTime.now().millisecondsSinceEpoch ~/ 1000, // timestamp
+          currentNewsPage.value, // page
+          1, // show_all
+        )
         .then((response) {
           if (response.item_list != null && response.item_list!.isNotEmpty) {
             final apiNews = response.item_list!;
@@ -300,8 +304,6 @@ class HomeController extends GetxController {
           throw error; // 重新抛出错误，让上层知道这个请求失败了
         });
   }
-
-  // 这里不需要重复的方法声明，已在上方定义
 
   void changeTab(int index) {
     currentTabIndex.value = index;

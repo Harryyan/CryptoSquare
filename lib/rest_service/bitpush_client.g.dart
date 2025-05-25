@@ -88,7 +88,7 @@ Map<String, dynamic> _$BitpushNewsResponseToJson(
 
 class _BitpushNewsClient implements BitpushNewsClient {
   _BitpushNewsClient(this._dio, {this.baseUrl, this.errorLogger}) {
-    baseUrl ??= 'https://www.bitpush.news/';
+    baseUrl ??= 'https://terminal-cn2.bitpush.news/';
   }
 
   final Dio _dio;
