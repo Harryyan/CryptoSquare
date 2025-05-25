@@ -8,6 +8,7 @@ import 'package:cryptosquare/views/article_list_example.dart';
 import 'package:cryptosquare/rest_service/rest_client.dart';
 import 'package:cryptosquare/model/article_list.dart';
 import 'package:cryptosquare/controllers/article_controller.dart';
+import 'package:cryptosquare/controllers/user_controller.dart';
 import 'package:cryptosquare/views/post_create_view.dart';
 
 class ForumView extends StatefulWidget {
@@ -160,7 +161,20 @@ class _ForumViewState extends State<ForumView>
           const Spacer(flex: 6),
           ElevatedButton.icon(
             onPressed: () {
-              // 导航到发布动态页面
+              // 检查用户是否已登录
+              final userController = Get.find<UserController>();
+              if (!userController.isLoggedIn) {
+                // 用户未登录，显示提示
+                Get.snackbar(
+                  '提示',
+                  '请先登录后再发布动态',
+                  snackPosition: SnackPosition.BOTTOM,
+                  duration: const Duration(seconds: 2),
+                );
+                return;
+              }
+
+              // 用户已登录，导航到发布动态页面
               Get.to(() => const PostCreateView())?.then((result) {
                 // 如果发布成功，刷新论坛列表
                 if (result == true) {
