@@ -1173,10 +1173,9 @@ packages:
   social_share_plus:
     dependency: "direct main"
     description:
-      name: social_share_plus
-      sha256: c668734ed0840fda01d91f237d4ee1627970019222362184710036a2de721d74
-      url: "https://pub.dev"
-    source: hosted
+      path: "local_plugins/social_share_plus"
+      relative: true
+    source: path
     version: "0.0.4"
   source_gen:
     dependency: transitive
