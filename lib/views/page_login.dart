@@ -671,6 +671,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                     "userID": result.data?.iD,
                                     "score": profile.data?.score,
                                   });
+                                  eventBus.emit('loginSuccessful', null);
                                   setState(() {
                                     isLoading = false;
                                   });
@@ -795,6 +796,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                       "userID": result.data?.iD,
                                       "score": profile.data?.score,
                                     });
+                                    eventBus.emit('loginSuccessful', null);
                                     setState(() {
                                       isLoading = false;
                                     });
