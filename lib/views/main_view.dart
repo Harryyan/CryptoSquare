@@ -56,23 +56,8 @@ class _MainViewState extends State<MainView>
       _loadUserInfo();
     }
 
-    // 监听登录状态变化事件
-    eventBus.on('loginSuccessful', (_) {
-      updateLoginStatus();
-      _loadUserInfo(); // 登录成功后加载用户信息
-    });
-
-    // 监听登出事件
-    eventBus.on('logoutSuccessful', (_) {
-      updateLoginStatus();
-      userController.logout(); // 登出时清除用户信息
-    });
-
-    // 监听头像更新事件
-    eventBus.on('avatarUpdated', (_) {
-      // 当头像更新时，重新加载用户信息以更新头像显示
-      _loadUserInfo();
-    });
+    // 注册所有事件监听
+    _reregisterEventListeners();
 
     // 监听homeController的currentTabIndex变化，同步到TabController
     ever(homeController.currentTabIndex, (index) {
@@ -90,6 +75,30 @@ class _MainViewState extends State<MainView>
     eventBus.off('avatarUpdated');
     _tabController.dispose();
     super.dispose();
+  }
+
+  // 重新注册事件监听
+  void _reregisterEventListeners() {
+    // 先移除旧的监听器，防止重复注册
+    eventBus.off('loginSuccessful');
+    eventBus.off('logoutSuccessful');
+    eventBus.off('avatarUpdated');
+
+    // 重新注册监听器
+    eventBus.on('loginSuccessful', (_) {
+      updateLoginStatus();
+      _loadUserInfo(); // 登录成功后加载用户信息
+    });
+
+    eventBus.on('logoutSuccessful', (_) {
+      updateLoginStatus();
+      userController.logout(); // 登出时清除用户信息
+    });
+
+    eventBus.on('avatarUpdated', (_) {
+      // 当头像更新时，重新加载用户信息以更新头像显示
+      _loadUserInfo();
+    });
   }
 
   // 监听登录状态变化
@@ -163,8 +172,12 @@ class _MainViewState extends State<MainView>
                 final result = await Get.to(() => const LoginPage());
                 // 检查登录结果，如果登录成功则跳转到个人资料页面
                 if (result != null && result['loginStatus'] == 'success') {
+                  // 重新注册事件监听，确保登录后事件能正常触发
+                  _reregisterEventListeners();
                   // 更新登录状态
                   isLoggedIn.value = true;
+                  // 手动加载用户信息，确保头像能立即显示
+                  _loadUserInfo();
                   Get.to(() => const ProfileView());
                 }
               }
