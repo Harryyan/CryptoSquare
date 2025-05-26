@@ -31,35 +31,38 @@ class AuthService {
   }
 
   Future<CSUserLoginResp> siginInWithApple() async {
-    final credential = await SignInWithApple.getAppleIDCredential(
-      webAuthenticationOptions: WebAuthenticationOptions(
-        clientId: "com.bitpush.csapp",
-        redirectUri: Uri.parse(
-          "https://www.cryptosquare.org/mcn/api/thirdlogin/apple_login_flutter",
-        ),
-      ),
-      scopes: [
-        AppleIDAuthorizationScopes.email,
-        AppleIDAuthorizationScopes.fullName,
-      ],
-    );
+    try {
+      final credential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+      );
 
-    final dio = Dio();
-    final response = await dio.post(
-      'https://terminal-cn.bitpush.news/api/thirdlogin/apple_login_flutter',
-      data: {
-        'authorizationCode': credential.authorizationCode,
-        'identityToken': credential.identityToken,
-        'email': credential.email,
-        'familyName': credential.familyName,
-        'givenName': credential.givenName,
-        'state': credential.state,
-        'userIdentifier': credential.userIdentifier,
-      },
-    );
+      final dio = Dio();
+      final response = await dio.post(
+        'https://terminal-cn.bitpush.news/api/thirdlogin/apple_login_flutter',
+        data: {
+          'authorizationCode': credential.authorizationCode,
+          'identityToken': credential.identityToken,
+          'email': credential.email,
+          'familyName': credential.familyName,
+          'givenName': credential.givenName,
+          'state': credential.state,
+          'userIdentifier': credential.userIdentifier,
+        },
+      );
 
-    final result = CSUserLoginResp.fromJson(response.data!);
+      final result = CSUserLoginResp.fromJson(response.data!);
 
-    return result;
+      return result;
+    } catch (e) {
+      print('Apple 登录失败: $e');
+      // 返回带有错误代码的登录响应，表示登录失败
+      return CSUserLoginResp(
+        code: 1, // 非零值表示错误
+        message: 'Apple 登录失败，请稍后重试',
+      );
+    }
   }
 }

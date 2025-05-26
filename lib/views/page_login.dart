@@ -511,197 +511,197 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                       },
                     ),
                   ),
-                  // Padding(
-                  //   padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                  //   child: Row(
-                  //     children: [
-                  //       Expanded(
-                  //         child: Divider(
-                  //           thickness: 0.5,
-                  //           color: Colors.grey[400],
-                  //         ),
-                  //       ),
-                  //       Padding(
-                  //         padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                  //         child: Text(
-                  //           I18nKeyword.otherLogin.tr,
-                  //           style: TextStyle(color: Colors.grey[700]),
-                  //         ),
-                  //       ),
-                  //       Expanded(
-                  //         child: Divider(
-                  //           thickness: 0.5,
-                  //           color: Colors.grey[400],
-                  //         ),
-                  //       ),
-                  //     ],
-                  //   ),
-                  // ),
-                  // const SizedBox(height: 50),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Divider(
+                            thickness: 0.5,
+                            color: Colors.grey[400],
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                          child: Text(
+                            I18nKeyword.otherLogin.tr,
+                            style: TextStyle(color: Colors.grey[700]),
+                          ),
+                        ),
+                        Expanded(
+                          child: Divider(
+                            thickness: 0.5,
+                            color: Colors.grey[400],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 50),
                   // google + apple sign in buttons
-                  // Row(
-                  //   mainAxisAlignment: MainAxisAlignment.center,
-                  //   children: [
-                  //     // google button
-                  //     SquareTile(
-                  //       imagePath: 'assets/images/google.png',
-                  //       onTap: () async {
-                  //         if (!checkboxValue) {
-                  //           SmartDialog.show(
-                  //             builder: (context) {
-                  //               return Container(
-                  //                 height: GStorage().getLanguageCN() ? 80 : 120,
-                  //                 width: 200,
-                  //                 padding: const EdgeInsets.all(20),
-                  //                 decoration: BoxDecoration(
-                  //                   color: const Color.fromARGB(
-                  //                     255,
-                  //                     240,
-                  //                     239,
-                  //                     239,
-                  //                   ),
-                  //                   borderRadius: BorderRadius.circular(6),
-                  //                 ),
-                  //                 alignment: Alignment.center,
-                  //                 child: Text(
-                  //                   GStorage().getLanguageCN()
-                  //                       ? '您需要同意Cryposquare的服务条款才能登录账户'
-                  //                       : 'You need to agree to Cryposquare\'s terms of service to log in to your account.',
-                  //                   style: const TextStyle(
-                  //                     color: Color.fromARGB(255, 49, 49, 49),
-                  //                   ),
-                  //                 ),
-                  //               );
-                  //             },
-                  //           );
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // google button
+                      SquareTile(
+                        imagePath: 'assets/images/google.png',
+                        onTap: () async {
+                          if (!checkboxValue) {
+                            SmartDialog.show(
+                              builder: (context) {
+                                return Container(
+                                  height: GStorage().getLanguageCN() ? 80 : 120,
+                                  width: 200,
+                                  padding: const EdgeInsets.all(20),
+                                  decoration: BoxDecoration(
+                                    color: const Color.fromARGB(
+                                      255,
+                                      240,
+                                      239,
+                                      239,
+                                    ),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    GStorage().getLanguageCN()
+                                        ? '您需要同意Cryposquare的服务条款才能登录账户'
+                                        : 'You need to agree to Cryposquare\'s terms of service to log in to your account.',
+                                    style: const TextStyle(
+                                      color: Color.fromARGB(255, 49, 49, 49),
+                                    ),
+                                  ),
+                                );
+                              },
+                            );
 
-                  //           return;
-                  //         }
+                            return;
+                          }
 
-                  //         var result = await AuthService().signInWithGoogle();
+                          var result = await AuthService().signInWithGoogle();
 
-                  //         if (result.code == 0) {
-                  //           // 登录成功
-                  //           var profile = await UserRestClient().userProfile();
-                  //           GStorage().setLoginStatus(true);
-                  //           GStorage().setToken(result.data?.secret ?? "");
-                  //           GStorage().setUserInfo({
-                  //             "avatar": result.data?.avatar,
-                  //             "userName": result.data?.nickname,
-                  //             "userID": result.data?.iD,
-                  //             "score": profile.data?.score,
-                  //           });
-                  //           Get.back(result: {'loginStatus': 'success'});
-                  //         } else {
-                  //           // 登录失败
-                  //           setState(() {
-                  //             if (context.mounted) {
-                  //               ScaffoldMessenger.of(context).showSnackBar(
-                  //                 SnackBar(
-                  //                   content: Text(
-                  //                     GStorage().getLanguageCN()
-                  //                         ? '登录失败'
-                  //                         : 'Login Failed',
-                  //                   ),
-                  //                   duration: const Duration(seconds: 2),
-                  //                 ),
-                  //               );
-                  //             }
-                  //             // _passwordController.value =
-                  //             //     const TextEditingValue(text: '');
-                  //             _codeController.value = const TextEditingValue(
-                  //               text: '',
-                  //             );
-                  //           });
-                  //           Timer(const Duration(milliseconds: 500), () {
-                  //             getSignKey();
-                  //           });
-                  //         }
-                  //       },
-                  //     ),
+                          if (result.code == 0) {
+                            // 登录成功
+                            var profile = await UserRestClient().userProfile();
+                            GStorage().setLoginStatus(true);
+                            GStorage().setToken(result.data?.secret ?? "");
+                            GStorage().setUserInfo({
+                              "avatar": result.data?.avatar,
+                              "userName": result.data?.nickname,
+                              "userID": result.data?.iD,
+                              "score": profile.data?.score,
+                            });
+                            Get.back(result: {'loginStatus': 'success'});
+                          } else {
+                            // 登录失败
+                            setState(() {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      GStorage().getLanguageCN()
+                                          ? '登录失败'
+                                          : 'Login Failed',
+                                    ),
+                                    duration: const Duration(seconds: 2),
+                                  ),
+                                );
+                              }
+                              // _passwordController.value =
+                              //     const TextEditingValue(text: '');
+                              _codeController.value = const TextEditingValue(
+                                text: '',
+                              );
+                            });
+                            Timer(const Duration(milliseconds: 500), () {
+                              getSignKey();
+                            });
+                          }
+                        },
+                      ),
 
-                  //     Visibility(
-                  //       visible: Platform.isIOS,
-                  //       child: const SizedBox(width: 25),
-                  //     ),
+                      Visibility(
+                        visible: Platform.isIOS,
+                        child: const SizedBox(width: 25),
+                      ),
 
-                  //     Visibility(
-                  //       visible: Platform.isIOS,
-                  //       child: SquareTile(
-                  //         imagePath: 'assets/images/apple.png',
-                  //         onTap: () async {
-                  //           if (!checkboxValue) {
-                  //             SmartDialog.show(
-                  //               builder: (context) {
-                  //                 return Container(
-                  //                   height:
-                  //                       GStorage().getLanguageCN() ? 80 : 120,
-                  //                   width: 200,
-                  //                   padding: const EdgeInsets.all(20),
-                  //                   decoration: BoxDecoration(
-                  //                     color: Color.fromARGB(255, 240, 239, 239),
-                  //                     borderRadius: BorderRadius.circular(6),
-                  //                   ),
-                  //                   alignment: Alignment.center,
-                  //                   child: Text(
-                  //                     GStorage().getLanguageCN()
-                  //                         ? '您需要同意Cryposquare的服务条款才能登录账户'
-                  //                         : 'You need to agree to Cryposquare\'s terms of service to log in to your account.',
-                  //                     style: const TextStyle(
-                  //                       color: Color.fromARGB(255, 49, 49, 49),
-                  //                     ),
-                  //                   ),
-                  //                 );
-                  //               },
-                  //             );
+                      Visibility(
+                        visible: Platform.isIOS,
+                        child: SquareTile(
+                          imagePath: 'assets/images/apple.png',
+                          onTap: () async {
+                            if (!checkboxValue) {
+                              SmartDialog.show(
+                                builder: (context) {
+                                  return Container(
+                                    height:
+                                        GStorage().getLanguageCN() ? 80 : 120,
+                                    width: 200,
+                                    padding: const EdgeInsets.all(20),
+                                    decoration: BoxDecoration(
+                                      color: Color.fromARGB(255, 240, 239, 239),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    alignment: Alignment.center,
+                                    child: Text(
+                                      GStorage().getLanguageCN()
+                                          ? '您需要同意Cryposquare的服务条款才能登录账户'
+                                          : 'You need to agree to Cryposquare\'s terms of service to log in to your account.',
+                                      style: const TextStyle(
+                                        color: Color.fromARGB(255, 49, 49, 49),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              );
 
-                  //             return;
-                  //           }
+                              return;
+                            }
 
-                  //           var result = await AuthService().siginInWithApple();
-                  //           if (result.code == 0) {
-                  //             // 登录成功
-                  //             var profile =
-                  //                 await UserRestClient().userProfile();
-                  //             GStorage().setLoginStatus(true);
-                  //             GStorage().setToken(result.data?.secret ?? "");
-                  //             GStorage().setUserInfo({
-                  //               "avatar": result.data?.avatar,
-                  //               "userName": result.data?.userLogin,
-                  //               "userID": result.data?.iD,
-                  //               "score": profile.data?.score,
-                  //             });
-                  //             Get.back(result: {'loginStatus': 'success'});
-                  //           } else {
-                  //             // 登录失败
-                  //             setState(() {
-                  //               if (context.mounted) {
-                  //                 ScaffoldMessenger.of(context).showSnackBar(
-                  //                   SnackBar(
-                  //                     content: Text(
-                  //                       GStorage().getLanguageCN()
-                  //                           ? '登录失败'
-                  //                           : 'Login Failed',
-                  //                     ),
-                  //                     duration: const Duration(seconds: 2),
-                  //                   ),
-                  //                 );
-                  //               }
-                  //               // _passwordController.value =
-                  //               //     const TextEditingValue(text: '');
-                  //               _codeController.value = const TextEditingValue(
-                  //                 text: '',
-                  //               );
-                  //             });
-                  //             Timer(const Duration(milliseconds: 500), () {
-                  //               getSignKey();
-                  //             });
-                  //           }
-                  //         },
-                  //       ),
-                  //     ),
-                  //   ],
-                  // ),
+                            var result = await AuthService().siginInWithApple();
+                            if (result.code == 0) {
+                              // 登录成功
+                              var profile =
+                                  await UserRestClient().userProfile();
+                              GStorage().setLoginStatus(true);
+                              GStorage().setToken(result.data?.secret ?? "");
+                              GStorage().setUserInfo({
+                                "avatar": result.data?.avatar,
+                                "userName": result.data?.userLogin,
+                                "userID": result.data?.iD,
+                                "score": profile.data?.score,
+                              });
+                              Get.back(result: {'loginStatus': 'success'});
+                            } else {
+                              // 登录失败
+                              setState(() {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        GStorage().getLanguageCN()
+                                            ? '登录失败'
+                                            : 'Login Failed',
+                                      ),
+                                      duration: const Duration(seconds: 2),
+                                    ),
+                                  );
+                                }
+                                // _passwordController.value =
+                                //     const TextEditingValue(text: '');
+                                _codeController.value = const TextEditingValue(
+                                  text: '',
+                                );
+                              });
+                              Timer(const Duration(milliseconds: 500), () {
+                                getSignKey();
+                              });
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),

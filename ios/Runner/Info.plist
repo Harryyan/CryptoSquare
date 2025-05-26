@@ -22,6 +22,8 @@
 	<string>cryptosquare</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
+	<key>GIDClientID</key>
+	<string>447342852171-g0ir3sksno2gefhfmtrfpq8odpstopvu.apps.googleusercontent.com</string>
 	<key>CFBundleShortVersionString</key>
 	<string>$(FLUTTER_BUILD_NAME)</string>
 	<key>CFBundleSignature</key>
@@ -45,6 +47,17 @@
 		<string>twitter</string>
 		<string>whatsapp</string>
 		<string>line</string>
+	</array>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.447342852171-g0ir3sksno2gefhfmtrfpq8odpstopvu</string>
+			</array>
+		</dict>
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
