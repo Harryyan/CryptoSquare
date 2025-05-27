@@ -680,13 +680,103 @@ class _ProfileViewState extends State<ProfileView>
         // 如果用户已登录且收藏帖子列表为空，尝试加载数据
         if (isUserLoggedIn.value &&
             favoritePostList.isEmpty &&
-            !isLoadingFavoritePosts.value) {
+            !isLoadingFavoritePosts.value &&
+            !hasTriedLoadingFavoritePosts.value) {
           _loadFavoritePosts(isRefresh: true);
+          hasTriedLoadingFavoritePosts.value = true;
         }
         return _buildMyFavoritesForumList();
       }
     }
     return Container(); // 默认空白，或可自定义“无数据”提示
+  }
+
+  /// [我的发布 - 帖子] 列表
+  Widget _buildMyPostsForumList() {
+    // 如果用户未登录，显示提示信息
+    if (!isUserLoggedIn.value) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.info_outline, size: 50, color: Colors.grey),
+            SizedBox(height: 16),
+            Text(
+              '请先登录后查看发布的帖子',
+              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // 添加下拉刷新和上拉加载更多功能
+    return RefreshIndicator(
+      onRefresh: () async {
+        // 刷新用户发布的帖子列表
+        currentUserPostPage.value = 1;
+        await _loadUserPosts(isRefresh: true);
+      },
+      child: Obx(() {
+        // 加载中显示进度指示器
+        if (isLoadingUserPosts.value && userPostList.isEmpty) {
+          return Center(child: CircularProgressIndicator());
+        }
+
+        // 没有发布的帖子
+        if (userPostList.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.article_outlined, size: 50, color: Colors.grey),
+                SizedBox(height: 16),
+                Text(
+                  '暂无发布的帖子',
+                  style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                ),
+              ],
+            ),
+          );
+        }
+
+        // 显示用户发布的帖子列表
+        return NotificationListener<ScrollNotification>(
+          onNotification: (ScrollNotification scrollInfo) {
+            // 检测是否滑动到底部，加载更多数据
+            if (scrollInfo.metrics.pixels ==
+                    scrollInfo.metrics.maxScrollExtent &&
+                !isLoadingUserPosts.value &&
+                hasMoreUserPosts.value) {
+              _loadMoreUserPosts();
+            }
+            return false;
+          },
+          child: ListView.builder(
+            padding: EdgeInsets.only(top: 4, bottom: 16),
+            itemCount: userPostList.length + (hasMoreUserPosts.value ? 1 : 0),
+            itemBuilder: (context, index) {
+              // 如果是最后一个item且还有更多数据，显示加载更多
+              if (index == userPostList.length && hasMoreUserPosts.value) {
+                return Container(
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  alignment: Alignment.center,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                );
+              }
+
+              // 正常显示帖子
+              if (index < userPostList.length) {
+                final post = userPostList[index];
+                return _buildUserPostCard(post);
+              }
+
+              return Container();
+            },
+          ),
+        );
+      }),
+    );
   }
 
   //=======================示例列表 - 岗位============================
@@ -978,7 +1068,7 @@ class _ProfileViewState extends State<ProfileView>
     );
   }
 
-  //=======================用户发布列表 - 帖子============================
+  //=======================用户发布的帖子============================
 
   // 用户发布的帖子列表
   final RxList<UserPostItem> userPostList = <UserPostItem>[].obs;
@@ -991,100 +1081,7 @@ class _ProfileViewState extends State<ProfileView>
   // 每页数量
   final int userPostPageSize = 20;
 
-  /// [我的发布 - 帖子] 列表
-  Widget _buildMyPostsForumList() {
-    // 如果用户未登录，显示提示信息
-    if (!isUserLoggedIn.value) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.info_outline, size: 50, color: Colors.grey),
-            SizedBox(height: 16),
-            Text(
-              '请先登录后查看发布的帖子',
-              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-            ),
-          ],
-        ),
-      );
-    }
-
-    // 如果用户已登录且帖子列表为空，尝试加载数据
-    if (isUserLoggedIn.value &&
-        userPostList.isEmpty &&
-        !isLoadingUserPosts.value) {
-      _loadUserPosts(isRefresh: true);
-    }
-
-    // 添加下拉刷新和上拉加载更多功能
-    return RefreshIndicator(
-      onRefresh: () async {
-        // 刷新用户发布帖子列表
-        currentUserPostPage.value = 1;
-        await _loadUserPosts(isRefresh: true);
-      },
-      child: Obx(() {
-        // 加载中显示进度指示器
-        if (isLoadingUserPosts.value && userPostList.isEmpty) {
-          return Center(child: CircularProgressIndicator());
-        }
-
-        // 没有发布的帖子
-        if (userPostList.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.article_outlined, size: 50, color: Colors.grey),
-                SizedBox(height: 16),
-                Text(
-                  '暂无发布的帖子',
-                  style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-                ),
-              ],
-            ),
-          );
-        }
-
-        // 显示用户发布的帖子列表
-        return NotificationListener<ScrollNotification>(
-          onNotification: (ScrollNotification scrollInfo) {
-            // 检测是否滑动到底部，加载更多数据
-            if (scrollInfo.metrics.pixels ==
-                    scrollInfo.metrics.maxScrollExtent &&
-                !isLoadingUserPosts.value &&
-                hasMoreUserPosts.value) {
-              _loadMoreUserPosts();
-            }
-            return false;
-          },
-          child: ListView.builder(
-            padding: EdgeInsets.only(top: 4, bottom: 16),
-            itemCount: userPostList.length + (hasMoreUserPosts.value ? 1 : 0),
-            itemBuilder: (context, index) {
-              // 如果是最后一个item且还有更多数据，显示加载更多
-              if (index == userPostList.length && hasMoreUserPosts.value) {
-                return Container(
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  alignment: Alignment.center,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                );
-              }
-
-              // 正常显示帖子
-              if (index < userPostList.length) {
-                final post = userPostList[index];
-                return _buildUserPostCard(post);
-              }
-
-              return Container();
-            },
-          ),
-        );
-      }),
-    );
-  }
+  //=======================收藏列表 - 帖子============================
 
   // 收藏的帖子列表
   final RxList<PostItem> favoritePostList = <PostItem>[].obs;
@@ -1096,6 +1093,8 @@ class _ProfileViewState extends State<ProfileView>
   final RxInt currentPostPage = 1.obs;
   // 每页数量
   final int postPageSize = 20;
+  // 是否已尝试加载收藏帖子
+  final RxBool hasTriedLoadingFavoritePosts = false.obs;
 
   /// [我的收藏 - 帖子] 列表
   Widget _buildMyFavoritesForumList() {
@@ -1121,6 +1120,7 @@ class _ProfileViewState extends State<ProfileView>
       onRefresh: () async {
         // 刷新收藏帖子列表
         currentPostPage.value = 1;
+        hasTriedLoadingFavoritePosts.value = false; // 重置尝试加载标志
         await _loadFavoritePosts(isRefresh: true);
       },
       child: Obx(() {
@@ -1198,23 +1198,29 @@ class _ProfileViewState extends State<ProfileView>
       );
 
       // 检查API返回结果
-      if (response.code == 0 && response.data.data.isNotEmpty) {
+      if (response.code == 0) {
         // 如果是刷新，清空现有列表
         if (isRefresh) {
           userPostList.clear();
         }
 
-        // 添加新数据到列表
-        userPostList.addAll(response.data.data);
-
-        // 判断是否还有更多数据
-        hasMoreUserPosts.value = userPostList.length < response.data.total;
+        // 添加新数据到列表（如果有的话）
+        if (response.data.data.isNotEmpty) {
+          userPostList.addAll(response.data.data);
+          // 判断是否还有更多数据
+          hasMoreUserPosts.value = userPostList.length < response.data.total;
+        } else {
+          // 如果返回数据为空，设置没有更多数据
+          hasMoreUserPosts.value = false;
+        }
       } else {
-        // 如果返回数据为空，设置没有更多数据
+        // API返回错误
+        print('加载用户发布帖子失败: ${response.message}');
         hasMoreUserPosts.value = false;
       }
     } catch (e) {
       print('加载用户发布帖子失败: $e');
+      hasMoreUserPosts.value = false;
     } finally {
       // 无论成功失败，都结束加载状态
       isLoadingUserPosts.value = false;
@@ -1245,23 +1251,29 @@ class _ProfileViewState extends State<ProfileView>
       );
 
       // 检查API返回结果
-      if (response.code == 0 && response.data.data.isNotEmpty) {
+      if (response.code == 0) {
         // 如果是刷新，清空现有列表
         if (isRefresh) {
           favoritePostList.clear();
         }
 
-        // 添加新数据到列表
-        favoritePostList.addAll(response.data.data);
-
-        // 判断是否还有更多数据
-        hasMorePosts.value = favoritePostList.length < response.data.total;
+        // 添加新数据到列表（如果有的话）
+        if (response.data.data.isNotEmpty) {
+          favoritePostList.addAll(response.data.data);
+          // 判断是否还有更多数据
+          hasMorePosts.value = favoritePostList.length < response.data.total;
+        } else {
+          // 如果返回数据为空，设置没有更多数据
+          hasMorePosts.value = false;
+        }
       } else {
-        // 如果返回数据为空，设置没有更多数据
+        // 如果API返回错误，设置没有更多数据
         hasMorePosts.value = false;
       }
     } catch (e) {
       print('加载收藏帖子失败: $e');
+      // 发生异常时，设置没有更多数据
+      hasMorePosts.value = false;
     } finally {
       // 无论成功失败，都结束加载状态
       isLoadingFavoritePosts.value = false;
