@@ -8,6 +8,7 @@ import 'package:cryptosquare/controllers/user_controller.dart';
 import 'package:cryptosquare/util/language_management.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:cryptosquare/widget/social_share_widget.dart';
+import 'package:flutter/services.dart';
 
 class JobDetailView extends GetView<JobController> {
   final String title;
@@ -358,6 +359,61 @@ class JobDetailView extends GetView<JobController> {
                 }
               }
 
+              // 如果是邮箱，使用GestureDetector包装以支持长按复制
+              if (isBuyed && applyVal.contains('@')) {
+                return GestureDetector(
+                  onLongPress: () {
+                    // 复制邮箱到剪贴板
+                    Clipboard.setData(ClipboardData(text: applyVal));
+                    Get.snackbar(
+                      '成功',
+                      '邮箱已复制到剪贴板',
+                      snackPosition: SnackPosition.BOTTOM,
+                      backgroundColor: Colors.green,
+                      colorText: Colors.white,
+                      margin: const EdgeInsets.all(16),
+                    );
+                  },
+                  child: ElevatedButton(
+                    onPressed: () {
+                      // 点击时也复制邮箱
+                      Clipboard.setData(ClipboardData(text: applyVal));
+                      Get.snackbar(
+                        '成功',
+                        '邮箱已复制到剪贴板',
+                        snackPosition: SnackPosition.BOTTOM,
+                        backgroundColor: Colors.green,
+                        colorText: Colors.white,
+                        margin: const EdgeInsets.all(16),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryColor,
+                      minimumSize: const Size(double.infinity, 48),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          buttonText,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        const Icon(Icons.copy, size: 18, color: Colors.white),
+                      ],
+                    ),
+                  ),
+                );
+              }
+
+              // 其他情况使用原来的按钮
               return ElevatedButton(
                 onPressed: () {
                   // 检查用户是否登录
