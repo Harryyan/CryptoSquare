@@ -175,22 +175,28 @@ class _JobViewState extends State<JobView> {
           children: [
             Obx(() {
               String displayText = title;
-              String selectedValue = '';
+              List<String> selectedValues = [];
 
               switch (filterType) {
                 case 0:
-                  selectedValue = jobController.selectedJobType.value;
+                  selectedValues = jobController.selectedJobTypes.toList();
                   break;
                 case 1:
-                  selectedValue = jobController.selectedWorkMode.value;
+                  selectedValues = jobController.selectedWorkModes.toList();
                   break;
                 case 2:
-                  selectedValue = jobController.selectedLanguage.value;
+                  selectedValues = jobController.selectedLanguages.toList();
                   break;
               }
 
-              if (selectedValue.isNotEmpty) {
-                displayText = selectedValue;
+              if (selectedValues.isNotEmpty) {
+                // 如果选择了多个值，显示"已选择X项"
+                if (selectedValues.length > 1) {
+                  displayText = '已选择${selectedValues.length}项';
+                } else {
+                  // 如果只选择了一个值，直接显示该值
+                  displayText = selectedValues[0];
+                }
               }
 
               return Text(
@@ -198,11 +204,11 @@ class _JobViewState extends State<JobView> {
                 style: TextStyle(
                   fontSize: 14,
                   color:
-                      selectedValue.isEmpty
+                      selectedValues.isEmpty
                           ? Colors.grey[700]
                           : AppTheme.primaryColor,
                   fontWeight:
-                      selectedValue.isEmpty
+                      selectedValues.isEmpty
                           ? FontWeight.normal
                           : FontWeight.bold,
                 ),
@@ -267,21 +273,24 @@ class _JobViewState extends State<JobView> {
               _buildFilterOptionSection(
                 '工作类型',
                 jobController.jobTypes,
-                jobController.selectedJobType,
+                jobController.selectedJobTypes,
+                0,
               ),
 
               // 办公方式筛选
               _buildFilterOptionSection(
                 '办公方式',
                 jobController.workModes,
-                jobController.selectedWorkMode,
+                jobController.selectedWorkModes,
+                1,
               ),
 
               // 语言要求筛选
               _buildFilterOptionSection(
                 '语言要求',
                 jobController.languages,
-                jobController.selectedLanguage,
+                jobController.selectedLanguages,
+                2,
               ),
 
               // 底部按钮区域
@@ -367,7 +376,8 @@ class _JobViewState extends State<JobView> {
   Widget _buildFilterOptionSection(
     String title,
     RxList<String> options,
-    RxString selectedValue,
+    RxList<String> selectedValues,
+    int filterType,
   ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -401,7 +411,8 @@ class _JobViewState extends State<JobView> {
               // 不限选项
               GestureDetector(
                 onTap: () {
-                  selectedValue.value = '';
+                  // 选择"不限"时清空所有选择
+                  selectedValues.clear();
                   // 不再立即应用筛选，而是等待用户点击立即搜索按钮
                 },
                 child: Obx(
@@ -412,13 +423,13 @@ class _JobViewState extends State<JobView> {
                     ),
                     decoration: BoxDecoration(
                       color:
-                          selectedValue.value.isEmpty
+                          selectedValues.isEmpty
                               ? const Color(0xFF2164EB)
                               : const Color(0xFFF4F7FD),
                       borderRadius: BorderRadius.circular(4),
                       border: Border.all(
                         color:
-                            selectedValue.value.isEmpty
+                            selectedValues.isEmpty
                                 ? const Color(0xFF2164EB)
                                 : const Color(0xFFF4F7FD),
                         width: 1,
@@ -429,7 +440,7 @@ class _JobViewState extends State<JobView> {
                       style: TextStyle(
                         fontSize: 14,
                         color:
-                            selectedValue.value.isEmpty
+                            selectedValues.isEmpty
                                 ? Colors.white
                                 : Colors.grey[700],
                       ),
@@ -442,7 +453,15 @@ class _JobViewState extends State<JobView> {
                   .map(
                     (option) => GestureDetector(
                       onTap: () {
-                        selectedValue.value = option;
+                        // 多选逻辑
+                        if (selectedValues.contains(option)) {
+                          // 如果已选中，则取消选中
+                          selectedValues.remove(option);
+                        } else {
+                          // 如果未选中，则添加到选中列表
+                          // 先清空"不限"选项（如果有的话）
+                          selectedValues.add(option);
+                        }
                         // 不再立即应用筛选，而是等待用户点击立即搜索按钮
                       },
                       child: Obx(
@@ -453,13 +472,13 @@ class _JobViewState extends State<JobView> {
                           ),
                           decoration: BoxDecoration(
                             color:
-                                selectedValue.value == option
+                                selectedValues.contains(option)
                                     ? const Color(0xFF2164EB)
                                     : const Color(0xFFF4F7FD),
                             borderRadius: BorderRadius.circular(4),
                             border: Border.all(
                               color:
-                                  selectedValue.value == option
+                                  selectedValues.contains(option)
                                       ? const Color(0xFF2164EB)
                                       : const Color(0xFFF4F7FD),
                               width: 1,
@@ -470,7 +489,7 @@ class _JobViewState extends State<JobView> {
                             style: TextStyle(
                               fontSize: 14,
                               color:
-                                  selectedValue.value == option
+                                  selectedValues.contains(option)
                                       ? Colors.white
                                       : Colors.grey[700],
                             ),

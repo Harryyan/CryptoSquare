@@ -30,10 +30,10 @@ class JobController extends GetxController {
   final RxBool isLoading = false.obs;
   final RxBool isLoadingMore = false.obs;
 
-  // 筛选条件
-  final RxString selectedJobType = ''.obs;
-  final RxString selectedWorkMode = ''.obs;
-  final RxString selectedLanguage = ''.obs;
+  // 筛选条件 - 支持多选
+  final RxList<String> selectedJobTypes = <String>[].obs;
+  final RxList<String> selectedWorkModes = <String>[].obs;
+  final RxList<String> selectedLanguages = <String>[].obs;
 
   // 筛选选项
   final RxList<String> jobTypes =
@@ -66,28 +66,59 @@ class JobController extends GetxController {
     try {
       // 处理办公方式参数
       int officeMode = -1; // 默认不限
-      if (selectedWorkMode.value.isNotEmpty) {
-        if (selectedWorkMode.value == '远程办公') {
-          officeMode = 0;
-        } else if (selectedWorkMode.value == '实地办公') {
-          officeMode = 1;
+      String workModeStr = '';
+      if (selectedWorkModes.isNotEmpty) {
+        // 将多个办公方式转换为逗号分隔的字符串
+        List<int> officeModes = [];
+        for (var mode in selectedWorkModes) {
+          if (mode == '远程办公') {
+            officeModes.add(0);
+          } else if (mode == '实地办公') {
+            officeModes.add(1);
+          }
+        }
+
+        // 如果只有一个选项，使用单个值
+        if (officeModes.length == 1) {
+          officeMode = officeModes[0];
+        } else {
+          // 多个选项时，使用第一个值，后续可根据API调整
+          officeMode = officeModes.isNotEmpty ? officeModes[0] : -1;
+          // 保存为逗号分隔的字符串，以备将来API支持
+          workModeStr = selectedWorkModes.join(',');
         }
       }
 
       // 处理语言要求参数
       int jobLang = -1; // 默认不限
-      if (selectedLanguage.value.isNotEmpty) {
-        if (selectedLanguage.value == '中文') {
-          jobLang = 0;
-        } else if (selectedLanguage.value == '英文') {
-          jobLang = 1;
+      String languageStr = '';
+      if (selectedLanguages.isNotEmpty) {
+        // 将多个语言要求转换为逗号分隔的字符串
+        List<int> langs = [];
+        for (var lang in selectedLanguages) {
+          if (lang == '中文') {
+            langs.add(0);
+          } else if (lang == '英文') {
+            langs.add(1);
+          }
+        }
+
+        // 如果只有一个选项，使用单个值
+        if (langs.length == 1) {
+          jobLang = langs[0];
+        } else {
+          // 多个选项时，使用第一个值，后续可根据API调整
+          jobLang = langs.isNotEmpty ? langs[0] : -1;
+          // 保存为逗号分隔的字符串，以备将来API支持
+          languageStr = selectedLanguages.join(',');
         }
       }
 
       // 处理工作类型参数
       String jobType = '';
-      if (selectedJobType.value.isNotEmpty) {
-        jobType = selectedJobType.value;
+      if (selectedJobTypes.isNotEmpty) {
+        // 将多个工作类型转换为逗号分隔的字符串
+        jobType = selectedJobTypes.join(',');
       }
 
       final response = await _restClient.getJobList(
@@ -189,9 +220,9 @@ class JobController extends GetxController {
 
   // 重置筛选条件
   void resetFilters() {
-    selectedJobType.value = '';
-    selectedWorkMode.value = '';
-    selectedLanguage.value = '';
+    selectedJobTypes.clear();
+    selectedWorkModes.clear();
+    selectedLanguages.clear();
     searchQuery.value = '';
 
     fetchJobs(isRefresh: true);
