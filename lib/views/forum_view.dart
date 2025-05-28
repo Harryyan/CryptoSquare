@@ -260,7 +260,7 @@ class _ForumViewState extends State<ForumView>
             ),
           )
           ..loadRequest(
-            Uri.parse('https://www.cryptosquare.org/bbs?lng=zh-CN'),
+            Uri.parse('https://www.cryptosquare.org/wiki-panel?lng=zh-CN'),
           );
 
     // 保存控制器引用
