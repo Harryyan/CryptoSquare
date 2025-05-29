@@ -141,6 +141,8 @@ abstract class RestClient {
             options.headers["x-user-secret"] = token;
           }
 
+          options.headers["app-version"] = '2.0.0';
+
           return handler.next(options);
         },
       ),

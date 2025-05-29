@@ -24,10 +24,12 @@ abstract class UserRestClient {
           String token = GStorage().getToken();
 
           options.headers["platform"] = Platform.isAndroid ? "android" : "ios";
+
           if (token.isNotEmpty) {
-            print(token);
             options.headers["x-user-secret"] = token;
           }
+
+          options.headers["app-version"] = '2.0.0';
 
           return handler.next(options);
         },
