@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:cryptosquare/l10n/l18n_keywords.dart';
 import 'package:cryptosquare/util/language_management.dart';
 import 'package:get/get.dart';
@@ -122,7 +123,7 @@ class JobController extends GetxController {
       }
 
       final response = await _restClient.getJobList(
-        'app',
+        Platform.isAndroid ? "android" : "ios",
         pageSize: 10,
         page: currentPage.value,
         keyword: searchQuery.value,
@@ -234,7 +235,7 @@ class JobController extends GetxController {
       final response = await _restClient.getJobDetail(
         jobKey,
         LanguageManagement.language(), // language
-        'app', // platformStr
+        Platform.isAndroid ? "android" : "ios", // platformStr
       );
 
       if (response.data != null) {
