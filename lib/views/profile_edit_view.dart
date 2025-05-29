@@ -34,17 +34,58 @@ class _ProfileEditViewState extends State<ProfileEditView> {
   // 文本编辑控制器
   late TextEditingController _nameController;
 
+  // 用于检测emoji的正则表达式
+  final RegExp emojiRegExp = RegExp(
+    r'(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])',
+  );
+
   @override
   void initState() {
     super.initState();
     _loadUserInfo();
     _nameController = TextEditingController(text: userName.value);
+
+    // 添加监听器，过滤emoji
+    _nameController.addListener(_filterEmoji);
   }
 
   @override
   void dispose() {
+    _nameController.removeListener(_filterEmoji);
     _nameController.dispose();
     super.dispose();
+  }
+
+  // 过滤emoji的方法
+  void _filterEmoji() {
+    final text = _nameController.text;
+    if (emojiRegExp.hasMatch(text)) {
+      // 如果包含emoji，则移除emoji
+      final filteredText = text.replaceAll(emojiRegExp, '');
+      // 只有当文本发生变化时才更新，避免光标位置重置
+      if (filteredText != text) {
+        // 保存当前光标位置
+        final cursorPos = _nameController.selection.baseOffset;
+        // 计算被移除的emoji字符数量
+        final removedLength = text.length - filteredText.length;
+        // 更新文本
+        _nameController.text = filteredText;
+        // 调整光标位置
+        _nameController.selection = TextSelection.fromPosition(
+          TextPosition(
+            offset: cursorPos > removedLength ? cursorPos - removedLength : 0,
+          ),
+        );
+
+        // 显示提示
+        Get.snackbar(
+          '提示',
+          '用户名暂不支持emoji表情',
+          snackPosition: SnackPosition.BOTTOM,
+          duration: const Duration(seconds: 2),
+        );
+      }
+    }
   }
 
   /// 从GStorage加载用户信息
@@ -326,6 +367,8 @@ class _ProfileEditViewState extends State<ProfileEditView> {
                 vertical: 10,
               ),
               filled: false,
+              helperText: '暂不支持emoji表情',
+              helperStyle: TextStyle(color: Colors.grey[600], fontSize: 12),
             ),
           ),
           const SizedBox(height: 30),
