@@ -8,6 +8,7 @@ import 'package:cryptosquare/widget/social_share_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:cryptosquare/rest_service/rest_client.dart';
+import 'package:cryptosquare/rest_service/user_client.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:dio/dio.dart';
@@ -29,6 +30,8 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
   List<ArticleCommentItem>? _comments;
   bool _isLoading = true;
   bool _isLoadingComments = true;
+  bool _isCollected = false; // 收藏状态
+  bool _isCollectLoading = false; // 收藏操作加载状态
 
   // 存储文章中的图片URL列表，用于分享
   List<String> imgList = [];
@@ -72,6 +75,8 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
         setState(() {
           _articleData = response.data;
           _isLoading = false;
+          // 设置收藏状态
+          _isCollected = _articleData?.userext?.isFavorite == 1;
         });
 
         // 提取HTML内容中的图片URL
@@ -146,6 +151,28 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
         title: Text(I18nKeyword.articleTitle.tr),
         elevation: 0,
         actions: [
+          // 收藏按钮
+          IconButton(
+            icon:
+                _isCollectLoading
+                    ? const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
+                      ),
+                    )
+                    : Image.asset(
+                      _isCollected
+                          ? 'assets/images/star_fill.png'
+                          : 'assets/images/star.png',
+                      width: 24,
+                      height: 24,
+                    ),
+            onPressed: _toggleCollect,
+          ),
+          // 分享按钮
           IconButton(
             icon: Image.asset('assets/images/share.png', width: 24, height: 24),
             onPressed: () {
@@ -940,6 +967,67 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
       setState(() {
         _isSubmitting = false;
       });
+    }
+  }
+
+  // 处理收藏/取消收藏
+  Future<void> _toggleCollect() async {
+    // 检查用户是否登录
+    if (!userController.isLoggedIn) {
+      // 未登录，提示用户登录
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('请先登录后再收藏')));
+
+      // 跳转到登录页面
+      Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (context) => const LoginPage()));
+      return;
+    }
+
+    // 防止重复点击
+    if (_isCollectLoading) return;
+
+    setState(() {
+      _isCollectLoading = true;
+    });
+
+    try {
+      final userClient = UserRestClient();
+      final response = await userClient.doAction(
+        widget.articleId,
+        'eye', // 收藏操作的action参数为eye
+      );
+
+      if (response.code == 0 && response.data != null) {
+        // 根据返回值更新收藏状态
+        setState(() {
+          _isCollected = response.data!.value == 1;
+          _isCollectLoading = false;
+        });
+
+        // 显示操作结果
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(_isCollected ? '收藏成功' : '取消收藏成功')),
+        );
+      } else {
+        setState(() {
+          _isCollectLoading = false;
+        });
+        // 显示错误信息
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(response.message ?? '操作失败')));
+      }
+    } catch (e) {
+      setState(() {
+        _isCollectLoading = false;
+      });
+      // 显示错误信息
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('网络错误: ${e.toString()}')));
     }
   }
 }
