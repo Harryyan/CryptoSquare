@@ -782,30 +782,47 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                 try {
                                   var result =
                                       await AuthService().siginInWithApple();
+                                  print('Apple登录AuthService返回结果: ${result.code}, ${result.message}');
+                                  
                                   if (result.code == 0) {
+                                    print('开始设置登录状态和token');
                                     GStorage().setLoginStatus(true);
                                     GStorage().setToken(
                                       result.data?.secret ?? "",
                                     );
 
+                                    print('开始获取用户资料');
                                     // 登录成功
-                                    var profile =
-                                        await UserRestClient().userProfile();
+                                    try {
+                                      var profile =
+                                          await UserRestClient().userProfile();
+                                      print('用户资料获取成功: ${profile.code}');
 
-                                    GStorage().setUserInfo({
-                                      "avatar": result.data?.avatar,
-                                      "userName": result.data?.userLogin,
-                                      "userID": result.data?.iD,
-                                      "score": profile.data?.score,
-                                    });
-                                    eventBus.emit('loginSuccessful', null);
-                                    setState(() {
-                                      isLoading = false;
-                                    });
-                                    Get.back(
-                                      result: {'loginStatus': 'success'},
-                                    );
+                                      GStorage().setUserInfo({
+                                        "avatar": result.data?.avatar,
+                                        "userName": result.data?.userLogin,
+                                        "userID": result.data?.iD,
+                                        "score": profile.data?.score,
+                                      });
+                                      eventBus.emit('loginSuccessful', null);
+                                      setState(() {
+                                        isLoading = false;
+                                      });
+                                      print('准备返回登录成功结果');
+                                      Get.back(
+                                        result: {'loginStatus': 'success'},
+                                      );
+                                    } catch (e) {
+                                      print('获取用户资料失败: $e');
+                                      setState(() {
+                                        isLoading = false;
+                                      });
+                                      Get.back(
+                                        result: {'loginStatus': 'success'},
+                                      );
+                                    }
                                   } else {
+                                    print('Apple登录失败，服务器返回: ${result.code}, ${result.message}');
                                     // 登录失败
                                     setState(() {
                                       isLoading = false;
@@ -815,9 +832,9 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                         ).showSnackBar(
                                           SnackBar(
                                             content: Text(
-                                              GStorage().getLanguageCN()
+                                              result.message ?? (GStorage().getLanguageCN()
                                                   ? '登录失败'
-                                                  : 'Login Failed',
+                                                  : 'Login Failed'),
                                             ),
                                             duration: const Duration(
                                               seconds: 2,
@@ -838,6 +855,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                     );
                                   }
                                 } catch (e) {
+                                  print('Apple登录过程中发生异常: $e');
                                   setState(() {
                                     isLoading = false;
                                   });
