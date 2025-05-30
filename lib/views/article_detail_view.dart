@@ -379,19 +379,19 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
   // 预处理HTML内容，修复行间距问题
   String _preprocessHtmlContent(String htmlContent) {
     if (htmlContent.isEmpty) return htmlContent;
-    
+
     // 移除或修改过大的line-height样式
     String processedContent = htmlContent;
-    
+
     // 方法1：移除所有line-height样式
     processedContent = processedContent.replaceAll(
-      RegExp(r'line-height:\s*\d+px;?'), 
-      ''
+      RegExp(r'line-height:\s*\d+px;?'),
+      '',
     );
-    
+
     // 方法2：替换过大的line-height值（超过24px的）
     processedContent = processedContent.replaceAllMapped(
-      RegExp(r'line-height:\s*(\d+)px'), 
+      RegExp(r'line-height:\s*(\d+)px'),
       (match) {
         int lineHeight = int.tryParse(match.group(1) ?? '0') ?? 0;
         // 如果line-height超过24px，替换为合理的值
@@ -399,12 +399,12 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
           return 'line-height: 24px';
         }
         return match.group(0) ?? '';
-      }
+      },
     );
-    
+
     // 移除过大的margin值
     processedContent = processedContent.replaceAllMapped(
-      RegExp(r'margin-top:\s*(\d+)px'), 
+      RegExp(r'margin-top:\s*(\d+)px'),
       (match) {
         int margin = int.tryParse(match.group(1) ?? '0') ?? 0;
         // 如果margin-top超过16px，替换为合理的值
@@ -412,11 +412,11 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
           return 'margin-top: 8px';
         }
         return match.group(0) ?? '';
-      }
+      },
     );
-    
+
     processedContent = processedContent.replaceAllMapped(
-      RegExp(r'margin-bottom:\s*(\d+)px'), 
+      RegExp(r'margin-bottom:\s*(\d+)px'),
       (match) {
         int margin = int.tryParse(match.group(1) ?? '0') ?? 0;
         // 如果margin-bottom超过16px，替换为合理的值
@@ -424,19 +424,26 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
           return 'margin-bottom: 8px';
         }
         return match.group(0) ?? '';
-      }
+      },
     );
-    
+
     return processedContent;
   }
 
   Widget _buildArticleContent() {
+    // 获取屏幕宽度并计算图片适合的像素宽度
+    final screenWidth = MediaQuery.of(context).size.width;
+    // 减去左右padding (16 * 2 = 32)，得到可用像素宽度
+    final imageWidthPx = (screenWidth - 32).toDouble();
+    
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       // 使用 SelectionArea 包装 Html 组件，使其内容可选择和复制
       child: SelectionArea(
         child: Html(
-          data: _preprocessHtmlContent(_articleData?.content ?? ''), // 预处理HTML内容
+          data: _preprocessHtmlContent(
+            _articleData?.content ?? '',
+          ), // 预处理HTML内容
           style: {
             'body': Style(
               fontSize: FontSize(16.0),
@@ -453,35 +460,37 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
               lineHeight: LineHeight(1.6), // 强制设置合理的行间距
               fontSize: FontSize(16.0), // 确保字体大小一致
             ),
+            // 图片样式配置 - 使用计算出的像素宽度（默认单位px）
+            'img': Style(
+              width: Width(imageWidthPx), // 计算出的像素宽度，默认单位px
+              margin: Margins.only(top: 8, bottom: 8),
+            ),
             // 为有序列表添加样式
             'ol': Style(
-              padding: HtmlPaddings.zero,
-              margin: Margins.only(left: 16, bottom: 12),
-              listStylePosition: ListStylePosition.outside,
+              padding: HtmlPaddings.only(left: 20), // 为数字标识留出空间
+              margin: Margins.only(bottom: 12),
+              listStylePosition: ListStylePosition.outside, // 数字在内容外侧
+              display: Display.block,
             ),
             'ul': Style(
               // 清除 ul 默认内边距和外边距
-              padding: HtmlPaddings.zero,
-              margin: Margins.zero,
-              // 把 • 放到行内，避免额外的缩进
-              listStylePosition: ListStylePosition.inside,
+              padding: HtmlPaddings.only(left: 20),
+              margin: Margins.only(bottom: 12),
+              // 把 • 放到行外，保持一致性
+              listStylePosition: ListStylePosition.outside,
+              display: Display.block,
             ),
             'li': Style(
-              // 清除 li 默认内边距
+              // 为li元素设置适当的边距
               padding: HtmlPaddings.zero,
-              // 保留下边距
-              margin: Margins.only(bottom: 8),
-              listStylePosition: ListStylePosition.inside,
+              margin: Margins.only(bottom: 6),
               lineHeight: LineHeight(1.6), // 为li也设置合理的行间距
+              display: Display.listItem, // 确保作为列表项显示
             ),
             // 为strong标签添加样式
-            'strong': Style(
-              fontWeight: FontWeight.bold,
-            ),
+            'strong': Style(fontWeight: FontWeight.bold),
             // 为span标签添加样式，防止特殊样式干扰
-            'span': Style(
-              lineHeight: LineHeight(1.6),
-            ),
+            'span': Style(lineHeight: LineHeight(1.6)),
           },
         ),
       ),

@@ -3,6 +3,10 @@
 ## 问题描述
 在ArticleDetailView中显示的文章内容，部分文章出现行间距过大的问题，影响阅读体验。
 
+**2024年更新**: 
+- 修复了有序列表数字标识位置错误的问题，数字现在正确显示在文字左侧而不是上方。
+- 修复了图片显示不完整的问题，图片现在能够完全显示并响应式适配。
+
 ## 问题原因分析
 
 ### 根本原因
@@ -15,6 +19,8 @@
 1. **line-height: 38px** - 行间距过大（正常应该是24px以内）
 2. **margin值过大** - 段落间距过大
 3. **内联样式优先级高** - 覆盖了Flutter HTML插件的样式设置
+4. **有序列表样式问题** - 数字标识显示在文字上方而非左侧
+5. **图片显示问题** - 图片超出容器宽度，显示不完整
 
 ## 解决方案
 
@@ -55,13 +61,31 @@ style: {
     lineHeight: LineHeight(1.6), // 强制设置合理的行间距
     fontSize: FontSize(16.0),
   ),
+  // 图片响应式样式配置
+  'img': Style(
+    width: Width(100, Unit.percent), // 宽度100%适应容器
+    height: Height.auto(), // 高度自动，保持宽高比
+    margin: Margins.only(top: 8, bottom: 8), // 上下间距
+    display: Display.block, // 块级显示
+  ),
+  // 修复有序列表样式
   'ol': Style(
-    padding: HtmlPaddings.zero,
-    margin: Margins.only(left: 16, bottom: 12),
-    listStylePosition: ListStylePosition.outside,
+    padding: HtmlPaddings.only(left: 20), // 为数字标识留出空间
+    margin: Margins.only(bottom: 12),
+    listStylePosition: ListStylePosition.outside, // 数字在内容外侧
+    display: Display.block,
+  ),
+  'ul': Style(
+    padding: HtmlPaddings.only(left: 20),
+    margin: Margins.only(bottom: 12),
+    listStylePosition: ListStylePosition.outside, // 保持一致性
+    display: Display.block,
   ),
   'li': Style(
+    padding: HtmlPaddings.zero,
+    margin: Margins.only(bottom: 6),
     lineHeight: LineHeight(1.6), // 为li也设置合理的行间距
+    display: Display.listItem, // 确保作为列表项显示
   ),
 }
 ```
@@ -71,11 +95,15 @@ style: {
 ### 修复前
 - 行间距过大（38px）
 - 段落间距不一致
+- 有序列表数字显示在文字上方
+- 图片显示不完整，超出容器边界
 - 阅读体验差
 
 ### 修复后
 - 合理的行间距（1.6倍行高，约24px）
 - 一致的段落间距（12px）
+- 有序列表数字正确显示在文字左侧
+- 图片完全显示且响应式适配容器宽度
 - 更好的阅读体验
 
 ## 技术细节
@@ -84,6 +112,20 @@ style: {
 1. **line-height** - 移除或限制在24px以内
 2. **margin-top/margin-bottom** - 限制在16px以内
 3. **font-size** - 统一为16px
+4. **listStylePosition** - 设置为outside确保数字在左侧
+5. **display** - 正确设置列表显示模式
+6. **图片尺寸** - width: 100%, height: auto 确保响应式显示
+
+### 图片样式关键配置
+- `width: Width(100, Unit.percent)` - 图片宽度100%适应容器
+- `height: Height.auto()` - 高度自动，保持原始宽高比
+- `display: Display.block` - 块级显示，避免内联导致的布局问题
+- `margin: Margins.only(top: 8, bottom: 8)` - 适当的上下间距
+
+### 列表样式关键配置
+- `listStylePosition: ListStylePosition.outside` - 确保数字/符号在内容外侧
+- `padding: HtmlPaddings.only(left: 20)` - 为列表标识留出空间
+- `display: Display.listItem` - 确保li元素正确显示为列表项
 
 ### 正则表达式模式
 - `line-height:\s*\d+px;?` - 匹配所有line-height样式
@@ -99,12 +141,18 @@ style: {
 
 ### 测试场景
 1. **包含大行间距的文章** - 验证行间距是否正常
-2. **包含列表的文章** - 验证列表样式是否正确
-3. **包含标题的文章** - 验证标题样式是否保持
-4. **纯文本段落** - 验证基本段落格式
+2. **包含有序列表的文章** - 验证数字是否在文字左侧
+3. **包含无序列表的文章** - 验证符号位置是否正确
+4. **包含图片的文章** - 验证图片是否完全显示且响应式适配
+5. **包含标题的文章** - 验证标题样式是否保持
+6. **纯文本段落** - 验证基本段落格式
 
 ### 预期结果
 - 所有段落行间距一致且合理
+- 有序列表数字正确显示在文字左侧
+- 无序列表符号位置正确
+- 图片完全显示，不超出容器边界
+- 图片在不同设备尺寸下正确缩放
 - 列表格式正确显示
 - 标题样式保持原有效果
 - 整体阅读体验提升
