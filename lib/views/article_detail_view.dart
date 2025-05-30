@@ -376,13 +376,67 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
     }
   }
 
+  // 预处理HTML内容，修复行间距问题
+  String _preprocessHtmlContent(String htmlContent) {
+    if (htmlContent.isEmpty) return htmlContent;
+    
+    // 移除或修改过大的line-height样式
+    String processedContent = htmlContent;
+    
+    // 方法1：移除所有line-height样式
+    processedContent = processedContent.replaceAll(
+      RegExp(r'line-height:\s*\d+px;?'), 
+      ''
+    );
+    
+    // 方法2：替换过大的line-height值（超过24px的）
+    processedContent = processedContent.replaceAllMapped(
+      RegExp(r'line-height:\s*(\d+)px'), 
+      (match) {
+        int lineHeight = int.tryParse(match.group(1) ?? '0') ?? 0;
+        // 如果line-height超过24px，替换为合理的值
+        if (lineHeight > 24) {
+          return 'line-height: 24px';
+        }
+        return match.group(0) ?? '';
+      }
+    );
+    
+    // 移除过大的margin值
+    processedContent = processedContent.replaceAllMapped(
+      RegExp(r'margin-top:\s*(\d+)px'), 
+      (match) {
+        int margin = int.tryParse(match.group(1) ?? '0') ?? 0;
+        // 如果margin-top超过16px，替换为合理的值
+        if (margin > 16) {
+          return 'margin-top: 8px';
+        }
+        return match.group(0) ?? '';
+      }
+    );
+    
+    processedContent = processedContent.replaceAllMapped(
+      RegExp(r'margin-bottom:\s*(\d+)px'), 
+      (match) {
+        int margin = int.tryParse(match.group(1) ?? '0') ?? 0;
+        // 如果margin-bottom超过16px，替换为合理的值
+        if (margin > 16) {
+          return 'margin-bottom: 8px';
+        }
+        return match.group(0) ?? '';
+      }
+    );
+    
+    return processedContent;
+  }
+
   Widget _buildArticleContent() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       // 使用 SelectionArea 包装 Html 组件，使其内容可选择和复制
       child: SelectionArea(
         child: Html(
-          data: _articleData?.content ?? '',
+          data: _preprocessHtmlContent(_articleData?.content ?? ''), // 预处理HTML内容
           style: {
             'body': Style(
               fontSize: FontSize(16.0),
@@ -393,7 +447,18 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
               fontWeight: FontWeight.bold,
               margin: Margins.only(top: 16, bottom: 8),
             ),
-            'p': Style(margin: Margins.only(bottom: 12)),
+            // 修复p标签的行间距问题，覆盖内联样式
+            'p': Style(
+              margin: Margins.only(bottom: 12),
+              lineHeight: LineHeight(1.6), // 强制设置合理的行间距
+              fontSize: FontSize(16.0), // 确保字体大小一致
+            ),
+            // 为有序列表添加样式
+            'ol': Style(
+              padding: HtmlPaddings.zero,
+              margin: Margins.only(left: 16, bottom: 12),
+              listStylePosition: ListStylePosition.outside,
+            ),
             'ul': Style(
               // 清除 ul 默认内边距和外边距
               padding: HtmlPaddings.zero,
@@ -407,6 +472,15 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
               // 保留下边距
               margin: Margins.only(bottom: 8),
               listStylePosition: ListStylePosition.inside,
+              lineHeight: LineHeight(1.6), // 为li也设置合理的行间距
+            ),
+            // 为strong标签添加样式
+            'strong': Style(
+              fontWeight: FontWeight.bold,
+            ),
+            // 为span标签添加样式，防止特殊样式干扰
+            'span': Style(
+              lineHeight: LineHeight(1.6),
             ),
           },
         ),
