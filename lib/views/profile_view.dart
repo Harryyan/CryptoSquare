@@ -1392,16 +1392,39 @@ class _ProfileViewState extends State<ProfileView>
                   ),
                   decoration: BoxDecoration(
                     color:
-                        post.status == 1
+                        post.status == 0
+                            ? Colors.grey.withOpacity(0.1)
+                            : post.status == 1
                             ? Colors.green.withOpacity(0.1)
-                            : Colors.grey.withOpacity(0.1),
+                            : post.status == 2
+                            ? Colors.red.withOpacity(0.1)
+                            : post.status == 3
+                            ? Colors.grey.withOpacity(0.1)
+                            : Colors.orange.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
-                    post.status == 1 ? '已发布' : '待审核',
+                    post.status == 0
+                        ? '审核中'
+                        : post.status == 1
+                        ? '在线'
+                        : post.status == 2
+                        ? '审核拒绝'
+                        : post.status == 3
+                        ? '下线'
+                        : '未知状态',
                     style: TextStyle(
                       fontSize: 12,
-                      color: post.status == 1 ? Colors.green : Colors.grey,
+                      color:
+                          post.status == 0
+                              ? Colors.grey
+                              : post.status == 1
+                              ? Colors.green
+                              : post.status == 2
+                              ? Colors.red
+                              : post.status == 3
+                              ? Colors.grey
+                              : Colors.orange,
                     ),
                   ),
                 ),
