@@ -13,6 +13,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:dio/dio.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ArticleDetailView extends StatefulWidget {
   final String articleId;
@@ -491,6 +492,11 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
             'strong': Style(fontWeight: FontWeight.bold),
             // 为span标签添加样式，防止特殊样式干扰
             'span': Style(lineHeight: LineHeight(1.6)),
+          },
+          onLinkTap: (url, attributes, element) {
+            if (url != null) {
+              _handleLinkTap(url);
+            }
           },
         ),
       ),
@@ -1111,6 +1117,38 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('网络错误: ${e.toString()}')));
+    }
+  }
+
+  // 处理链接点击事件
+  Future<void> _handleLinkTap(String url) async {
+    try {
+      // 检查URL是否是http或https协议
+      if (url.startsWith('http://') || url.startsWith('https://')) {
+        final uri = Uri.parse(url);
+        // 检查是否可以启动该URL
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(
+            uri,
+            mode: LaunchMode.externalApplication, // 使用外部浏览器打开
+          );
+        } else {
+          // 无法打开链接时显示提示
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('无法打开链接: $url')),
+          );
+        }
+      } else {
+        // 不是http(s)链接时显示提示
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('不支持的链接类型: $url')),
+        );
+      }
+    } catch (e) {
+      // 发生错误时显示提示
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('打开链接时发生错误: ${e.toString()}')),
+      );
     }
   }
 }
