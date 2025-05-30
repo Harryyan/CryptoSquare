@@ -444,6 +444,33 @@ class _UserRestClient implements UserRestClient {
   }
 
   @override
+  Future<PostActionResp> doAction(String targetId, String action) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final _data = {'action': action};
+    final _options = _setStreamType<PostActionResp>(
+      Options(method: 'POST', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/bbs-article/meta/${targetId}',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late PostActionResp _value;
+    try {
+      _value = PostActionResp.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
   Future<UserPostResp> getUserPosts({
     int pageSize = 20,
     int page = 1,

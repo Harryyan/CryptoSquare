@@ -4,6 +4,7 @@ import 'package:cryptosquare/model/collected_post.dart';
 import 'package:cryptosquare/model/cs_user.dart';
 import 'package:cryptosquare/model/cs_user_profile_data.dart';
 import 'package:cryptosquare/model/job_collect_list.dart';
+import 'package:cryptosquare/model/post_action_resp.dart';
 import 'package:cryptosquare/model/user_post.dart';
 import 'package:cryptosquare/models/checkIn_states.dart';
 import 'package:cryptosquare/util/storage.dart';
@@ -122,6 +123,12 @@ abstract class UserRestClient {
     @Query("page_size") int pageSize = 20,
     @Query("page") int page = 1,
   });
+
+  @POST("/bbs-article/meta/{target_id}")
+  Future<PostActionResp> doAction(
+    @Path("target_id") String targetId,
+    @Field("action") String action,
+  );
 
   @GET("/bbs-article/center")
   Future<UserPostResp> getUserPosts({
