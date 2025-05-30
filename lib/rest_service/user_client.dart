@@ -8,6 +8,7 @@ import 'package:cryptosquare/model/user_post.dart';
 import 'package:cryptosquare/models/checkIn_states.dart';
 import 'package:cryptosquare/util/storage.dart';
 import 'package:dio/dio.dart';
+import 'package:dio/io.dart';
 import 'package:retrofit/retrofit.dart';
 
 part 'user_client.g.dart';
@@ -35,16 +36,19 @@ abstract class UserRestClient {
         },
       ),
     );
-
-    // (_dio?.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
-    //     (client) {
-    //   client.badCertificateCallback =
-    //       (X509Certificate cert, String host, int port) => true;
-    //   client.findProxy = (uri) {
-    //     String proxy = 'PROXY 192.168.1.171:9090';
-    //     return proxy;
-    //   };
-    // };
+    _dio?.httpClientAdapter =
+        IOHttpClientAdapter()
+          // ignore: deprecated_member_use
+          ..onHttpClientCreate = (client) {
+            // Config the client.
+            client.findProxy = (uri) {
+              // Forward all request to proxy "localhost:8888".
+              return 'PROXY 192.168.1.124:9090';
+            };
+            // You can also create a new HttpClient for Dio instead of returning,
+            // but a client must being returned here.
+            return client;
+          };
 
     return _UserRestClient(_dio!);
   }

@@ -516,7 +516,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                         GStorage().setToken(
                                           result.data?.secret ?? "",
                                         );
-                                        log(result.data?.secret ?? "");
 
                                         var profile =
                                             await UserRestClient()
@@ -658,13 +657,14 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                     await AuthService().signInWithGoogle();
 
                                 if (result.code == 0) {
-                                  // 登录成功
-                                  var profile =
-                                      await UserRestClient().userProfile();
                                   GStorage().setLoginStatus(true);
                                   GStorage().setToken(
                                     result.data?.secret ?? "",
                                   );
+
+                                  // 登录成功
+                                  var profile =
+                                      await UserRestClient().userProfile();
                                   GStorage().setUserInfo({
                                     "avatar": result.data?.avatar,
                                     "userName": result.data?.nickname,
@@ -783,13 +783,15 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                   var result =
                                       await AuthService().siginInWithApple();
                                   if (result.code == 0) {
-                                    // 登录成功
-                                    var profile =
-                                        await UserRestClient().userProfile();
                                     GStorage().setLoginStatus(true);
                                     GStorage().setToken(
                                       result.data?.secret ?? "",
                                     );
+
+                                    // 登录成功
+                                    var profile =
+                                        await UserRestClient().userProfile();
+
                                     GStorage().setUserInfo({
                                       "avatar": result.data?.avatar,
                                       "userName": result.data?.userLogin,

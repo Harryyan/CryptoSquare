@@ -54,7 +54,6 @@ class AuthService {
       );
 
       final result = CSUserLoginResp.fromJson(response.data!);
-
       return result;
     } catch (e) {
       print('Apple 登录失败: $e');
