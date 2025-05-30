@@ -24,6 +24,10 @@
 	<string>APPL</string>
 	<key>GIDClientID</key>
 	<string>447342852171-g0ir3sksno2gefhfmtrfpq8odpstopvu.apps.googleusercontent.com</string>
+	<key>FacebookAppID</key>
+	<string>1491275361339092</string>
+	<key>FacebookDisplayName</key>
+	<string>Cryptosquare</string>
 	<key>CFBundleShortVersionString</key>
 	<string>$(FLUTTER_BUILD_NAME)</string>
 	<key>CFBundleSignature</key>
@@ -47,6 +51,9 @@
 		<string>twitter</string>
 		<string>whatsapp</string>
 		<string>line</string>
+		<string>twitterrific</string>
+		<string>tweetbot</string>
+		<string>twitter-x</string>
 	</array>
 	<key>CFBundleURLTypes</key>
 	<array>
@@ -56,6 +63,14 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>com.googleusercontent.apps.447342852171-g0ir3sksno2gefhfmtrfpq8odpstopvu</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>fb1491275361339092</string>
 			</array>
 		</dict>
 	</array>

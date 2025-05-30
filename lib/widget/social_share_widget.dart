@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
+import 'dart:async';
 
 import 'package:cryptosquare/util/storage.dart';
 import 'package:flutter/material.dart';
@@ -14,6 +15,7 @@ import 'package:getwidget/getwidget.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:image/image.dart' as IMG;
 import 'package:get/get_utils/src/extensions/internacionalization.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SocialShareWidget extends StatelessWidget {
   const SocialShareWidget({
@@ -33,31 +35,16 @@ class SocialShareWidget extends StatelessWidget {
     List<Widget> itemWidgets = [
       GFIconButton(
         color: Colors.transparent,
-        onPressed: () {
-          ShareParamsBean bean = ShareParamsBean(
-            contentType: LaShareContentTypes.webpage,
-            platform: SharePlatforms.facebook,
-            webUrl: '${desc ?? ''}\n$url',
-            title: title,
-            text: desc,
-          );
-          _share(bean, context);
+        onPressed: () async {
+          await _shareToFacebook(context);
           Navigator.of(context).pop();
-          // appId: "1491275361339092
         },
         icon: Image.asset("assets/images/facebook-share.png"),
       ),
       GFIconButton(
         color: Colors.transparent,
-        onPressed: () {
-          ShareParamsBean bean = ShareParamsBean(
-            contentType: LaShareContentTypes.webpage,
-            platform: SharePlatforms.twitter,
-            webUrl: '${desc ?? ''}\n$url',
-            title: title,
-            text: desc,
-          );
-          _share(bean, context);
+        onPressed: () async {
+          await _shareToTwitter(context);
           Navigator.of(context).pop();
         },
         icon: Image.asset("assets/images/twitter-share.png"),
@@ -221,6 +208,152 @@ class SocialShareWidget extends StatelessWidget {
     );
   }
 
+  Future<void> _shareToFacebook(BuildContext context) async {
+    try {
+      if (Platform.isIOS) {
+        await _shareToBrowser('facebook', context);
+      } else {
+        bool isInstalled = await SharePlugin.isClientInstalled(SharePlatforms.facebook);
+        
+        if (isInstalled) {
+          ShareParamsBean bean = ShareParamsBean(
+            contentType: LaShareContentTypes.webpage,
+            platform: SharePlatforms.facebook,
+            webUrl: url,
+            title: title,
+            text: desc,
+          );
+          
+          _shareWithTimeout(bean, context);
+        } else {
+          await _shareToBrowser('facebook', context);
+        }
+      }
+    } catch (e) {
+      print('Facebook share error: $e');
+      await _shareToBrowser('facebook', context);
+    }
+  }
+
+  Future<void> _shareToTwitter(BuildContext context) async {
+    try {
+      if (Platform.isIOS) {
+        await _shareToBrowser('twitter', context);
+      } else {
+        bool isInstalled = await SharePlugin.isClientInstalled(SharePlatforms.twitter);
+        
+        if (isInstalled) {
+          ShareParamsBean bean = ShareParamsBean(
+            contentType: LaShareContentTypes.webpage,
+            platform: SharePlatforms.twitter,
+            webUrl: url,
+            title: title,
+            text: desc,
+          );
+          
+          _shareWithTimeout(bean, context);
+        } else {
+          await _shareToBrowser('twitter', context);
+        }
+      }
+    } catch (e) {
+      print('Twitter share error: $e');
+      await _shareToBrowser('twitter', context);
+    }
+  }
+
+  Future<void> _shareToBrowser(String platform, BuildContext context) async {
+    String shareUrl = '';
+    String shareText = '${title ?? ''} ${desc ?? ''} ${url ?? ''}';
+    
+    if (platform == 'facebook') {
+      shareUrl = 'https://www.facebook.com/sharer/sharer.php?u=${Uri.encodeComponent(url ?? '')}';
+    } else if (platform == 'twitter') {
+      shareUrl = 'https://twitter.com/intent/tweet?text=${Uri.encodeComponent(shareText)}';
+    }
+    
+    if (shareUrl.isNotEmpty) {
+      try {
+        if (await canLaunchUrl(Uri.parse(shareUrl))) {
+          await launchUrl(Uri.parse(shareUrl), mode: LaunchMode.externalApplication);
+          
+          String platformName = platform == 'facebook' ? 'Facebook' : 'X (Twitter)';
+          GFToast.showToast(
+            GStorage().getLanguageCN() 
+                ? '正在通过浏览器分享到$platformName' 
+                : 'Sharing to $platformName via browser',
+            context,
+            toastPosition: GFToastPosition.CENTER,
+          );
+        } else {
+          throw 'Could not launch $shareUrl';
+        }
+      } catch (e) {
+        print('Browser share error: $e');
+        GFToast.showToast(
+          GStorage().getLanguageCN() 
+              ? '分享失败，请稍后重试' 
+              : 'Share failed, please try again',
+          context,
+          toastPosition: GFToastPosition.CENTER,
+        );
+      }
+    }
+  }
+
+  void _shareWithTimeout(ShareParamsBean bean, BuildContext context) {
+    bool hasResponded = false;
+    
+    Timer(Duration(seconds: 5), () {
+      if (!hasResponded) {
+        hasResponded = true;
+        GFToast.showToast(
+          'share timeout, please check if app is installed'.tr,
+          context,
+          toastPosition: GFToastPosition.CENTER,
+        );
+      }
+    });
+    
+    SharePlugin.share(
+      bean,
+      (platformId) {
+        if (!hasResponded) {
+          hasResponded = true;
+          GFToast.showToast(
+            GStorage().getLanguageCN()
+                ? '分享平台尚未安装'
+                : 'Sharing platform is not yet installed',
+            context,
+            toastPosition: GFToastPosition.CENTER,
+          );
+        }
+      },
+      () {
+        if (!hasResponded) {
+          hasResponded = true;
+          GFToast.showToast(
+            'share success'.tr,
+            context,
+            toastPosition: GFToastPosition.CENTER,
+          );
+          print('share success');
+        }
+      },
+      (errorCode, errorMessage) {
+        if (!hasResponded) {
+          hasResponded = true;
+          GFToast.showToast(
+            'share faild'.tr,
+            context,
+            toastPosition: GFToastPosition.CENTER,
+          );
+          print('share failed: $errorCode - $errorMessage');
+        }
+      },
+    );
+  }
+
   _share(ShareParamsBean bean, BuildContext context) {
     SharePlugin.share(
       bean,
@@ -241,13 +374,13 @@ class SocialShareWidget extends StatelessWidget {
         );
         print('share success');
       },
-      () {
+      (errorCode, errorMessage) {
         GFToast.showToast(
           'share faild'.tr,
           context,
           toastPosition: GFToastPosition.CENTER,
         );
-        print('share faild');
+        print('share failed: $errorCode - $errorMessage');
       },
     );
   }
