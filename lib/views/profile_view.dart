@@ -107,6 +107,11 @@ class _ProfileViewState extends State<ProfileView>
         if (currentTabIndex.value == 1 && postTabIndex.value == 3) {
           _loadFavoritePosts(isRefresh: true);
         }
+
+        // 如果当前是我的发布+帖子标签，预加载用户发布的帖子列表
+        if (currentTabIndex.value == 0 && postTabIndex.value == 3) {
+          _loadUserPosts(isRefresh: true);
+        }
       }
     });
 
