@@ -103,7 +103,7 @@ class _JobViewState extends State<JobView> {
       child: Container(
         height: 44,
         decoration: BoxDecoration(
-          color: Colors.grey[200],
+          color: Color(0xFFF4F7FD),
           borderRadius: BorderRadius.circular(22),
         ),
         child: TextField(
@@ -120,7 +120,7 @@ class _JobViewState extends State<JobView> {
           },
           textAlignVertical: TextAlignVertical.center, // 确保文字垂直居中
           decoration: InputDecoration(
-            hintText: '请输入关键字搜岗位',
+            hintText: '请输入关键字搜索岗位',
             hintStyle: TextStyle(color: Colors.grey[500], fontSize: 14),
             prefixIcon: Obx(
               () =>
@@ -518,109 +518,122 @@ class _JobViewState extends State<JobView> {
   }
 
   Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            jobController.hasSearched.value ? '没有找到相关职位' : '没有符合条件的职位',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey[700],
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            jobController.hasSearched.value ? '请尝试其他关键词' : '请尝试其他搜索条件',
-            style: TextStyle(fontSize: 14, color: Colors.grey[500]),
-          ),
-          if (jobController.hasSearched.value) ...[
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                jobController.clearSearch();
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xff2164EB),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 12,
-                ),
+    return Container(
+      color: const Color(0xFFF4F7FD), // 添加与列表相同的背景色
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 100), // 向上偏移，避免过于靠下
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center, // 确保水平居中对齐
+            children: [
+              // 使用search_result.png作为背景图标
+              Image.asset(
+                'assets/images/search_result.png',
+                width: 120,
+                height: 120,
               ),
-              child: const Text('清除搜索', style: TextStyle(color: Colors.white)),
-            ),
-          ],
-        ],
+              const SizedBox(height: 20), // 减少间距使更紧凑
+              // 底部提示文字
+              Text(
+                '没有符合条件的职位',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey[600],
+                ),
+                textAlign: TextAlign.center, // 确保文字居中
+              ),
+              if (jobController.hasSearched.value) ...[
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: () {
+                    jobController.clearSearch();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xff2164EB),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                  ),
+                  child: const Text('清除搜索', style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }
 
   Widget _buildJobList() {
-    return RefreshIndicator(
-      onRefresh: jobController.onRefresh,
-      child: NotificationListener<ScrollNotification>(
-        onNotification: (ScrollNotification scrollInfo) {
-          if (!jobController.isLoadingMore.value &&
-              scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent) {
-            jobController.onLoading();
-          }
-          return false;
-        },
-        child: Obx(() {
-          // 检查是否正在加载
-          if (jobController.jobs.isEmpty && jobController.isLoading.value) {
-            return const Center(child: CircularProgressIndicator());
-          }
+    return Container(
+      color: const Color(0xFFF4F7FD), // 添加背景色
+      child: RefreshIndicator(
+        onRefresh: jobController.onRefresh,
+        child: NotificationListener<ScrollNotification>(
+          onNotification: (ScrollNotification scrollInfo) {
+            if (!jobController.isLoadingMore.value &&
+                scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent) {
+              jobController.onLoading();
+            }
+            return false;
+          },
+          child: Obx(() {
+            // 检查是否正在加载
+            if (jobController.jobs.isEmpty && jobController.isLoading.value) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-          // 检查是否搜索无结果
-          if (jobController.jobs.isEmpty &&
-              jobController.hasSearched.value &&
-              jobController.noResults.value) {
-            return _buildEmptyState();
-          }
+            // 检查是否搜索无结果
+            if (jobController.jobs.isEmpty &&
+                jobController.hasSearched.value &&
+                jobController.noResults.value) {
+              return _buildEmptyState();
+            }
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(16.0),
-            itemCount:
-                jobController.jobs.length +
-                (jobController.isLoadingMore.value ||
-                        jobController.hasMore.value
-                    ? 1
-                    : 0),
-            itemBuilder: (context, index) {
-              if (index == jobController.jobs.length) {
-                // 底部加载更多指示器
-                return Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child:
-                        jobController.isLoadingMore.value
-                            ? const CircularProgressIndicator()
-                            : jobController.hasMore.value
-                            ? TextButton(
-                              onPressed: () => jobController.onLoading(),
-                              child: const Text('加载更多'),
-                            )
-                            : Text(
-                              '没有更多职位了',
-                              style: TextStyle(color: Colors.grey[500]),
-                            ),
-                  ),
+            return ListView.builder(
+              padding: const EdgeInsets.all(16.0),
+              itemCount:
+                  jobController.jobs.length +
+                  (jobController.isLoadingMore.value ||
+                          jobController.hasMore.value
+                      ? 1
+                      : 0),
+              itemBuilder: (context, index) {
+                if (index == jobController.jobs.length) {
+                  // 底部加载更多指示器
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child:
+                          jobController.isLoadingMore.value
+                              ? const CircularProgressIndicator()
+                              : jobController.hasMore.value
+                              ? TextButton(
+                                onPressed: () => jobController.onLoading(),
+                                child: const Text('加载更多'),
+                              )
+                              : Text(
+                                '没有更多职位了',
+                                style: TextStyle(color: Colors.grey[500]),
+                              ),
+                    ),
+                  );
+                }
+                // 正常的工作项
+                final job = jobController.jobs[index];
+                return Padding(
+                  padding: const EdgeInsets.only(bottom:16),
+                  child: _buildJobItem(job),
                 );
-              }
-              // 正常的工作项
-              final job = jobController.jobs[index];
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: _buildJobItem(job),
-              );
-            },
-          );
-        }),
+              },
+            );
+          }),
+        ),
       ),
     );
   }
@@ -645,7 +658,7 @@ class _JobViewState extends State<JobView> {
         jobController.navigateToJobDetail(job);
       },
       child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
+        // margin: const EdgeInsets.only(bottom: 1),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(8),

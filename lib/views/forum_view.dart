@@ -593,7 +593,7 @@ class _ForumViewState extends State<ForumView>
                       child: Container(
                         height: 40,
                         decoration: BoxDecoration(
-                          color: Colors.grey[100],
+                          color: Color(0xFFF4F7FD),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Row(
@@ -845,128 +845,169 @@ class _ForumViewState extends State<ForumView>
         hasMoreDataState = hasMoreData;
     }
 
-    return RefreshIndicator(
-      onRefresh: _onRefresh,
-      child: NotificationListener<ScrollNotification>(
-        onNotification: (ScrollNotification scrollInfo) {
-          if (!isLoadingMore.value &&
-              scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent) {
-            _onLoadMore();
-          }
-          return false;
-        },
-        child: Obx(() {
-          if (isLoadingState.value && articleList.isEmpty) {
-            // 首次加载显示加载指示器
-            return const Center(
-              child: Padding(
-                padding: EdgeInsets.all(16.0),
-                child: CircularProgressIndicator(),
-              ),
-            );
-          } else if (isErrorState.value && articleList.isEmpty) {
-            // 显示错误信息
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.error_outline, size: 48, color: Colors.grey[400]),
-                  const SizedBox(height: 16),
-                  Text(
-                    '加载失败',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey[700],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    errorMessageState.value,
-                    style: TextStyle(color: Colors.grey[600]),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton.icon(
-                    onPressed: _onRefresh,
-                    icon: const Icon(Icons.refresh, color: Colors.white),
-                    label: const Text(
-                      '重试',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF2563EB),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
+    return Container(
+      color: const Color(0xFFF4F7FD), // 添加背景色
+      child: RefreshIndicator(
+        onRefresh: _onRefresh,
+        child: NotificationListener<ScrollNotification>(
+          onNotification: (ScrollNotification scrollInfo) {
+            if (!isLoadingMore.value &&
+                scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent) {
+              _onLoadMore();
+            }
+            return false;
+          },
+          child: Obx(() {
+            if (isLoadingState.value && articleList.isEmpty) {
+              // 首次加载显示加载指示器
+              return const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: CircularProgressIndicator(),
+                ),
+              );
+            } else if (isErrorState.value && articleList.isEmpty) {
+              // 显示错误信息
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.error_outline, size: 48, color: Colors.grey[400]),
+                    const SizedBox(height: 16),
+                    Text(
+                      '加载失败',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[700],
                       ),
                     ),
-                  ),
-                ],
-              ),
-            );
-          } else if (articleList.isEmpty) {
-            // 没有数据
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.article_outlined,
-                    size: 48,
-                    color: Colors.grey[400],
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    '暂无内容',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey[700],
+                    const SizedBox(height: 8),
+                    Text(
+                      errorMessageState.value,
+                      style: TextStyle(color: Colors.grey[600]),
+                      textAlign: TextAlign.center,
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    '暂时没有相关文章',
-                    style: TextStyle(color: Colors.grey[600]),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            );
-          }
-
-          // 显示文章列表
-          return ListView.builder(
-            padding: const EdgeInsets.only(bottom: 70), // 为底部发布按钮留出空间
-            itemCount:
-                articleList.length +
-                (isLoadingMore.value || hasMoreDataState.value ? 1 : 0),
-            itemBuilder: (context, index) {
-              if (index == articleList.length) {
-                // 底部加载更多指示器
-                return Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child:
-                        isLoadingMore.value
-                            ? const CircularProgressIndicator()
-                            : hasMoreDataState.value
-                            ? TextButton(
-                              onPressed: _onLoadMore,
-                              child: const Text('加载更多'),
-                            )
-                            : Text(
-                              '没有更多内容了',
-                              style: TextStyle(color: Colors.grey[500]),
-                            ),
-                  ),
-                );
+                    const SizedBox(height: 24),
+                    ElevatedButton.icon(
+                      onPressed: _onRefresh,
+                      icon: const Icon(Icons.refresh, color: Colors.white),
+                      label: const Text(
+                        '重试',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF2563EB),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            } else if (articleList.isEmpty) {
+              // 检查是否有搜索关键词，如果有则显示搜索无结果页面
+              if (searchKeyword.value.isNotEmpty) {
+                return _buildForumEmptyState();
               }
-              return _buildForumCard(articleList[index]);
-            },
-          );
-        }),
+              // 没有搜索时显示普通的无内容页面
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.article_outlined,
+                      size: 48,
+                      color: Colors.grey[400],
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      '暂无内容',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[700],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '暂时没有相关文章',
+                      style: TextStyle(color: Colors.grey[600]),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            // 显示文章列表
+            return ListView.builder(
+              padding: const EdgeInsets.only(bottom: 70), // 为底部发布按钮留出空间
+              itemCount:
+                  articleList.length +
+                  (isLoadingMore.value || hasMoreDataState.value ? 1 : 0),
+              itemBuilder: (context, index) {
+                if (index == articleList.length) {
+                  // 底部加载更多指示器
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child:
+                          isLoadingMore.value
+                              ? const CircularProgressIndicator()
+                              : hasMoreDataState.value
+                              ? TextButton(
+                                onPressed: _onLoadMore,
+                                child: const Text('加载更多'),
+                              )
+                              : Text(
+                                '没有更多内容了',
+                                style: TextStyle(color: Colors.grey[500]),
+                              ),
+                    ),
+                  );
+                }
+                return _buildForumCard(articleList[index]);
+              },
+            );
+          }),
+        ),
+      ),
+    );
+  }
+
+  // 论坛无结果页面
+  Widget _buildForumEmptyState() {
+    return Container(
+      color: const Color(0xFFF4F7FD), // 添加与列表相同的背景色
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 100), // 向上偏移，避免过于靠下
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center, // 确保水平居中对齐
+            children: [
+              // 使用search_result.png作为背景图标
+              Image.asset(
+                'assets/images/search_result.png',
+                width: 120,
+                height: 120,
+              ),
+              const SizedBox(height: 20), // 减少间距使更紧凑
+              // 底部提示文字
+              Text(
+                '没有符合的帖子',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey[600],
+                ),
+                textAlign: TextAlign.center, // 确保文字居中
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
