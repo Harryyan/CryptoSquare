@@ -444,44 +444,9 @@ class JobDetailView extends GetView<JobController> {
                     }
                     // 如果是邮箱或其他信息，已经在按钮文字中显示了
                   } else {
-                    // 未购买，调用applyJobCharge接口
+                    // 未购买，先显示积分扣除确认对话框
                     if (jobDetail?.jobKey != null) {
-                      _restClient
-                          .applyJobCharge(jobDetail!.jobKey!)
-                          .then((response) {
-                            if (response.code == 0) {
-                              // 扣分成功，重新加载页面显示联系方式
-                              controller.fetchJobDetail(jobDetail.jobKey!);
-                              Get.snackbar(
-                                '成功',
-                                '已成功获取HR联系方式',
-                                snackPosition: SnackPosition.BOTTOM,
-                                backgroundColor: Colors.green,
-                                colorText: Colors.white,
-                                margin: const EdgeInsets.all(16),
-                              );
-                            } else {
-                              // 扣分失败，提示用户
-                              Get.snackbar(
-                                '提示',
-                                response.message ?? '获取HR联系方式失败，请稍后再试',
-                                snackPosition: SnackPosition.BOTTOM,
-                                backgroundColor: Colors.red,
-                                colorText: Colors.white,
-                                margin: const EdgeInsets.all(16),
-                              );
-                            }
-                          })
-                          .catchError((error) {
-                            Get.snackbar(
-                              '错误',
-                              '网络错误，请稍后再试',
-                              snackPosition: SnackPosition.BOTTOM,
-                              backgroundColor: Colors.red,
-                              colorText: Colors.white,
-                              margin: const EdgeInsets.all(16),
-                            );
-                          });
+                      _showScoreDeductionDialog(jobDetail!);
                     }
                   }
                 },
@@ -505,6 +470,80 @@ class JobDetailView extends GetView<JobController> {
           ),
         ],
       ),
+    );
+  }
+
+  // 显示积分扣除确认对话框
+  void _showScoreDeductionDialog(JobDetailData job) {
+    Get.dialog(
+      AlertDialog(
+        title: const Text('确认扣除积分'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('查看HR联系方式需要扣除 ${job.apply?.score ?? 5} 积分'),
+            const SizedBox(height: 8),
+            const Text('您确定要继续吗？', style: TextStyle(fontWeight: FontWeight.bold)),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              // 用户点击取消，关闭对话框
+              Get.back();
+            },
+            child: const Text('取消'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              // 用户点击确认，关闭对话框后执行扣分逻辑
+              Get.back();
+              
+              // 执行原有的扣分逻辑
+              _restClient.applyJobCharge(job.jobKey!).then((response) {
+                if (response.code == 0) {
+                  // 扣分成功，重新加载页面显示联系方式
+                  controller.fetchJobDetail(job.jobKey!);
+                  Get.snackbar(
+                    '成功',
+                    '已成功获取HR联系方式',
+                    snackPosition: SnackPosition.BOTTOM,
+                    backgroundColor: Colors.green,
+                    colorText: Colors.white,
+                    margin: const EdgeInsets.all(16),
+                  );
+                } else {
+                  // 扣分失败，提示用户
+                  Get.snackbar(
+                    '提示',
+                    response.message ?? '获取HR联系方式失败，请稍后再试',
+                    snackPosition: SnackPosition.BOTTOM,
+                    backgroundColor: Colors.red,
+                    colorText: Colors.white,
+                    margin: const EdgeInsets.all(16),
+                  );
+                }
+              }).catchError((error) {
+                Get.snackbar(
+                  '错误',
+                  '网络错误，请稍后再试',
+                  snackPosition: SnackPosition.BOTTOM,
+                  backgroundColor: Colors.red,
+                  colorText: Colors.white,
+                  margin: const EdgeInsets.all(16),
+                );
+              });
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('确认'),
+          ),
+        ],
+      ),
+      barrierDismissible: false, // 防止用户点击外部关闭对话框
     );
   }
 }
