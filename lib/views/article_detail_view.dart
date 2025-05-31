@@ -503,37 +503,56 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
     );
   }
 
-  Widget _buildArticleTags() {
-    final tags = _articleData?.extension?.tag;
-    if (tags == null || tags.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Wrap(
-        spacing: 8,
-        runSpacing: 8,
-        children:
-            tags.map((tag) {
-              return Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF4F7FD),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Text(
-                  tag.toString(),
-                  style: TextStyle(color: Colors.grey[800], fontSize: 12),
-                ),
-              );
-            }).toList(),
-      ),
-    );
+Widget _buildArticleTags() {
+  final tags = _articleData?.extension?.tag;
+  if (tags == null || tags.isEmpty) {
+    return const SizedBox.shrink();
   }
+
+  // 过滤：只保留 value 字段不为 null 且去掉空白后长度 > 0 的标签
+  final nonEmptyTags = tags.where((tag) {
+    // 假设 tag 是一个 Map 或者一个有 value 属性的对象
+    final rawValue = tag is Map
+        ? tag['value']
+        : (tag.value); // 如果是自定义类，使用 tag.value
+    if (rawValue == null) return false;
+    final str = rawValue.toString().trim();
+    return str.isNotEmpty;
+  }).toList();
+
+  if (nonEmptyTags.isEmpty) {
+    return const SizedBox.shrink();
+  }
+
+  return Padding(
+    padding: const EdgeInsets.all(16.0),
+    child: Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: nonEmptyTags.map((tag) {
+        final rawValue = tag is Map
+            ? tag['value']
+            : (tag.value);
+        final text = rawValue.toString().trim();
+
+        return Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 6,
+          ),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF4F7FD),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Text(
+            text,
+            style: TextStyle(color: Colors.grey[800], fontSize: 12),
+          ),
+        );
+      }).toList(),
+    ),
+  );
+}
 
   Widget _buildArticleStats() {
     return const SizedBox.shrink(); // 移除统计信息显示
