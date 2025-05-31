@@ -194,7 +194,7 @@ class _MainViewState extends State<MainView>
               }
               // 未登录或没有头像时显示默认头像
               return Image.asset(
-                'assets/images/avatar.png',
+                'assets/images/avatar2.png',
                 height: 40,
                 width: 40,
               );
