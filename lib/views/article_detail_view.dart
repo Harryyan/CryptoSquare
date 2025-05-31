@@ -1035,7 +1035,63 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
         Navigator.pop(context);
 
         // 重新加载评论列表
-        _loadArticleComments();
+        await _loadArticleComments();
+        
+        // 更新评论数量：当_comments不为null时，使用实际评论数量更新_articleData
+        if (_comments != null && _articleData != null) {
+          setState(() {
+            // 计算顶级评论数量（不包括回复）
+            final topLevelComments = _comments!
+                .where((comment) => comment.parentComment == null || comment.parentComment == 0)
+                .toList();
+            
+            // 计算总评论数量（包括回复）
+            int totalComments = topLevelComments.length;
+            for (final comment in topLevelComments) {
+              totalComments += (comment.reply?.length ?? 0);
+            }
+            
+            // 更新文章数据中的评论数量
+            _articleData = ArticleDetailData(
+              id: _articleData!.id,
+              title: _articleData!.title,
+              content: _articleData!.content,
+              user: _articleData!.user,
+              status: _articleData!.status,
+              type: _articleData!.type,
+              createdAt: _articleData!.createdAt,
+              updatedAt: _articleData!.updatedAt,
+              lang: _articleData!.lang,
+              lastView: _articleData!.lastView,
+              lastViewUser: _articleData!.lastViewUser,
+              replyNums: totalComments, // 更新评论数量
+              replyUser: _articleData!.replyUser,
+              ding: _articleData!.ding,
+              cai: _articleData!.cai,
+              replyTime: _articleData!.replyTime,
+              catId: _articleData!.catId,
+              origin: _articleData!.origin,
+              originLink: _articleData!.originLink,
+              createTime: _articleData!.createTime,
+              profile: _articleData!.profile,
+              hasTag: _articleData!.hasTag,
+              sh5: _articleData!.sh5,
+              startTime: _articleData!.startTime,
+              endTime: _articleData!.endTime,
+              isTop: _articleData!.isTop,
+              isHot: _articleData!.isHot,
+              contact: _articleData!.contact,
+              address: _articleData!.address,
+              trackId: _articleData!.trackId,
+              extension: _articleData!.extension,
+              userext: _articleData!.userext,
+              comments: _articleData!.comments,
+              catInfo: _articleData!.catInfo,
+              link: _articleData!.link,
+              relNews: _articleData!.relNews,
+            );
+          });
+        }
 
         // 显示成功提示
         ScaffoldMessenger.of(
