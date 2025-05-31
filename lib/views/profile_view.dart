@@ -27,7 +27,7 @@ class ProfileView extends StatefulWidget {
 }
 
 class _ProfileViewState extends State<ProfileView>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   final UserController userController = Get.find<UserController>();
   final HomeController homeController = Get.find<HomeController>();
   final JobController jobController = Get.find<JobController>();
@@ -50,6 +50,10 @@ class _ProfileViewState extends State<ProfileView>
   @override
   void initState() {
     super.initState();
+    
+    // 添加生命周期监听器
+    WidgetsBinding.instance.addObserver(this);
+    
     // TabController 仅作示例（长度4：0、1、2、3），你也可以仅用于左侧标签
     _tabController = TabController(length: 4, vsync: this, initialIndex: 2);
 
@@ -94,6 +98,9 @@ class _ProfileViewState extends State<ProfileView>
 
     // 从GStorage加载用户信息
     _loadUserInfo();
+    
+    // 每次进入页面时刷新积分
+    _refreshUserScore();
 
     // 使用addPostFrameCallback确保在构建完成后再同步用户信息到UserController
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -119,7 +126,70 @@ class _ProfileViewState extends State<ProfileView>
     eventBus.on('avatarUpdated', (_) {
       // 当头像更新时，重新加载用户信息以更新头像显示
       _loadUserInfo();
+      // 同时刷新积分
+      _refreshUserScore();
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    
+    // 当页面依赖发生变化时（比如从其他页面返回），刷新积分
+    if (mounted && GStorage().getLoginStatus()) {
+      _refreshUserScore();
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    
+    // 当应用重新获得焦点时，刷新积分
+    if (state == AppLifecycleState.resumed && mounted && GStorage().getLoginStatus()) {
+      _refreshUserScore();
+    }
+  }
+
+  /// 从后端刷新用户积分信息
+  Future<void> _refreshUserScore() async {
+    // 只有用户已登录时才刷新积分
+    if (!GStorage().getLoginStatus()) {
+      return;
+    }
+
+    try {
+      // 调用API获取最新的用户资料（包括积分）
+      final userProfile = await UserRestClient().userProfile();
+      
+      if (userProfile.code == 0 && userProfile.data != null) {
+        // 更新积分到UI
+        userScore.value = userProfile.data?.score ?? 0;
+        
+        // 同时更新存储中的用户信息
+        Map userInfo = GStorage().getUserInfo();
+        userInfo['score'] = userProfile.data?.score ?? 0;
+        
+        // 如果有新的头像或昵称信息，也一并更新
+        if (userProfile.data?.avatar != null && userProfile.data!.avatar!.isNotEmpty) {
+          userInfo['avatar'] = userProfile.data!.avatar;
+          userAvatar.value = userProfile.data!.avatar!;
+        }
+        if (userProfile.data?.nickname != null && userProfile.data!.nickname!.isNotEmpty) {
+          userInfo['userName'] = userProfile.data!.nickname;
+          userName.value = userProfile.data!.nickname!;
+        }
+        
+        // 保存更新后的用户信息
+        GStorage().setUserInfo(userInfo);
+        
+        print('用户积分刷新成功: ${userProfile.data?.score}');
+      } else {
+        print('刷新用户积分失败: ${userProfile.message}');
+      }
+    } catch (e) {
+      print('刷新用户积分异常: $e');
+    }
   }
 
   /// 从GStorage加载用户信息
@@ -174,6 +244,8 @@ class _ProfileViewState extends State<ProfileView>
 
   @override
   void dispose() {
+    // 移除生命周期监听器
+    WidgetsBinding.instance.removeObserver(this);
     _tabController.dispose();
     // 移除事件监听
     eventBus.off('avatarUpdated');
@@ -432,7 +504,7 @@ class _ProfileViewState extends State<ProfileView>
                                         );
 
                                         // 更新积分
-                                        _loadUserInfo();
+                                        _refreshUserScore();
                                       } else {
                                         // 签到失败
                                         Get.snackbar(
@@ -693,7 +765,7 @@ class _ProfileViewState extends State<ProfileView>
         return _buildMyFavoritesForumList();
       }
     }
-    return Container(); // 默认空白，或可自定义“无数据”提示
+    return Container(); // 默认空白，或可自定义"无数据"提示
   }
 
   /// [我的发布 - 帖子] 列表
