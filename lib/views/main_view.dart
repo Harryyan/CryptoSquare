@@ -216,8 +216,8 @@ class _MainViewState extends State<MainView>
           _buildTab('全球论坛', 2),
         ],
         indicatorColor: AppTheme.primaryColor,
-        indicatorWeight: 3,
-        indicatorSize: TabBarIndicatorSize.label,
+        indicatorWeight: 2,
+        indicatorSize: TabBarIndicatorSize.tab,
         dividerColor: Colors.transparent,
         labelPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
         padding: const EdgeInsets.only(left: 0, right: 8), // 修改padding，确保左侧从0开始
