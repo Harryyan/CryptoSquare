@@ -218,13 +218,13 @@ class _MainViewState extends State<MainView>
         indicatorColor: AppTheme.primaryColor,
         indicatorWeight: 2,
         indicatorSize: TabBarIndicatorSize.tab,
+        indicatorPadding: const EdgeInsets.symmetric(horizontal: 8),
         dividerColor: Colors.transparent,
         labelPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-        padding: const EdgeInsets.only(left: 0, right: 8), // 修改padding，确保左侧从0开始
+        padding: const EdgeInsets.only(left: 16, right: 8),
         onTap: (index) {
           homeController.changeTab(index);
         },
-        // 添加这个属性，确保首页Tab始终靠近左侧
         tabAlignment: TabAlignment.start,
       ),
     );
