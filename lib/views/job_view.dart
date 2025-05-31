@@ -1,5 +1,7 @@
 import 'package:cryptosquare/rest_service/rest_client.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import 'dart:async'; // 添加async导入
 import 'package:get/get.dart';
 import 'package:cryptosquare/controllers/job_controller.dart';
 import 'package:cryptosquare/theme/app_theme.dart';
@@ -18,6 +20,9 @@ class _JobViewState extends State<JobView> {
 
   // 搜索框的文本控制器
   final TextEditingController _searchController = TextEditingController();
+  
+  // 保存监听器引用，用于在dispose时取消
+  late StreamSubscription _searchQuerySubscription;
 
   // 格式化薪资为 $1,500 - $2,500 格式，如果最低和最高都是0则显示面议
   String _formatSalary(int minSalary, int maxSalary, String currency) {
@@ -57,8 +62,8 @@ class _JobViewState extends State<JobView> {
     // 初始化搜索控制器
     _searchController.text = jobController.searchQuery.value;
     // 监听搜索查询变化，更新搜索框
-    jobController.searchQuery.listen((query) {
-      if (_searchController.text != query) {
+    _searchQuerySubscription = jobController.searchQuery.listen((query) {
+      if (mounted && _searchController.text != query) {
         _searchController.text = query;
       }
     });
@@ -66,6 +71,9 @@ class _JobViewState extends State<JobView> {
 
   @override
   void dispose() {
+    // 先取消监听器
+    _searchQuerySubscription.cancel();
+    // 再dispose控制器
     _searchController.dispose();
     super.dispose();
   }
@@ -110,6 +118,7 @@ class _JobViewState extends State<JobView> {
               jobController.searchJobs(value);
             }
           },
+          textAlignVertical: TextAlignVertical.center, // 确保文字垂直居中
           decoration: InputDecoration(
             hintText: '请输入关键字搜岗位',
             hintStyle: TextStyle(color: Colors.grey[500], fontSize: 14),
@@ -117,23 +126,23 @@ class _JobViewState extends State<JobView> {
               () =>
                   jobController.isSearching.value
                       ? Container(
-                        padding: const EdgeInsets.all(10),
-                        height: 24,
-                        width: 24,
-                        child: const CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.grey,
+                        padding: const EdgeInsets.all(12), // 调整padding使spinner居中
+                        child: SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CupertinoActivityIndicator(
+                            radius: 10,
+                            color: Colors.grey[600],
                           ),
                         ),
                       )
-                      : Icon(Icons.search, color: Colors.grey[500]),
+                      : Icon(Icons.search, color: Colors.grey[500], size: 20),
             ),
             suffixIcon: Obx(
               () =>
                   jobController.searchQuery.isNotEmpty
                       ? IconButton(
-                        icon: const Icon(Icons.clear, color: Colors.grey),
+                        icon: const Icon(Icons.clear, color: Colors.grey, size: 20),
                         onPressed: () {
                           // 使用控制器的清除方法
                           jobController.clearSearch();
@@ -142,7 +151,8 @@ class _JobViewState extends State<JobView> {
                       : const SizedBox(),
             ),
             border: InputBorder.none,
-            contentPadding: const EdgeInsets.symmetric(vertical: 12),
+            contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16), // 调整vertical padding
+            isDense: true, // 使输入框更紧凑
           ),
         ),
       ),

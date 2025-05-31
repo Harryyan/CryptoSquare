@@ -1,5 +1,6 @@
 import 'package:cryptosquare/util/storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'dart:io';
@@ -27,7 +28,7 @@ class _ForumViewState extends State<ForumView>
   final RxBool isLoadingMore = false.obs;
   final RxBool hasSearchText = false.obs;
   final RxBool isNetworkAvailable = true.obs; // 网络连接状态
-  final RxBool isSearching = false.obs; // 搜索状态
+  final RxBool isSearching = false.obs; // 搜索状态ggg
   final RxString searchKeyword = ''.obs; // 搜索关键词
 
   // 防抖计时器
@@ -605,8 +606,8 @@ class _ForumViewState extends State<ForumView>
                                       ? SizedBox(
                                         width: 20,
                                         height: 20,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
+                                        child: CupertinoActivityIndicator(
+                                          radius: 10,
                                           color: Colors.grey[400],
                                         ),
                                       )
@@ -646,6 +647,7 @@ class _ForumViewState extends State<ForumView>
                                     },
                                   );
                                 },
+                                textAlignVertical: TextAlignVertical.center, // 确保文字垂直居中
                                 decoration: InputDecoration(
                                   hintText: '搜索',
                                   hintStyle: TextStyle(
@@ -654,11 +656,10 @@ class _ForumViewState extends State<ForumView>
                                   ),
                                   border: InputBorder.none,
                                   contentPadding: const EdgeInsets.symmetric(
-                                    vertical: 10,
+                                    vertical: 0, // 调整垂直padding为0
                                   ),
-                                  isDense: true,
+                                  isDense: true, // 使输入框更紧凑
                                 ),
-                                textAlignVertical: TextAlignVertical.center,
                               ),
                             ),
                             Obx(
