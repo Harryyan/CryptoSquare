@@ -216,7 +216,7 @@ class _JobViewState extends State<JobView> {
                   color:
                       selectedValues.isEmpty
                           ? Colors.grey[700]
-                          : AppTheme.primaryColor,
+                          : Color(0xff2164EB),
                   fontWeight:
                       selectedValues.isEmpty
                           ? FontWeight.normal
@@ -356,7 +356,7 @@ class _JobViewState extends State<JobView> {
                             Get.back();
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppTheme.primaryColor,
+                            backgroundColor: Color(0xff2164EB),
                             minimumSize: const Size(double.infinity, 40),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
@@ -542,7 +542,7 @@ class _JobViewState extends State<JobView> {
                 jobController.clearSearch();
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryColor,
+                backgroundColor: Color(0xff2164EB),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
