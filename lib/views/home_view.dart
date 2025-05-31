@@ -205,7 +205,7 @@ class HomeView extends StatelessWidget {
           const SizedBox(height: 8),
           const Text(
             '我们正在帮助更多人进入 Web3',
-            style: TextStyle(color: AppTheme.subtitleColor, fontSize: 14),
+            style: TextStyle(color: Color(0xff575D6A), fontSize: 14),
           ),
           const SizedBox(height: 16),
           Obx(() {
@@ -904,7 +904,7 @@ class HomeView extends StatelessWidget {
     );
     // 使用DateFormat格式化为指定格式
     final String formattedTime = DateFormat(
-      'yyyy-MM-dd HH:mm',
+      'MM-dd HH:mm',
     ).format(newsTime);
 
     return GestureDetector(
