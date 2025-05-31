@@ -237,10 +237,7 @@ class _MainViewState extends State<MainView>
           title,
           style: TextStyle(
             fontSize: 16,
-            color:
-                homeController.currentTabIndex.value == index
-                    ? AppTheme.primaryColor
-                    : Colors.black54,
+            color:Colors.black,
             fontWeight:
                 homeController.currentTabIndex.value == index
                     ? FontWeight.bold
