@@ -959,7 +959,10 @@ class HomeView extends StatelessWidget {
 
     Get.bottomSheet(
       Container(
-        height: Get.height * 0.8, // 设置弹窗高度为屏幕高度的80%
+        constraints: BoxConstraints(
+          maxHeight: Get.height * 0.85, // 最大高度限制
+          minHeight: Get.height * 0.3,  // 最小高度限制
+        ),
         decoration: const BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.only(
@@ -968,6 +971,7 @@ class HomeView extends StatelessWidget {
           ),
         ),
         child: Column(
+          mainAxisSize: MainAxisSize.min, // 让Column自适应内容高度
           children: [
             // 顶部标题栏
             Container(
@@ -982,6 +986,7 @@ class HomeView extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  // 恢复原始设计的Web3动态标签
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -1019,8 +1024,8 @@ class HomeView extends StatelessWidget {
                 ],
               ),
             ),
-            // 内容区域
-            Expanded(
+            // 内容区域 - 使用Flexible而不是Expanded，让内容自适应
+            Flexible(
               child: SingleChildScrollView(
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -1045,26 +1050,37 @@ class HomeView extends StatelessWidget {
                       const SizedBox(height: 16),
                       Text(content, style: const TextStyle(fontSize: 16)),
                       const SizedBox(height: 24),
-                      // 声明文字（从底部移到内容区域内）
-                      Container(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[100],
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: const Text(
-                          '以上内容由CryptoSquare合作伙伴BitPush提供，不构成任何投资建议。',
-                          style: TextStyle(
-                            color: AppTheme.subtitleColor,
-                            fontSize: 12,
-                          ),
-                          textAlign: TextAlign.left,
-                        ),
-                      ),
                     ],
                   ),
                 ),
               ),
+            ),
+            // 底部固定区域 - 分割线和声明文字
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // 分割线
+                Container(
+                  height: 1,
+                  color: Colors.grey[300],
+                ),
+                // 声明文字
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16.0),
+                  color: Colors.white,
+                  child: const Text(
+                    '以上内容由CryptoSquare合作伙伴BitPush提供，不构成任何投资建议。',
+                    style: TextStyle(
+                      color: Color(0xFF91929E), // 更改文字颜色为#91929E
+                      fontSize: 12,
+                    ),
+                    textAlign: TextAlign.left,
+                  ),
+                ),
+                // 增加底部安全区域间距
+                SizedBox(height: MediaQuery.of(Get.context!).padding.bottom + 16),
+              ],
             ),
           ],
         ),
