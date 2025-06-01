@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class AppTheme {
   static const Color primaryColor = Color(0xFF1976D2);
@@ -32,6 +33,13 @@ class AppTheme {
         color: textColor,
         fontSize: 18,
         fontWeight: FontWeight.bold,
+      ),
+      systemOverlayStyle: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
+        systemNavigationBarColor: backgroundColor,
+        systemNavigationBarIconBrightness: Brightness.dark,
       ),
     ),
     tabBarTheme: const TabBarTheme(
@@ -75,6 +83,13 @@ class AppTheme {
         color: darkTextColor,
         fontSize: 18,
         fontWeight: FontWeight.bold,
+      ),
+      systemOverlayStyle: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
+        systemNavigationBarColor: darkBackgroundColor,
+        systemNavigationBarIconBrightness: Brightness.light,
       ),
     ),
     tabBarTheme: TabBarTheme(
