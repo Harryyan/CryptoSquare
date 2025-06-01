@@ -2,6 +2,7 @@ import 'package:cryptosquare/controllers/job_controller.dart';
 import 'package:cryptosquare/controllers/home_controller.dart';
 import 'package:cryptosquare/models/app_models.dart';
 import 'package:cryptosquare/rest_service/rest_client.dart';
+import 'package:cryptosquare/views/page_login.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_html/flutter_html.dart';
@@ -483,13 +484,34 @@ class JobDetailView extends GetView<JobController> {
                 onPressed: () {
                   // 检查用户是否登录
                   if (!userController.isLoggedIn) {
-                    Get.snackbar(
-                      '提示',
-                      '请先登录后再查看HR联系方式',
-                      snackPosition: SnackPosition.BOTTOM,
-                      backgroundColor: Colors.grey[800],
-                      colorText: Colors.white,
-                      margin: const EdgeInsets.all(16),
+                    Get.dialog(
+                      AlertDialog(
+                        title: const Text('提示'),
+                        content: const Text('请先登录后再查看HR联系方式'),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              // 用户点击取消，关闭对话框
+                              Get.back();
+                            },
+                            child: const Text('取消'),
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              // 用户点击去登录，关闭对话框后跳转到登录页面
+                              Get.back();
+                              // 跳转到登录页面
+                               Get.to(() => const LoginPage());
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.primaryColor,
+                              foregroundColor: Colors.white,
+                            ),
+                            child: const Text('去登录'),
+                          ),
+                        ],
+                      ),
+                      barrierDismissible: true, // 允许用户点击外部关闭对话框
                     );
                     return;
                   }
@@ -620,13 +642,34 @@ class JobDetailView extends GetView<JobController> {
     // 检查用户是否已登录
     final UserController userController = Get.find<UserController>();
     if (!userController.isLoggedIn) {
-      Get.snackbar(
-        '提示',
-        '请先登录后再收藏岗位',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.grey[800],
-        colorText: Colors.white,
-        margin: const EdgeInsets.all(16),
+      Get.dialog(
+        AlertDialog(
+          title: const Text('提示'),
+          content: const Text('请先登录后再收藏岗位'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                // 用户点击取消，关闭对话框
+                Get.back();
+              },
+              child: const Text('取消'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                // 用户点击去登录，关闭对话框后跳转到登录页面
+                Get.back();
+                // 跳转到登录页面
+                Get.to(() => const LoginPage());
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryColor,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('去登录'),
+            ),
+          ],
+        ),
+        barrierDismissible: true, // 允许用户点击外部关闭对话框
       );
       return;
     }
