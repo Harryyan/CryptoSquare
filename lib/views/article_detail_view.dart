@@ -117,7 +117,7 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
       final client = RestClient();
       final response = await client.getArticleComments(
         widget.articleId,
-        GStorage().getLanguageCN() ? 1 : 0, // 默认使用中文，可以根据实际需求修改
+        GStorage().getLanguageCN() ? 0 : 1, // 默认使用中文，可以根据实际需求修改
         Platform.isAndroid ? "android" : "ios", // 平台标识
       );
 
