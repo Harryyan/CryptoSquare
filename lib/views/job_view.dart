@@ -7,6 +7,7 @@ import 'package:cryptosquare/controllers/job_controller.dart';
 import 'package:cryptosquare/theme/app_theme.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:cryptosquare/util/tag_utils.dart';
+import 'package:flutter/rendering.dart';
 
 class JobView extends StatefulWidget {
   JobView({super.key});
@@ -15,7 +16,7 @@ class JobView extends StatefulWidget {
   State<JobView> createState() => _JobViewState();
 }
 
-class _JobViewState extends State<JobView> {
+class _JobViewState extends State<JobView> with AutomaticKeepAliveClientMixin {
   final JobController jobController = Get.put(JobController());
 
   // 搜索框的文本控制器
@@ -23,6 +24,9 @@ class _JobViewState extends State<JobView> {
   
   // 保存监听器引用，用于在dispose时取消
   late StreamSubscription _searchQuerySubscription;
+
+  @override
+  bool get wantKeepAlive => true;
 
   // 格式化薪资为 $1,500 - $2,500 格式，如果最低和最高都是0则显示面议
   String _formatSalary(int minSalary, int maxSalary, String currency) {
@@ -80,6 +84,7 @@ class _JobViewState extends State<JobView> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       body: Column(
         children: [

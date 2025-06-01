@@ -1,4 +1,6 @@
+import 'package:cryptosquare/theme/app_theme.dart';
 import 'package:cryptosquare/util/storage.dart';
+import 'package:cryptosquare/views/page_login.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
@@ -11,6 +13,7 @@ import 'package:cryptosquare/model/article_list.dart';
 import 'package:cryptosquare/controllers/article_controller.dart';
 import 'package:cryptosquare/controllers/user_controller.dart';
 import 'package:cryptosquare/views/post_create_view.dart';
+import 'package:flutter/rendering.dart';
 
 class ForumView extends StatefulWidget {
   const ForumView({super.key});
@@ -20,7 +23,7 @@ class ForumView extends StatefulWidget {
 }
 
 class _ForumViewState extends State<ForumView>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   late TabController _tabController;
   final RxInt currentTabIndex = 0.obs;
   final TextEditingController _searchController = TextEditingController();
@@ -66,6 +69,9 @@ class _ForumViewState extends State<ForumView>
 
   // RestClient实例
   late RestClient _restClient;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -165,12 +171,35 @@ class _ForumViewState extends State<ForumView>
               // 检查用户是否已登录
               final userController = Get.find<UserController>();
               if (!userController.isLoggedIn) {
-                // 用户未登录，显示提示
-                Get.snackbar(
-                  '提示',
-                  '请先登录后再发布动态',
-                  snackPosition: SnackPosition.BOTTOM,
-                  duration: const Duration(seconds: 2),
+                // 用户未登录，显示居中对话框提示
+                Get.dialog(
+                  AlertDialog(
+                    title: const Text('提示'),
+                    content: const Text('请先登录后再发布动态'),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          // 用户点击取消，关闭对话框
+                          Get.back();
+                        },
+                        child: const Text('取消'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          // 用户点击去登录，关闭对话框后跳转到登录页面
+                          Get.back();
+                          // 跳转到登录页面
+                          Get.to(() => const LoginPage());
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.primaryColor,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: const Text('去登录'),
+                      ),
+                    ],
+                  ),
+                  barrierDismissible: true, // 允许用户点击外部关闭对话框
                 );
                 return;
               }
@@ -540,6 +569,7 @@ class _ForumViewState extends State<ForumView>
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       backgroundColor: Colors.grey[100],
       body: SafeArea(

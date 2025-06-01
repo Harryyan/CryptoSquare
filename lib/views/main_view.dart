@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:cryptosquare/controllers/home_controller.dart';
+import 'package:cryptosquare/controllers/job_controller.dart';
 import 'package:cryptosquare/controllers/user_controller.dart';
 import 'package:cryptosquare/views/home_view.dart';
 import 'package:cryptosquare/views/job_view.dart';
@@ -36,9 +37,11 @@ class _MainViewState extends State<MainView>
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    
     // 监听Tab切换，确保UI更新与控制器同步
     _tabController.addListener(() {
       if (_tabController.indexIsChanging) {
+        // 只在用户手势切换时更新HomeController
         homeController.changeTab(_tabController.index);
       }
     });
@@ -124,6 +127,21 @@ class _MainViewState extends State<MainView>
     }
   }
 
+  // 当切换到JobView时确保数据刷新
+  void _refreshJobViewIfNeeded() {
+    try {
+      // 尝试获取JobController，如果不存在则创建
+      final jobController = Get.find<JobController>();
+      // 只在真正需要时刷新：首次加载或数据为空
+      if (jobController.isFirstLoad.value || jobController.jobs.isEmpty) {
+        jobController.fetchJobs(isRefresh: true);
+      }
+    } catch (e) {
+      // JobController不存在时不做处理，它会在JobView构建时自动创建并加载数据
+      print('JobController not found, will be initialized when JobView is built');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -135,7 +153,9 @@ class _MainViewState extends State<MainView>
             _buildTabBar(),
             Expanded(
               child: Obx(() {
-                switch (homeController.currentTabIndex.value) {
+                // 移除key，避免每次tab切换时widget重建导致不必要的刷新
+                final currentTab = homeController.currentTabIndex.value;
+                switch (currentTab) {
                   case 0:
                     return HomeView();
                   case 1:
@@ -223,7 +243,16 @@ class _MainViewState extends State<MainView>
         labelPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
         padding: const EdgeInsets.only(left: 16, right: 8),
         onTap: (index) {
+          // 确保同时更新TabController和HomeController
+          if (_tabController.index != index) {
+            _tabController.animateTo(index);
+          }
           homeController.changeTab(index);
+          
+          // 当切换到JobView时，确保数据刷新
+          if (index == 1) {
+            _refreshJobViewIfNeeded();
+          }
         },
         tabAlignment: TabAlignment.start,
       ),
