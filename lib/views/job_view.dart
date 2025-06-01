@@ -653,12 +653,20 @@ class _JobViewState extends State<JobView> {
             ? '${DateTime.now().difference(DateTime.parse(job.createdAt!)).inDays}天前'
             : '未知';
 
+    // 处理title，从"xxx|xxx|xxx"格式中提取第二个部分
+    String processedTitle = job.jobTitle ?? '未知职位';
+    if (processedTitle.contains('|')) {
+      final titleParts = processedTitle.split('|');
+      if (titleParts.length >= 2) {
+        processedTitle = titleParts[1].trim(); // 取第二个部分并去除空格
+      }
+    }
+
     return GestureDetector(
       onTap: () {
         jobController.navigateToJobDetail(job);
       },
       child: Container(
-        // margin: const EdgeInsets.only(bottom: 1),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(8),
@@ -677,26 +685,20 @@ class _JobViewState extends State<JobView> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
                     child: Text(
-                      // 如果薪资为面议且标题以|面议结尾，则删除|面议
-                      (job.minSalary == 0 &&
-                              job.maxSalary == 0 &&
-                              (job.jobTitle?.endsWith('|面议') ?? false))
-                          ? job.jobTitle!.substring(0, job.jobTitle!.length - 3)
-                          : job.jobTitle ?? '未知职位',
+                      processedTitle,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
                         color: Colors.black,
                       ),
                       overflow: TextOverflow.ellipsis,
-                      maxLines: 2,
+                      maxLines: 1,
                     ),
                   ),
-                  const SizedBox(width: 16), // 添加固定间距
                   Text(
                     salary,
                     style: TextStyle(
@@ -726,23 +728,19 @@ class _JobViewState extends State<JobView> {
               ),
               const SizedBox(height: 8),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Flexible(
-                    child: Row(
+                  Expanded(
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
                       children: [
-                        _buildJobTag(job.jobPosition ?? '远程'),
-                        const SizedBox(width: 8),
-                        ...tagList.take(2).map((tag) {
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 8),
-                            child: _buildJobTag(tag),
-                          );
-                        }).toList(),
+                        if (job.jobPosition?.isNotEmpty == true) _buildJobTag(job.jobPosition!),
+                        ...tagList.where((tag) => tag.isNotEmpty).map((tag) => _buildJobTag(tag)).toList(),
                       ],
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 12),
                   GestureDetector(
                     onTap:
                         () => jobController.toggleFavorite(
