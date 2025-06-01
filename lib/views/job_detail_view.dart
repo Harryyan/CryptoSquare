@@ -1,4 +1,6 @@
 import 'package:cryptosquare/controllers/job_controller.dart';
+import 'package:cryptosquare/controllers/home_controller.dart';
+import 'package:cryptosquare/models/app_models.dart';
 import 'package:cryptosquare/rest_service/rest_client.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -676,6 +678,58 @@ class JobDetailView extends GetView<JobController> {
         
         controller.currentJobDetail.value = updatedJobDetail;
         
+        // 同步更新首页HomeController中的job收藏状态
+        try {
+          final homeController = Get.find<HomeController>();
+          final homeJobIndex = homeController.jobs.indexWhere((job) => job.jobKey == jobDetail.jobKey);
+          if (homeJobIndex != -1) {
+            final homeJob = homeController.jobs[homeJobIndex];
+            homeController.jobs[homeJobIndex] = JobPost(
+              id: homeJob.id,
+              title: homeJob.title,
+              company: homeJob.company,
+              location: homeJob.location,
+              salary: homeJob.salary,
+              timeAgo: homeJob.timeAgo,
+              createdAt: homeJob.createdAt,
+              tags: homeJob.tags,
+              jobKey: homeJob.jobKey,
+              isFavorite: isCollected,
+            );
+          }
+        } catch (e) {
+          print('更新首页收藏状态失败: $e');
+        }
+        
+        // 同步更新JobController中的job收藏状态
+        try {
+          final jobController = Get.find<JobController>();
+          final jobIndex = jobController.jobs.indexWhere((job) => job.jobKey == jobDetail.jobKey);
+          if (jobIndex != -1) {
+            final job = jobController.jobs[jobIndex];
+            final updatedJob = JobData(
+              slug: job.slug,
+              id: job.id,
+              jobKey: job.jobKey,
+              jobTitle: job.jobTitle,
+              jobPosition: job.jobPosition,
+              createdAt: job.createdAt,
+              tags: job.tags,
+              jobCompany: job.jobCompany,
+              jobSalaryType: job.jobSalaryType,
+              jobSalaryUnit: job.jobSalaryUnit,
+              jobSalaryCurrency: job.jobSalaryCurrency,
+              minSalary: job.minSalary,
+              maxSalary: job.maxSalary,
+              jobIsCollect: isCollected ? 1 : 0,
+            );
+            jobController.jobs[jobIndex] = updatedJob;
+            jobController.jobs.refresh();
+          }
+        } catch (e) {
+          print('更新工作列表收藏状态失败: $e');
+        }
+        
         // 显示成功提示
         Get.snackbar(
           '',
@@ -693,7 +747,7 @@ class JobDetailView extends GetView<JobController> {
               fontSize: 16,
               fontWeight: FontWeight.w500,
             ),
-            textAlign: TextAlign.center,
+            textAlign: TextAlign.left,
           ),
         );
       } else {
