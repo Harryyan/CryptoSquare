@@ -99,7 +99,7 @@ class SocialShareWidget extends StatelessWidget {
                     _buildShareItem(
                       context,
                       "assets/images/copy-share.png",
-                      "copy link",
+                      "拷贝链接",
                       () => _copyLink(context),
                     ),
                     _buildShareItem(
