@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:cryptosquare/controllers/user_controller.dart';
 import 'package:cryptosquare/l10n/l18n_keywords.dart';
+import 'package:cryptosquare/theme/app_theme.dart';
 import 'package:cryptosquare/util/storage.dart';
 import 'package:cryptosquare/views/page_login.dart';
 import 'package:cryptosquare/widget/social_share_widget.dart';
@@ -878,8 +879,36 @@ Widget _buildArticleTags() {
             onPressed: () {
               // 检查用户是否已登录
               if (!userController.isLoggedIn && !GStorage().getLoginStatus()) {
-                // 未登录，跳转到登录页面
-                Get.to(() => const LoginPage());
+                // 未登录，显示居中对话框提示
+                Get.dialog(
+                  AlertDialog(
+                    title: const Text('提示'),
+                    content: const Text('请先登录后再发布评论'),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          // 用户点击取消，关闭对话框
+                          Get.back();
+                        },
+                        child: const Text('取消'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          // 用户点击去登录，关闭对话框后跳转到登录页面
+                          Get.back();
+                          // 跳转到登录页面
+                          Get.to(() => const LoginPage());
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF2563EB),
+                          foregroundColor: Colors.white,
+                        ),
+                        child: const Text('去登录'),
+                      ),
+                    ],
+                  ),
+                  barrierDismissible: true, // 允许用户点击外部关闭对话框
+                );
                 return;
               }
 
@@ -915,8 +944,36 @@ Widget _buildArticleTags() {
   void _showCommentBottomSheet() {
     // 再次检查用户是否已登录（以防用户状态在此期间发生变化）
     if (!userController.isLoggedIn && !GStorage().getLoginStatus()) {
-      // 未登录，跳转到登录页面
-      Get.to(() => const LoginPage());
+      // 未登录，显示居中对话框提示
+      Get.dialog(
+        AlertDialog(
+          title: const Text('提示'),
+          content: const Text('请先登录后再发布评论'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                // 用户点击取消，关闭对话框
+                Get.back();
+              },
+              child: const Text('取消'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                // 用户点击去登录，关闭对话框后跳转到登录页面
+                Get.back();
+                // 跳转到登录页面
+                Get.to(() => const LoginPage());
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF2563EB),
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('去登录'),
+            ),
+          ],
+        ),
+        barrierDismissible: true, // 允许用户点击外部关闭对话框
+      );
       return;
     }
 
@@ -1113,9 +1170,25 @@ Widget _buildArticleTags() {
         }
 
         // 显示成功提示
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('评论发布成功')));
+        Get.dialog(
+          AlertDialog(
+            title: const Text('提示'),
+            content: const Text('评论发布成功'),
+            actions: [
+              ElevatedButton(
+                onPressed: () {
+                  Get.back();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryColor,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('确定'),
+              ),
+            ],
+          ),
+          barrierDismissible: true,
+        );
       } else {
         // 显示错误信息
         ScaffoldMessenger.of(

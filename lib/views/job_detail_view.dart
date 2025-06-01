@@ -592,13 +592,24 @@ class JobDetailView extends GetView<JobController> {
                 if (response.code == 0) {
                   // 扣分成功，重新加载页面显示联系方式
                   controller.fetchJobDetail(job.jobKey!);
-                  Get.snackbar(
-                    '成功',
-                    '已成功获取HR联系方式',
-                    snackPosition: SnackPosition.BOTTOM,
-                    backgroundColor: Colors.green,
-                    colorText: Colors.white,
-                    margin: const EdgeInsets.all(16),
+                  Get.dialog(
+                    AlertDialog(
+                      title: const Text('成功'),
+                      content: const Text('已成功获取HR联系方式'),
+                      actions: [
+                        ElevatedButton(
+                          onPressed: () {
+                            Get.back();
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            foregroundColor: Colors.white,
+                          ),
+                          child: const Text('确定'),
+                        ),
+                      ],
+                    ),
+                    barrierDismissible: true,
                   );
                 } else {
                   // 扣分失败，提示用户
@@ -774,24 +785,24 @@ class JobDetailView extends GetView<JobController> {
         }
         
         // 显示成功提示
-        Get.snackbar(
-          '',
-          isCollected ? '收藏成功' : '取消收藏成功',
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-          margin: const EdgeInsets.all(16),
-          duration: const Duration(seconds: 2),
-          titleText: const SizedBox.shrink(), // 隐藏标题
-          messageText: Text(
-            isCollected ? '收藏成功' : '取消收藏成功',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-            ),
-            textAlign: TextAlign.left,
+        Get.dialog(
+          AlertDialog(
+            title: const Text('提示'),
+            content: Text(isCollected ? '收藏成功' : '取消收藏成功'),
+            actions: [
+              ElevatedButton(
+                onPressed: () {
+                  Get.back();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('确定'),
+              ),
+            ],
           ),
+          barrierDismissible: true,
         );
       } else {
         // 显示失败提示
