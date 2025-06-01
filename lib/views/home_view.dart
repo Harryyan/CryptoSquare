@@ -479,23 +479,19 @@ class HomeView extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Flexible(
-                    child: Row(
+                  Expanded(
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
                       children: [
-                        _buildJobTag(job.location),
-                        const SizedBox(width: 8),
-                        ...job.tags.take(2).map((tag) {
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 8),
-                            child: _buildJobTag(tag),
-                          );
-                        }).toList(),
+                        if (job.location.isNotEmpty) _buildJobTag(job.location),
+                        ...job.tags.where((tag) => tag.isNotEmpty).map((tag) => _buildJobTag(tag)).toList(),
                       ],
                     ),
                   ),
-                  const SizedBox(width: 16), // 添加固定间隔
+                  const SizedBox(width: 12),
                   GestureDetector(
                     onTap:
                         () => homeController.toggleFavorite(

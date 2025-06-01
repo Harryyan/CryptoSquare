@@ -207,14 +207,23 @@ class HomeController extends GetxController {
                   // 获取创建时间
                   String? createdAt = apiJob.createdAt;
 
+                  // 处理title，从"xxx|xxx|xxx"格式中提取第二个部分
+                  String processedTitle = apiJob.jobTitle ?? '';
+                  if (processedTitle.contains('|')) {
+                    final titleParts = processedTitle.split('|');
+                    if (titleParts.length >= 2) {
+                      processedTitle = titleParts[1].trim(); // 取第二个部分并去除空格
+                    }
+                  }
+
                   // 计算发布时间（默认值，当无法从createdAt计算时使用）
                   int timeAgo = 30;
 
                   return JobPost(
                     id: apiJob.id ?? 0,
-                    title: apiJob.jobTitle ?? '',
+                    title: processedTitle, // 使用处理后的title
                     company: apiJob.jobCompany ?? '',
-                    location: apiJob.jobPosition ?? '远程',
+                    location: apiJob.jobPosition ?? '',
                     salary: salary,
                     createdAt: createdAt,
                     timeAgo: timeAgo,
