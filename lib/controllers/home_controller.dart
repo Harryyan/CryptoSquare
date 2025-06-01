@@ -4,7 +4,11 @@ import 'package:cryptosquare/models/app_models.dart';
 import 'package:cryptosquare/rest_service/rest_client.dart';
 import 'package:cryptosquare/rest_service/bitpush_client.dart';
 import 'package:cryptosquare/util/storage.dart';
+import 'package:cryptosquare/util/language_management.dart';
+import 'package:cryptosquare/views/page_login.dart';
+import 'package:cryptosquare/theme/app_theme.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart' hide Banner;
 
 class HomeController extends GetxController {
   final RestClient _restClient = RestClient();
@@ -330,12 +334,35 @@ class HomeController extends GetxController {
 
       // 检查用户是否已登录
       if (!GStorage().getLoginStatus()) {
-        // 用户未登录，显示提示信息
-        Get.snackbar(
-          I18nKeyword.tip.tr,
-          I18nKeyword.loginToFavorite.tr,
-          snackPosition: SnackPosition.BOTTOM,
-          duration: const Duration(seconds: 2),
+        // 用户未登录，显示居中对话框提示
+        Get.dialog(
+          AlertDialog(
+            title: const Text('提示'),
+            content: const Text('请先登录后再收藏岗位'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  // 用户点击取消，关闭对话框
+                  Get.back();
+                },
+                child: const Text('取消'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  // 用户点击去登录，关闭对话框后跳转到登录页面
+                  Get.back();
+                  // 跳转到登录页面
+                  Get.to(() => const LoginPage());
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryColor,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('去登录'),
+              ),
+            ],
+          ),
+          barrierDismissible: true, // 允许用户点击外部关闭对话框
         );
         return; // 中断后续操作
       }
