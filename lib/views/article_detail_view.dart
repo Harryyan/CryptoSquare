@@ -1174,21 +1174,16 @@ Widget _buildArticleTags() {
           AlertDialog(
             title: const Text('提示'),
             content: const Text('评论发布成功'),
-            actions: [
-              ElevatedButton(
-                onPressed: () {
-                  Get.back();
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryColor,
-                  foregroundColor: Colors.white,
-                ),
-                child: const Text('确定'),
-              ),
-            ],
           ),
-          barrierDismissible: true,
+          barrierDismissible: true, // 允许点击外部关闭
         );
+        
+        // 1秒后自动关闭对话框
+        Future.delayed(const Duration(seconds: 1), () {
+          if (Get.isDialogOpen == true) {
+            Get.back();
+          }
+        });
       } else {
         // 显示错误信息
         ScaffoldMessenger.of(
