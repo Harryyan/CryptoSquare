@@ -212,15 +212,22 @@ class JobController extends GetxController {
     searchQuery.value = '';
     hasSearched.value = false;
     noResults.value = false;
+    // 同时清除所有筛选条件
+    selectedJobTypes.clear();
+    selectedWorkModes.clear();
+    selectedLanguages.clear();
     fetchJobs(isRefresh: true);
   }
 
   // 应用筛选条件
   void applyFilters() {
-    // 注意：这里需要根据API支持的筛选参数进行调整
-    // 目前API只支持keyword参数，所以这里只是重置并刷新数据
-
-    fetchJobs(isRefresh: true);
+    // 设置已搜索标志，这样如果没有结果会显示空状态
+    hasSearched.value = true;
+    
+    fetchJobs(isRefresh: true).then((_) {
+      // 检查是否有筛选结果，如果没有结果则显示空状态
+      noResults.value = jobs.isEmpty && hasSearched.value;
+    });
   }
 
   // 重置筛选条件
@@ -229,6 +236,8 @@ class JobController extends GetxController {
     selectedWorkModes.clear();
     selectedLanguages.clear();
     searchQuery.value = '';
+    hasSearched.value = false;
+    noResults.value = false;
 
     fetchJobs(isRefresh: true);
   }
