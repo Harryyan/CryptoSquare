@@ -576,26 +576,6 @@ class _ForumViewState extends State<ForumView>
         child: Column(
           children: [
             _buildSearchBar(),
-            // Row(
-            //   mainAxisAlignment: MainAxisAlignment.end,
-            //   children: [
-            //     // 添加测试按钮
-            //     Padding(
-            //       padding: const EdgeInsets.only(right: 16.0),
-            //       child: TextButton.icon(
-            //         icon: const Icon(
-            //           Icons.article,
-            //           color: AppTheme.primaryColor,
-            //         ),
-            //         label: const Text(
-            //           '测试文章列表',
-            //           style: TextStyle(color: AppTheme.primaryColor),
-            //         ),
-            //         onPressed: _navigateToArticleListExample,
-            //       ),
-            //     ),
-            //   ],
-            // ),
             _buildTabs(),
             Expanded(child: Obx(() => _buildTabContent())),
           ],
@@ -1170,6 +1150,7 @@ class _ForumViewState extends State<ForumView>
     final String? avatarUrl = article.extension?.auth?.avatar;
     final bool hasAvatar = avatarUrl != null && avatarUrl.isNotEmpty;
 
+<<<<<<< HEAD
     // 处理文章内容，去除HTML标签
     String contentText = '';
     if (article.content != null && article.content!.isNotEmpty) {
@@ -1178,6 +1159,11 @@ class _ForumViewState extends State<ForumView>
       // 去除多余的空白字符
       contentText = contentText.replaceAll(RegExp(r'\s+'), ' ').trim();
     }
+=======
+    // 获取文章内容
+    final String? content = article.content;
+    final bool hasContent = content != null && content.isNotEmpty;
+>>>>>>> 599cf05 (add content support to article list item)
 
     // 使用InkWell包装整个卡片，添加点击事件
     return InkWell(
@@ -1214,6 +1200,7 @@ class _ForumViewState extends State<ForumView>
             ),
             const SizedBox(height: 12),
 
+<<<<<<< HEAD
             // 文章内容区域 - 左侧封面图片，右侧文章描述
             if (hasImage || contentText.isNotEmpty)
               Row(
@@ -1221,6 +1208,16 @@ class _ForumViewState extends State<ForumView>
                 children: [
                   // 左侧封面图片
                   if (hasImage)
+=======
+            // 文章内容区域 - 封面图片和内容
+            if (hasContent) ...[
+              if (hasImage) ...[
+                // 有封面图时：左侧封面图，右侧内容文字
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 左侧封面图片
+>>>>>>> 599cf05 (add content support to article list item)
                     ClipRRect(
                       borderRadius: BorderRadius.circular(6),
                       child: Image.network(
@@ -1242,6 +1239,7 @@ class _ForumViewState extends State<ForumView>
                         },
                       ),
                     ),
+<<<<<<< HEAD
 
                   // 图片与内容之间的间距
                   if (hasImage && contentText.isNotEmpty) const SizedBox(width: 12),
@@ -1254,12 +1252,23 @@ class _ForumViewState extends State<ForumView>
                         style: TextStyle(
                           fontSize: 15,
                           color: Colors.grey[700],
+=======
+                    const SizedBox(width: 12),
+                    // 右侧文章内容
+                    Expanded(
+                      child: Text(
+                        content!,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+>>>>>>> 599cf05 (add content support to article list item)
                           height: 1.4,
                         ),
                         maxLines: 3,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
+<<<<<<< HEAD
                 ],
               ),
 
@@ -1268,13 +1277,37 @@ class _ForumViewState extends State<ForumView>
 
             // 分割线
             if (hasImage || contentText.isNotEmpty)
+=======
+                  ],
+                ),
+              ] else ...[
+                // 没有封面图时：内容从最左侧开始显示
+                Text(
+                  content!,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                    height: 1.4,
+                  ),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+              const SizedBox(height: 12),
+              // 分割线
+>>>>>>> 599cf05 (add content support to article list item)
               Container(
                 height: 1,
                 color: const Color(0xFFF4F7FD),
               ),
+<<<<<<< HEAD
 
             // 分割线下方间距
             if (hasImage || contentText.isNotEmpty) const SizedBox(height: 12),
+=======
+              const SizedBox(height: 12),
+            ],
+>>>>>>> 599cf05 (add content support to article list item)
 
             // 底部用户信息区域
             Row(
