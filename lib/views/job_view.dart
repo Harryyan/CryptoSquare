@@ -653,10 +653,7 @@ class _JobViewState extends State<JobView> with AutomaticKeepAliveClientMixin {
       job.jobSalaryCurrency ?? '',
     );
     // 计算发布时间（简化处理，实际应该根据createdAt计算）
-    String timeAgo =
-        job.createdAt != null
-            ? '${DateTime.now().difference(DateTime.parse(job.createdAt!)).inDays}天前'
-            : '未知';
+    String timeAgo = _formatTime(job.createdAt);
 
     // 处理title，从"xxx|xxx|xxx"格式中提取第二个部分
     String processedTitle = job.jobTitle ?? '未知职位';
@@ -665,6 +662,26 @@ class _JobViewState extends State<JobView> with AutomaticKeepAliveClientMixin {
       if (titleParts.length >= 2) {
         processedTitle = titleParts[1].trim(); // 取第二个部分并去除空格
       }
+    }
+
+    // 构建新的属性标签
+    List<String> propertyTags = [];
+    
+    // 添加 jobType
+    if (job.jobType?.isNotEmpty == true) {
+      propertyTags.add(job.jobType!);
+    }
+    
+    // 添加 officeMode
+    if (job.officeMode == 1) {
+      propertyTags.add('远程');
+    } else if (job.officeMode == 0) {
+      propertyTags.add('实地');
+    }
+    
+    // 添加 jobLang
+    if (job.jobLang == 1) {
+      propertyTags.add('需要英语');
     }
 
     return GestureDetector(
@@ -724,44 +741,97 @@ class _JobViewState extends State<JobView> with AutomaticKeepAliveClientMixin {
                       fontWeight: FontWeight.normal,
                     ),
                   ),
-                  const SizedBox(width: 4),
+                  const SizedBox(width: 6),
                   Text(
                     timeAgo,
-                    style: TextStyle(color: Colors.grey[500], fontSize: 14),
+                    style: TextStyle(color: Color(0xFF91929E), fontSize: 12),
                   ),
                 ],
               ),
               const SizedBox(height: 8),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Wrap(
-                      spacing: 8,
-                      runSpacing: 4,
+              // 新的属性标签行
+              if (propertyTags.isNotEmpty)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (job.jobPosition?.isNotEmpty == true) _buildJobTag(job.jobPosition!),
-                        ...tagList.where((tag) => tag.isNotEmpty).map((tag) => _buildJobTag(tag)).toList(),
+                        Expanded(
+                          child: Wrap(
+                            spacing: 8,
+                            runSpacing: 4,
+                            children: propertyTags.map((tag) => _buildJobTag(tag)).toList(),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        GestureDetector(
+                          onTap: () => jobController.toggleFavorite(
+                            job.id,
+                            job.jobKey ?? "",
+                          ),
+                          child: Image.asset(
+                            job.jobIsCollect == 1
+                                ? 'assets/images/star_fill.png'
+                                : 'assets/images/star.png',
+                            width: 20,
+                            height: 20,
+                          ),
+                        ),
                       ],
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  GestureDetector(
-                    onTap:
-                        () => jobController.toggleFavorite(
-                          job.id,
-                          job.jobKey ?? "",
-                        ),
-                    child: Image.asset(
-                      job.jobIsCollect == 1
-                          ? 'assets/images/star_fill.png'
-                          : 'assets/images/star.png',
-                      width: 20,
-                      height: 20,
+                    // 分割线和原始tags
+                    if (tagList.where((tag) => tag.isNotEmpty).isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      Container(
+                        height: 1,
+                        color: const Color(0xFFF4F7FD),
+                      ),
+                      const SizedBox(height: 12),
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          return _buildHashTagsWithMaxLines(
+                            tagList.where((tag) => tag.isNotEmpty).toList(),
+                            constraints.maxWidth - 32, // 减去收藏按钮和间距的宽度
+                          );
+                        },
+                      ),
+                    ],
+                  ],
+                )
+              else
+                // 如果没有属性标签，保持原有的结构
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: tagList.where((tag) => tag.isNotEmpty).isNotEmpty
+                          ? LayoutBuilder(
+                              builder: (context, constraints) {
+                                return _buildHashTagsWithMaxLines(
+                                  tagList.where((tag) => tag.isNotEmpty).toList(),
+                                  constraints.maxWidth - 32, // 减去收藏按钮和间距的宽度
+                                );
+                              },
+                            )
+                          : const SizedBox(),
                     ),
-                  ),
-                ],
-              ),
+                    const SizedBox(width: 12),
+                    GestureDetector(
+                      onTap: () => jobController.toggleFavorite(
+                        job.id,
+                        job.jobKey ?? "",
+                      ),
+                      child: Image.asset(
+                        job.jobIsCollect == 1
+                            ? 'assets/images/star_fill.png'
+                            : 'assets/images/star.png',
+                        width: 20,
+                        height: 20,
+                      ),
+                    ),
+                  ],
+                ),
             ],
           ),
         ),
@@ -781,5 +851,96 @@ class _JobViewState extends State<JobView> with AutomaticKeepAliveClientMixin {
         style: const TextStyle(color: AppTheme.tagTextColor, fontSize: 12),
       ),
     );
+  }
+
+  // 新增方法：构建带#标识的tags，最多显示两行
+  Widget _buildHashTagsWithMaxLines(List<String> tags, double maxWidth) {
+    if (tags.isEmpty) return const SizedBox();
+    
+    List<Widget> tagWidgets = [];
+    double currentRowWidth = 0;
+    int lineCount = 0;
+    const double tagSpacing = 8.0;
+    const double lineHeight = 20.0; // 大概的行高
+    const double runSpacing = 4.0;
+    
+    for (int i = 0; i < tags.length; i++) {
+      final tag = tags[i];
+      final tagText = '#${TagUtils.formatTag(tag)}';
+      
+      // 估算标签宽度 (这是一个近似值，实际渲染可能略有差异)
+      final textPainter = TextPainter(
+        text: TextSpan(
+          text: tagText,
+          style: const TextStyle(fontSize: 12),
+        ),
+        textDirection: TextDirection.ltr,
+      );
+      textPainter.layout();
+      final tagWidth = textPainter.size.width + 16; // 加上padding
+      
+      // 检查是否需要换行
+      if (currentRowWidth + tagWidth > maxWidth) {
+        lineCount++;
+        if (lineCount >= 2) {
+          // 如果已经是第二行，检查是否还有更多标签
+          if (i < tags.length - 1) {
+            // 添加 "..." 标签表示还有更多
+            tagWidgets.add(_buildHashTag('...'));
+          }
+          break;
+        }
+        currentRowWidth = tagWidth + tagSpacing;
+      } else {
+        currentRowWidth += tagWidth + tagSpacing;
+      }
+      
+      tagWidgets.add(_buildHashTag(tagText));
+    }
+    
+    return Wrap(
+      spacing: tagSpacing,
+      runSpacing: runSpacing,
+      children: tagWidgets,
+    );
+  }
+
+  Widget _buildHashTag(String tag) {
+    return Text(
+      tag,
+      style: const TextStyle(
+        color: Color(0xFF575D6A),
+        fontSize: 12,
+      ),
+    );
+  }
+
+  // 格式化时间戳 - 参考 forum_view.dart 的实现
+  String _formatTime(String? createdAt) {
+    if (createdAt == null || createdAt.isEmpty) {
+      return '未知';
+    }
+
+    try {
+      // 尝试解析createdAt字符串为DateTime
+      final DateTime dateTime = DateTime.parse(createdAt);
+      final DateTime now = DateTime.now();
+      final Duration difference = now.difference(dateTime);
+
+      if (difference.inDays > 30) {
+        return '${dateTime.year}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')}';
+      } else if (difference.inDays > 0) {
+        return '${difference.inDays}天前';
+      } else if (difference.inHours > 0) {
+        return '${difference.inHours}小时前';
+      } else if (difference.inMinutes > 0) {
+        return '${difference.inMinutes}分钟前';
+      } else {
+        return '刚刚';
+      }
+    } catch (e) {
+      // 解析失败时返回默认值
+      return '未知';
+    }
   }
 }

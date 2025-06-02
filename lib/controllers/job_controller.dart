@@ -328,6 +328,9 @@ class JobController extends GetxController {
                 minSalary: job.minSalary,
                 maxSalary: job.maxSalary,
                 jobIsCollect: isCollected ? 1 : 0,
+                jobType: job.jobType,
+                officeMode: job.officeMode,
+                jobLang: job.jobLang,
               );
               jobs[index] = updatedJob;
               jobs.refresh();
