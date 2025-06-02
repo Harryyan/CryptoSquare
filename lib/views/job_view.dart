@@ -853,54 +853,19 @@ class _JobViewState extends State<JobView> with AutomaticKeepAliveClientMixin {
     );
   }
 
-  // 新增方法：构建带#标识的tags，最多显示两行
+  // 新增方法：构建带#标识的tags，显示所有tags
   Widget _buildHashTagsWithMaxLines(List<String> tags, double maxWidth) {
     if (tags.isEmpty) return const SizedBox();
     
-    List<Widget> tagWidgets = [];
-    double currentRowWidth = 0;
-    int lineCount = 0;
-    const double tagSpacing = 8.0;
-    const double lineHeight = 20.0; // 大概的行高
-    const double runSpacing = 4.0;
-    
-    for (int i = 0; i < tags.length; i++) {
-      final tag = tags[i];
-      final tagText = '#${TagUtils.formatTag(tag)}';
-      
-      // 估算标签宽度 (这是一个近似值，实际渲染可能略有差异)
-      final textPainter = TextPainter(
-        text: TextSpan(
-          text: tagText,
-          style: const TextStyle(fontSize: 12),
-        ),
-        textDirection: TextDirection.ltr,
-      );
-      textPainter.layout();
-      final tagWidth = textPainter.size.width + 16; // 加上padding
-      
-      // 检查是否需要换行
-      if (currentRowWidth + tagWidth > maxWidth) {
-        lineCount++;
-        if (lineCount >= 2) {
-          // 如果已经是第二行，检查是否还有更多标签
-          if (i < tags.length - 1) {
-            // 添加 "..." 标签表示还有更多
-            tagWidgets.add(_buildHashTag('...'));
-          }
-          break;
-        }
-        currentRowWidth = tagWidth + tagSpacing;
-      } else {
-        currentRowWidth += tagWidth + tagSpacing;
-      }
-      
-      tagWidgets.add(_buildHashTag(tagText));
-    }
+    // 直接显示所有tags，不进行任何截断，不使用TagUtils.formatTag
+    List<Widget> tagWidgets = tags.map((tag) {
+      final tagText = '#$tag'; // 直接使用原始tag，不经过formatTag处理
+      return _buildHashTag(tagText);
+    }).toList();
     
     return Wrap(
-      spacing: tagSpacing,
-      runSpacing: runSpacing,
+      spacing: 8.0,
+      runSpacing: 4.0,
       children: tagWidgets,
     );
   }
