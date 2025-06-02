@@ -123,8 +123,8 @@ class JobListData {
 
 Dio? _dio;
 
-@RestApi(baseUrl: 'https://d3qx0f55wsubto.cloudfront.net/api')
-// @RestApi(baseUrl: 'https://terminal-cn2.bitpush.news/api')
+// @RestApi(baseUrl: 'https://d3qx0f55wsubto.cloudfront.net/api')
+@RestApi(baseUrl: 'https://terminal-cn2.bitpush.news/api')
 abstract class RestClient {
   factory RestClient() {
     _dio ??= Dio();
@@ -440,6 +440,9 @@ class JobData {
     this.minSalary,
     this.maxSalary,
     this.jobIsCollect = 0,
+    this.jobType,
+    this.officeMode,
+    this.jobLang,
   });
 
   factory JobData.fromJson(Map<String, dynamic> json) =>
@@ -486,6 +489,15 @@ class JobData {
 
   @JsonKey(name: 'job_is_collect')
   final int? jobIsCollect;
+
+  @JsonKey(name: 'job_type')
+  final String? jobType;
+
+  @JsonKey(name: 'office_mode')
+  final int? officeMode;
+
+  @JsonKey(name: 'job_lang')
+  final int? jobLang;
 
   Map<String, dynamic> toJson() => _$JobDataToJson(this);
 }

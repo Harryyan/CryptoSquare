@@ -164,6 +164,9 @@ JobData _$JobDataFromJson(Map<String, dynamic> json) => JobData(
   minSalary: (json['min_salary'] as num?)?.toInt(),
   maxSalary: (json['max_salary'] as num?)?.toInt(),
   jobIsCollect: (json['job_is_collect'] as num?)?.toInt() ?? 0,
+  jobType: json['job_type'] as String?,
+  officeMode: (json['office_mode'] as num?)?.toInt(),
+  jobLang: (json['job_lang'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$JobDataToJson(JobData instance) => <String, dynamic>{
@@ -181,6 +184,9 @@ Map<String, dynamic> _$JobDataToJson(JobData instance) => <String, dynamic>{
   'min_salary': instance.minSalary,
   'max_salary': instance.maxSalary,
   'job_is_collect': instance.jobIsCollect,
+  'job_type': instance.jobType,
+  'office_mode': instance.officeMode,
+  'job_lang': instance.jobLang,
 };
 
 JobDetailApply _$JobDetailApplyFromJson(Map<String, dynamic> json) =>
@@ -762,7 +768,7 @@ Map<String, dynamic> _$CategoryItemToJson(CategoryItem instance) =>
 
 class _RestClient implements RestClient {
   _RestClient(this._dio, {this.baseUrl, this.errorLogger}) {
-    baseUrl ??= 'https://d3qx0f55wsubto.cloudfront.net/api';
+    baseUrl ??= 'https://terminal-cn2.bitpush.news/api';
   }
 
   final Dio _dio;
