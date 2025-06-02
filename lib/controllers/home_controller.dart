@@ -233,6 +233,9 @@ class HomeController extends GetxController {
                     timeAgo: timeAgo,
                     tags: tagsList,
                     jobKey: apiJob.jobKey,
+                    jobType: apiJob.jobType,
+                    officeMode: apiJob.officeMode,
+                    jobLang: apiJob.jobLang,
                     isFavorite: apiJob.jobIsCollect == 1,
                   );
                 }).toList();
@@ -388,6 +391,9 @@ class HomeController extends GetxController {
                 createdAt: job.createdAt,
                 tags: job.tags,
                 jobKey: job.jobKey,
+                jobType: job.jobType,
+                officeMode: job.officeMode,
+                jobLang: job.jobLang,
                 isFavorite: isCollected,
               );
               print('收藏状态更新成功: ${isCollected ? "已收藏" : "取消收藏"}');

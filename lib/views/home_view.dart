@@ -399,6 +399,26 @@ class HomeView extends StatelessWidget {
   }
 
   Widget _buildJobItem(JobPost job) {
+    // 构建新的属性标签
+    List<String> propertyTags = [];
+    
+    // 添加 jobType
+    if (job.jobType?.isNotEmpty == true) {
+      propertyTags.add(job.jobType!);
+    }
+    
+    // 添加 officeMode
+    if (job.officeMode == 1) {
+      propertyTags.add('远程');
+    } else if (job.officeMode == 0) {
+      propertyTags.add('实地');
+    }
+    
+    // 添加 jobLang
+    if (job.jobLang == 1) {
+      propertyTags.add('需要英语');
+    }
+
     return GestureDetector(
       onTap: () {
         // 导航到岗位详情页面
@@ -410,9 +430,12 @@ class HomeView extends StatelessWidget {
           minSalary: 0, // 使用默认值
           maxSalary: 0, // 使用默认值
           jobSalaryCurrency: job.salary, // 临时使用salary字段
-          createdAt: job.getFormattedTime(),
+          createdAt: job.createdAt, // 使用createdAt而不是getFormattedTime()
           tags: job.tags.join(','), // 将tags数组转换为逗号分隔的字符串
           jobIsCollect: job.isFavorite ? 1 : 0, // 转换收藏状态
+          jobType: job.jobType,
+          officeMode: job.officeMode,
+          jobLang: job.jobLang,
         );
         Get.find<JobController>().navigateToJobDetail(jobData);
       },
@@ -470,47 +493,143 @@ class HomeView extends StatelessWidget {
                       fontWeight: FontWeight.normal,
                     ),
                   ),
-                  const SizedBox(width: 4),
+                  const SizedBox(width: 6),
                   Text(
                     job.getFormattedTime(),
-                    style: TextStyle(color: Colors.grey[500], fontSize: 14),
+                    style: TextStyle(color: Color(0xFF91929E), fontSize: 12),
                   ),
                 ],
               ),
               const SizedBox(height: 8),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Wrap(
-                      spacing: 8,
-                      runSpacing: 4,
+              // 新的属性标签行
+              if (propertyTags.isNotEmpty)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (job.location.isNotEmpty) _buildJobTag(job.location),
-                        ...job.tags.where((tag) => tag.isNotEmpty).map((tag) => _buildJobTag(tag)).toList(),
+                        Expanded(
+                          child: Wrap(
+                            spacing: 8,
+                            runSpacing: 4,
+                            children: propertyTags.map((tag) => _buildJobTag(tag)).toList(),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        GestureDetector(
+                          onTap: () => homeController.toggleFavorite(
+                            job.id,
+                            job.jobKey ?? "",
+                          ),
+                          child: Image.asset(
+                            job.isFavorite
+                                ? 'assets/images/star_fill.png'
+                                : 'assets/images/star.png',
+                            width: 20,
+                            height: 20,
+                          ),
+                        ),
                       ],
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  GestureDetector(
-                    onTap:
-                        () => homeController.toggleFavorite(
-                          job.id,
-                          job.jobKey ?? "",
-                        ),
-                    child: Image.asset(
-                      job.isFavorite
-                          ? 'assets/images/star_fill.png'
-                          : 'assets/images/star.png',
-                      width: 20,
-                      height: 20,
+                    // 分割线和原始tags
+                    if (_hasDisplayableTags(job)) ...[
+                      const SizedBox(height: 12),
+                      Container(
+                        height: 1,
+                        color: const Color(0xFFF4F7FD),
+                      ),
+                      const SizedBox(height: 12),
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          return _buildHashTagsWithMaxLines(
+                            _getDisplayableTags(job),
+                            constraints.maxWidth - 32, // 减去收藏按钮和间距的宽度
+                          );
+                        },
+                      ),
+                    ],
+                  ],
+                )
+              else
+                // 如果没有属性标签，保持原有的结构
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: _hasDisplayableTags(job)
+                          ? LayoutBuilder(
+                              builder: (context, constraints) {
+                                return _buildHashTagsWithMaxLines(
+                                  _getDisplayableTags(job),
+                                  constraints.maxWidth - 32, // 减去收藏按钮和间距的宽度
+                                );
+                              },
+                            )
+                          : const SizedBox(),
                     ),
-                  ),
-                ],
-              ),
+                    const SizedBox(width: 12),
+                    GestureDetector(
+                      onTap: () => homeController.toggleFavorite(
+                        job.id,
+                        job.jobKey ?? "",
+                      ),
+                      child: Image.asset(
+                        job.isFavorite
+                            ? 'assets/images/star_fill.png'
+                            : 'assets/images/star.png',
+                        width: 20,
+                        height: 20,
+                      ),
+                    ),
+                  ],
+                ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  // 检查是否有可展示的tags
+  bool _hasDisplayableTags(JobPost job) {
+    final allTags = <String>[];
+    if (job.location.isNotEmpty) allTags.add(job.location);
+    allTags.addAll(job.tags.where((tag) => tag.isNotEmpty));
+    return allTags.isNotEmpty;
+  }
+
+  // 获取可展示的tags列表
+  List<String> _getDisplayableTags(JobPost job) {
+    final allTags = <String>[];
+    if (job.location.isNotEmpty) allTags.add(job.location);
+    allTags.addAll(job.tags.where((tag) => tag.isNotEmpty));
+    return allTags;
+  }
+
+  // 构建带#标识的tags，显示所有tags
+  Widget _buildHashTagsWithMaxLines(List<String> tags, double maxWidth) {
+    if (tags.isEmpty) return const SizedBox();
+    
+    // 直接显示所有tags，不进行任何截断，不使用TagUtils.formatTag
+    List<Widget> tagWidgets = tags.map((tag) {
+      final tagText = '#$tag'; // 直接使用原始tag，不经过formatTag处理
+      return _buildHashTag(tagText);
+    }).toList();
+    
+    return Wrap(
+      spacing: 8.0,
+      runSpacing: 4.0,
+      children: tagWidgets,
+    );
+  }
+
+  Widget _buildHashTag(String tag) {
+    return Text(
+      tag,
+      style: const TextStyle(
+        color: Color(0xFF575D6A),
+        fontSize: 12,
       ),
     );
   }

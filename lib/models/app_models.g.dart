@@ -47,6 +47,9 @@ JobPost _$JobPostFromJson(Map<String, dynamic> json) => JobPost(
   createdAt: json['createdAt'] as String?,
   tags: (json['tags'] as List<dynamic>).map((e) => e as String).toList(),
   jobKey: json['jobKey'] as String?,
+  jobType: json['jobType'] as String?,
+  officeMode: (json['officeMode'] as num?)?.toInt(),
+  jobLang: (json['jobLang'] as num?)?.toInt(),
   isFavorite: json['isFavorite'] as bool? ?? false,
 );
 
@@ -60,6 +63,9 @@ Map<String, dynamic> _$JobPostToJson(JobPost instance) => <String, dynamic>{
   'createdAt': instance.createdAt,
   'tags': instance.tags,
   'jobKey': instance.jobKey,
+  'jobType': instance.jobType,
+  'officeMode': instance.officeMode,
+  'jobLang': instance.jobLang,
   'isFavorite': instance.isFavorite,
 };
 

@@ -52,6 +52,9 @@ class JobPost {
   final String? createdAt;
   final List<String> tags;
   final String? jobKey;
+  final String? jobType;
+  final int? officeMode;
+  final int? jobLang;
   bool isFavorite;
 
   JobPost({
@@ -64,6 +67,9 @@ class JobPost {
     this.createdAt,
     required this.tags,
     this.jobKey,
+    this.jobType,
+    this.officeMode,
+    this.jobLang,
     this.isFavorite = false,
   });
 
