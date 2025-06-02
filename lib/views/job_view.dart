@@ -714,7 +714,7 @@ class _JobViewState extends State<JobView> with AutomaticKeepAliveClientMixin {
                       processedTitle,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                        fontSize: 16,
                         color: Colors.black,
                       ),
                       overflow: TextOverflow.ellipsis,
@@ -737,7 +737,7 @@ class _JobViewState extends State<JobView> with AutomaticKeepAliveClientMixin {
                     job.jobCompany ?? '未知公司',
                     style: const TextStyle(
                       color: Colors.black,
-                      fontSize: 14,
+                      fontSize: 15,
                       fontWeight: FontWeight.normal,
                     ),
                   ),
@@ -875,7 +875,7 @@ class _JobViewState extends State<JobView> with AutomaticKeepAliveClientMixin {
       tag,
       style: const TextStyle(
         color: Color(0xFF575D6A),
-        fontSize: 12,
+        fontSize: 13,
       ),
     );
   }

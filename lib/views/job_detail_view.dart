@@ -452,7 +452,7 @@ class JobDetailView extends GetView<JobController> {
                       '成功',
                       '邮箱已复制到剪贴板',
                       snackPosition: SnackPosition.BOTTOM,
-                      backgroundColor: Colors.green,
+                      backgroundColor: AppTheme.primaryColor,
                       colorText: Colors.white,
                       margin: const EdgeInsets.all(16),
                     );
@@ -465,7 +465,7 @@ class JobDetailView extends GetView<JobController> {
                         '成功',
                         '邮箱已复制到剪贴板',
                         snackPosition: SnackPosition.BOTTOM,
-                        backgroundColor: Colors.green,
+                        backgroundColor: AppTheme.primaryColor,
                         colorText: Colors.white,
                         margin: const EdgeInsets.all(16),
                       );
@@ -619,7 +619,7 @@ class JobDetailView extends GetView<JobController> {
                             Get.back();
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
+                            backgroundColor: AppTheme.primaryColor,
                             foregroundColor: Colors.white,
                           ),
                           child: const Text('确定'),
@@ -812,7 +812,7 @@ class JobDetailView extends GetView<JobController> {
                   Get.back();
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
+                  backgroundColor: AppTheme.primaryColor,
                   foregroundColor: Colors.white,
                 ),
                 child: const Text('确定'),

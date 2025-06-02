@@ -466,7 +466,7 @@ class HomeView extends StatelessWidget {
                       job.getFormattedTitle(),
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                        fontSize: 16,
                         color: Colors.black,
                       ),
                       overflow: TextOverflow.ellipsis,
@@ -489,7 +489,7 @@ class HomeView extends StatelessWidget {
                     job.company,
                     style: const TextStyle(
                       color: Colors.black,
-                      fontSize: 14,
+                      fontSize: 15,
                       fontWeight: FontWeight.normal,
                     ),
                   ),
@@ -629,7 +629,7 @@ class HomeView extends StatelessWidget {
       tag,
       style: const TextStyle(
         color: Color(0xFF575D6A),
-        fontSize: 12,
+        fontSize: 13,
       ),
     );
   }
