@@ -1170,6 +1170,15 @@ class _ForumViewState extends State<ForumView>
     final String? avatarUrl = article.extension?.auth?.avatar;
     final bool hasAvatar = avatarUrl != null && avatarUrl.isNotEmpty;
 
+    // 处理文章内容，去除HTML标签
+    String contentText = '';
+    if (article.content != null && article.content!.isNotEmpty) {
+      // 简单处理HTML标签
+      contentText = article.content!.replaceAll(RegExp(r'<[^>]*>'), '');
+      // 去除多余的空白字符
+      contentText = contentText.replaceAll(RegExp(r'\s+'), ' ').trim();
+    }
+
     // 使用InkWell包装整个卡片，添加点击事件
     return InkWell(
       onTap: () {
@@ -1206,38 +1215,66 @@ class _ForumViewState extends State<ForumView>
             const SizedBox(height: 12),
 
             // 文章内容区域 - 左侧封面图片，右侧文章描述
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 左侧封面图片
-                if (hasImage)
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(6),
-                    child: Image.network(
-                      imageUrl!,
-                      height: 80,
-                      width: 120,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          height: 80,
-                          width: 120,
-                          color: Colors.grey[200],
-                          child: Icon(
-                            Icons.image_not_supported,
-                            color: Colors.grey[400],
-                            size: 24,
-                          ),
-                        );
-                      },
+            if (hasImage || contentText.isNotEmpty)
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 左侧封面图片
+                  if (hasImage)
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(6),
+                      child: Image.network(
+                        imageUrl!,
+                        height: 80,
+                        width: 120,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            height: 80,
+                            width: 120,
+                            color: Colors.grey[200],
+                            child: Icon(
+                              Icons.image_not_supported,
+                              color: Colors.grey[400],
+                              size: 24,
+                            ),
+                          );
+                        },
+                      ),
                     ),
-                  ),
 
-                // 图片与内容之间的间距
-                if (hasImage) const SizedBox(width: 12),
-              ],
-            ),
-            const SizedBox(height: 16),
+                  // 图片与内容之间的间距
+                  if (hasImage && contentText.isNotEmpty) const SizedBox(width: 12),
+
+                  // 右侧文章内容文字（或无图片时从左侧开始）
+                  if (contentText.isNotEmpty)
+                    Expanded(
+                      child: Text(
+                        contentText,
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: Colors.grey[700],
+                          height: 1.4,
+                        ),
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                ],
+              ),
+
+            // 内容区域下方间距
+            if (hasImage || contentText.isNotEmpty) const SizedBox(height: 12),
+
+            // 分割线
+            if (hasImage || contentText.isNotEmpty)
+              Container(
+                height: 1,
+                color: const Color(0xFFF4F7FD),
+              ),
+
+            // 分割线下方间距
+            if (hasImage || contentText.isNotEmpty) const SizedBox(height: 12),
 
             // 底部用户信息区域
             Row(
