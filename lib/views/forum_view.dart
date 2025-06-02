@@ -1206,37 +1206,37 @@ class _ForumViewState extends State<ForumView>
             const SizedBox(height: 12),
 
             // 文章内容区域 - 左侧封面图片，右侧文章描述
-            // Row(
-            //   crossAxisAlignment: CrossAxisAlignment.start,
-            //   children: [
-            //     // 左侧封面图片
-            //     if (hasImage)
-            //       // ClipRRect(
-            //       //   borderRadius: BorderRadius.circular(6),
-            //       //   child: Image.network(
-            //       //     imageUrl!,
-            //       //     height: 80,
-            //       //     width: 120,
-            //       //     fit: BoxFit.cover,
-            //       //     errorBuilder: (context, error, stackTrace) {
-            //       //       return Container(
-            //       //         height: 80,
-            //       //         width: 120,
-            //       //         color: Colors.grey[200],
-            //       //         child: Icon(
-            //       //           Icons.image_not_supported,
-            //       //           color: Colors.grey[400],
-            //       //           size: 24,
-            //       //         ),
-            //       //       );
-            //       //     },
-            //       //   ),
-            //       // ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 左侧封面图片
+                if (hasImage)
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: Image.network(
+                      imageUrl!,
+                      height: 80,
+                      width: 120,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          height: 80,
+                          width: 120,
+                          color: Colors.grey[200],
+                          child: Icon(
+                            Icons.image_not_supported,
+                            color: Colors.grey[400],
+                            size: 24,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
 
-            //     // 图片与内容之间的间距
-            //     // if (hasImage) const SizedBox(width: 12),
-            //   ],
-            // ),
+                // 图片与内容之间的间距
+                if (hasImage) const SizedBox(width: 12),
+              ],
+            ),
             const SizedBox(height: 16),
 
             // 底部用户信息区域

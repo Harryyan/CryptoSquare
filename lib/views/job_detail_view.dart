@@ -136,10 +136,28 @@ class JobDetailView extends GetView<JobController> {
       }
     }
 
-    // 处理标签
-    List<String> displayTags = tags;
-    if (jobDetail?.tags != null && jobDetail!.tags!.isNotEmpty) {
-      displayTags = jobDetail.tags!.split(',');
+    // 构建属性标签列表
+    List<String> propertyTags = [];
+    
+    if (jobDetail != null) {
+      // 添加工作类型
+      if (jobDetail.jobType?.isNotEmpty == true) {
+        propertyTags.add(jobDetail.jobType!);
+      }
+      
+      // 添加办公模式
+      if (jobDetail.officeMode != null) {
+        if (jobDetail.officeMode == 1) {
+          propertyTags.add('远程');
+        } else if (jobDetail.officeMode == 0) {
+          propertyTags.add('实地');
+        }
+      }
+      
+      // 添加语言要求
+      if (jobDetail.jobLang != null && jobDetail.jobLang == 1) {
+        propertyTags.add('需要英语');
+      }
     }
 
     // 格式化时间显示
@@ -213,12 +231,13 @@ class JobDetailView extends GetView<JobController> {
             style: const TextStyle(fontSize: 16, color: Colors.black87),
           ),
           const SizedBox(height: 12),
-          // 岗位标签
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: displayTags.where((tag) => tag.isNotEmpty).map((tag) => _buildTag(tag)).toList(),
-          ),
+          // 属性标签（工作类型、办公模式、语言要求）
+          if (propertyTags.isNotEmpty)
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: propertyTags.map((tag) => _buildPropertyTag(tag)).toList(),
+            ),
 
           const SizedBox(height: 12),
           // 添加分隔线
@@ -246,10 +265,8 @@ class JobDetailView extends GetView<JobController> {
     );
   }
 
-  // 单个标签方法保留，用于在_buildJobHeader中构建标签
-
-  // 单个标签
-  Widget _buildTag(String tag) {
+  // 属性标签
+  Widget _buildPropertyTag(String tag) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
