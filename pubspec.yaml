@@ -58,7 +58,7 @@ dependencies:
   flutter_quill_delta_from_html: ^1.5.2
   social_share_plus:
     path: ./local_plugins/social_share_plus
-  share_plus: ^11.0.0
+  share_plus: ^10.0.0
   image: ^4.0.16
 
 dev_dependencies:
