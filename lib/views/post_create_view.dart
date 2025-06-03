@@ -62,6 +62,38 @@ class _PostCreateViewState extends State<PostCreateView> {
   // RestClient实例
   late RestClient _restClient;
 
+  // 解析标签字符串，处理可能的对象格式
+  String _parseTagsFromString(String tagsString) {
+    if (tagsString.isEmpty) return '';
+    
+    // 如果字符串包含 "{tag:" 格式，说明是对象格式需要解析
+    if (tagsString.contains('{tag:')) {
+      List<String> tags = [];
+      
+      // 使用正则表达式提取标签值
+      RegExp regex = RegExp(r'\{tag:\s*([^}]+)\}');
+      Iterable<RegExpMatch> matches = regex.allMatches(tagsString);
+      
+      for (RegExpMatch match in matches) {
+        String? tag = match.group(1)?.trim();
+        if (tag != null && tag.isNotEmpty) {
+          // 移除可能的引号
+          if (tag.startsWith('"') && tag.endsWith('"')) {
+            tag = tag.substring(1, tag.length - 1);
+          } else if (tag.startsWith("'") && tag.endsWith("'")) {
+            tag = tag.substring(1, tag.length - 1);
+          }
+          tags.add(tag);
+        }
+      }
+      
+      return tags.join(',');
+    }
+    
+    // 如果不是对象格式，直接返回原字符串
+    return tagsString;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -71,7 +103,10 @@ class _PostCreateViewState extends State<PostCreateView> {
     // 如果是编辑模式，初始化编辑器内容
     if (widget.isEditMode) {
       _titleController.text = widget.initialTitle;
-      _tagsController.text = widget.initialTags;
+      
+      // 处理标签数据 - 解析可能的对象格式
+      String processedTags = _parseTagsFromString(widget.initialTags);
+      _tagsController.text = processedTags;
 
       // 将HTML内容转换为Delta格式并设置到编辑器中
       if (widget.initialContent.isNotEmpty) {
@@ -402,7 +437,7 @@ class _PostCreateViewState extends State<PostCreateView> {
               TextField(
                 controller: _tagsController,
                 decoration: InputDecoration(
-                  hintText: '请输入标签，多个标签用逗号分隔',
+                  hintText: '请输入标签，多个标签用英文逗号分隔',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),

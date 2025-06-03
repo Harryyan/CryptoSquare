@@ -1545,7 +1545,7 @@ class _ProfileViewState extends State<ProfileView>
                   initialCategoryId: response.data!.catId ?? 0,
                   initialTags:
                       response.data!.extension?.tag != null
-                          ? response.data!.extension!.tag!.join(',')
+                          ? _extractTagsFromList(response.data!.extension!.tag!)
                           : '',
                 ),
           ),
@@ -1805,5 +1805,42 @@ class _ProfileViewState extends State<ProfileView>
         ),
       ),
     );
+  }
+
+  String _extractTagsFromList(List<dynamic> tagList) {
+    List<String> tags = [];
+    
+    for (var tagItem in tagList) {
+      if (tagItem is String) {
+        // 如果直接是字符串，直接添加
+        tags.add(tagItem);
+      } else if (tagItem is Map<String, dynamic>) {
+        // 如果是对象格式，提取 'tag' 字段的值
+        if (tagItem.containsKey('tag')) {
+          var tagValue = tagItem['tag'];
+          if (tagValue is String) {
+            tags.add(tagValue);
+          }
+        }
+      } else {
+        // 其他类型，转换为字符串（fallback）
+        String tagStr = tagItem.toString();
+        // 如果字符串看起来像对象格式，尝试解析
+        if (tagStr.contains('tag:')) {
+          RegExp regex = RegExp(r'tag:\s*([^,}]+)');
+          RegExpMatch? match = regex.firstMatch(tagStr);
+          if (match != null) {
+            String tag = match.group(1)?.trim() ?? '';
+            if (tag.isNotEmpty) {
+              tags.add(tag);
+            }
+          }
+        } else {
+          tags.add(tagStr);
+        }
+      }
+    }
+    
+    return tags.join(',');
   }
 }
