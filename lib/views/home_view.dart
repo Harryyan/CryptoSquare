@@ -416,7 +416,7 @@ class HomeView extends StatelessWidget {
     
     // 添加 jobLang
     if (job.jobLang == 1) {
-      propertyTags.add('需要英语');
+      propertyTags.add('英语');
     }
 
     return GestureDetector(

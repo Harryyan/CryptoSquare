@@ -156,7 +156,7 @@ class JobDetailView extends GetView<JobController> {
       
       // 添加语言要求
       if (jobDetail.jobLang != null && jobDetail.jobLang == 1) {
-        propertyTags.add('需要英语');
+        propertyTags.add('英语');
       }
     }
 

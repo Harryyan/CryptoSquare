@@ -42,11 +42,11 @@ class JobController extends GetxController {
 
   // 筛选选项
   final RxList<String> jobTypes =
-      <String>['长期全职', '长期兼职', '短期兼职', '无薪实习', '全职/兼职'].obs;
+      <String>['长期全职', '长期兼职', '带薪实习', '全职/兼职'].obs;
 
   final RxList<String> workModes = <String>['远程办公', '实地办公'].obs;
 
-  final RxList<String> languages = <String>['中文', '英文'].obs;
+  final RxList<String> languages = <String>['英文'].obs;
 
   @override
   void onInit() {
@@ -77,9 +77,9 @@ class JobController extends GetxController {
         List<int> officeModes = [];
         for (var mode in selectedWorkModes) {
           if (mode == '远程办公') {
-            officeModes.add(0);
-          } else if (mode == '实地办公') {
             officeModes.add(1);
+          } else if (mode == '实地办公') {
+            officeModes.add(0);
           }
         }
 
@@ -128,7 +128,7 @@ class JobController extends GetxController {
 
       final response = await _restClient.getJobList(
         Platform.isAndroid ? "android" : "ios",
-        pageSize: 10,
+        pageSize: 20,
         page: currentPage.value,
         keyword: searchQuery.value,
         lang: LanguageManagement.language(),
