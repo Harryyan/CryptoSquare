@@ -349,6 +349,77 @@ class JobDetailView extends GetView<JobController> {
     );
   }
 
+  // 预处理HTML内容，清理多余的空白和样式
+  String _preprocessJobDescHtml(String htmlContent) {
+    if (htmlContent.isEmpty) return htmlContent;
+
+    String processedContent = htmlContent;
+
+    // 1. 移除开头和结尾的空白段落（只移除明显的空段落）
+    processedContent = processedContent.replaceAll(RegExp(r'^(\s*<p[^>]*>\s*<br\s*/?>\s*</p>\s*){2,}'), '');
+    processedContent = processedContent.replaceAll(RegExp(r'(\s*<p[^>]*>\s*<br\s*/?>\s*</p>\s*){2,}$'), '');
+
+    // 2. 移除只包含空白内容的段落（但保留正常的空行）
+    processedContent = processedContent.replaceAll(RegExp(r'<p[^>]*>\s*(&nbsp;|\s)*\s*</p>'), '');
+
+    // 3. 适度清理内联样式中的过大padding（只处理明显过大的）
+    processedContent = processedContent.replaceAllMapped(
+      RegExp(r'padding-top:\s*(\d+)px'),
+      (match) {
+        int padding = int.tryParse(match.group(1) ?? '0') ?? 0;
+        if (padding > 16) return 'padding-top: 8px';
+        return match.group(0) ?? '';
+      },
+    );
+
+    processedContent = processedContent.replaceAllMapped(
+      RegExp(r'padding-bottom:\s*(\d+)px'),
+      (match) {
+        int padding = int.tryParse(match.group(1) ?? '0') ?? 0;
+        if (padding > 16) return 'padding-bottom: 8px';
+        return match.group(0) ?? '';
+      },
+    );
+
+    // 4. 适度清理过大的margin值
+    processedContent = processedContent.replaceAllMapped(
+      RegExp(r'margin-bottom:\s*(\d+)px'),
+      (match) {
+        int margin = int.tryParse(match.group(1) ?? '0') ?? 0;
+        if (margin > 16) return 'margin-bottom: 12px';
+        return match.group(0) ?? '';
+      },
+    );
+
+    // 5. 清理过大的line-height值
+    processedContent = processedContent.replaceAllMapped(
+      RegExp(r'line-height:\s*(\d+)px'),
+      (match) {
+        int lineHeight = int.tryParse(match.group(1) ?? '0') ?? 0;
+        if (lineHeight > 32) return 'line-height: 1.8';
+        return match.group(0) ?? '';
+      },
+    );
+
+    // 6. 只移除明显不需要的内联样式属性
+    List<String> unwantedStyles = [
+      'box-sizing[^;]*;?',
+      'text-wrap-mode[^;]*;?',
+    ];
+    
+    for (String style in unwantedStyles) {
+      processedContent = processedContent.replaceAll(RegExp(style), '');
+    }
+
+    // 7. 清理空的style属性
+    processedContent = processedContent.replaceAll(RegExp(r'style="\s*"'), '');
+
+    // 8. 合并过多的连续<br>标签（3个或以上合并为2个）
+    processedContent = processedContent.replaceAll(RegExp(r'(<br\s*/?>\s*){3,}'), '<br/><br/>');
+
+    return processedContent;
+  }
+
   // 岗位描述
   Widget _buildJobDescription() {
     return Container(
@@ -377,17 +448,32 @@ class JobDetailView extends GetView<JobController> {
             ),
           ),
           const SizedBox(height: 16),
-          // 使用flutter_html渲染HTML内容
+          // 使用flutter_html渲染预处理后的HTML内容
           SelectionArea(
             child: Html(
-              data: controller.currentJobDetail.value?.jobDesc ?? description,
+              data: _preprocessJobDescHtml(
+                controller.currentJobDetail.value?.jobDesc ?? description,
+              ),
               style: {
                 "body": Style(
                   fontSize: FontSize(15),
                   lineHeight: LineHeight(1.6),
                   color: Colors.black87,
                 ),
-                "br": Style(margin: Margins.only(bottom: 12)),
+                "p": Style(
+                  margin: Margins.only(bottom: 12),
+                  lineHeight: LineHeight(1.6),
+                ),
+                "br": Style(
+                  margin: Margins.only(bottom: 6),
+                ),
+                "span": Style(
+                  lineHeight: LineHeight(1.6),
+                ),
+                // 只覆盖明显有问题的样式
+                "strong": Style(
+                  fontWeight: FontWeight.bold,
+                ),
               },
             ),
           ),
