@@ -162,15 +162,27 @@ class JobDetailView extends GetView<JobController> {
 
     // 格式化时间显示
     String formattedTime = publishTime;
-    if (jobDetail?.createTime != null) {
+    
+    // 内部方法：尝试使用createTime
+    void tryUseCreateTime() {
       try {
-        final DateTime postTime = DateTime.fromMillisecondsSinceEpoch(jobDetail!.createTime! * 1000);
-        final DateTime now = DateTime.now();
-        final Duration difference = now.difference(postTime);
+        // 从Unix时间戳创建UTC时间，避免时区问题
+        final DateTime postTimeUtc = DateTime.fromMillisecondsSinceEpoch(
+          jobDetail!.createTime! * 1000, 
+          isUtc: true
+        );
+        final DateTime nowUtc = DateTime.now().toUtc();
+        final Duration difference = nowUtc.difference(postTimeUtc);
 
         // 小于1小时
         if (difference.inHours < 1) {
-          formattedTime = '${difference.inMinutes}分钟前';
+          final minutes = difference.inMinutes;
+          // 防止显示负数分钟
+          if (minutes <= 0) {
+            formattedTime = '刚刚';
+          } else {
+            formattedTime = '$minutes分钟前';
+          }
         }
         // 小于24小时
         else if (difference.inHours < 24) {
@@ -180,14 +192,71 @@ class JobDetailView extends GetView<JobController> {
         else if (difference.inDays < 7) {
           formattedTime = '${difference.inDays}天前';
         }
-        // 超过7天
+        // 超过7天，转换为本地时间显示
         else {
-          formattedTime = '${postTime.year}-${postTime.month.toString().padLeft(2, '0')}-${postTime.day.toString().padLeft(2, '0')}';
+          final localTime = postTimeUtc.toLocal();
+          formattedTime = '${localTime.year}-${localTime.month.toString().padLeft(2, '0')}-${localTime.day.toString().padLeft(2, '0')}';
         }
       } catch (e) {
-        // 解析失败时使用原始值
+        // createTime解析也失败时，保持原始值
         formattedTime = publishTime;
       }
+    }
+    
+    // 首先尝试使用传入的publishTime（来自首页，与首页显示保持一致）
+    if (publishTime.isNotEmpty && publishTime != '发布时间') {
+      try {
+        // 使用与JobPost.getFormattedTime()相同的逻辑处理publishTime
+        DateTime postTime;
+        if (publishTime.contains('T')) {
+          // ISO 8601格式，如果没有时区信息，则作为UTC处理
+          if (publishTime.endsWith('Z') || publishTime.contains('+') || publishTime.contains('-')) {
+            postTime = DateTime.parse(publishTime);
+          } else {
+            // 如果没有时区信息，添加Z后缀作为UTC时间处理
+            postTime = DateTime.parse(publishTime + 'Z');
+          }
+        } else {
+          // 非ISO格式，尝试直接解析
+          postTime = DateTime.parse(publishTime);
+        }
+        
+        // 确保都转换为UTC进行计算
+        final DateTime postTimeUtc = postTime.toUtc();
+        final DateTime nowUtc = DateTime.now().toUtc();
+        final Duration difference = nowUtc.difference(postTimeUtc);
+
+        // 小于1小时
+        if (difference.inHours < 1) {
+          final minutes = difference.inMinutes;
+          // 防止显示负数分钟
+          if (minutes <= 0) {
+            formattedTime = '刚刚';
+          } else {
+            formattedTime = '$minutes分钟前';
+          }
+        }
+        // 小于24小时
+        else if (difference.inHours < 24) {
+          formattedTime = '${difference.inHours}小时前';
+        }
+        // 小于7天
+        else if (difference.inDays < 7) {
+          formattedTime = '${difference.inDays}天前';
+        }
+        // 超过7天，转换为本地时间显示
+        else {
+          final localTime = postTimeUtc.toLocal();
+          formattedTime = '${localTime.year}-${localTime.month.toString().padLeft(2, '0')}-${localTime.day.toString().padLeft(2, '0')}';
+        }
+      } catch (e) {
+        // publishTime解析失败，尝试使用API返回的createTime
+        print('解析publishTime失败: $e，尝试使用createTime');
+        tryUseCreateTime();
+      }
+    } else if (jobDetail?.createTime != null) {
+      // 如果没有有效的publishTime，使用API返回的createTime
+      tryUseCreateTime();
     }
 
     return Container(

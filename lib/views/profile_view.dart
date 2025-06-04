@@ -1663,20 +1663,30 @@ class _ProfileViewState extends State<ProfileView>
     // 格式化时间
     String formattedTime = '';
     try {
-      final DateTime postTime = DateTime.fromMillisecondsSinceEpoch(
+      // 从Unix时间戳创建UTC时间，避免时区问题
+      final DateTime postTimeUtc = DateTime.fromMillisecondsSinceEpoch(
         post.createTime * 1000,
+        isUtc: true,
       );
-      final DateTime now = DateTime.now();
-      final Duration difference = now.difference(postTime);
+      final DateTime nowUtc = DateTime.now().toUtc();
+      final Duration difference = nowUtc.difference(postTimeUtc);
 
       if (difference.inMinutes < 60) {
-        formattedTime = '${difference.inMinutes}分钟前';
+        final minutes = difference.inMinutes;
+        // 防止显示负数分钟
+        if (minutes <= 0) {
+          formattedTime = '刚刚';
+        } else {
+          formattedTime = '$minutes分钟前';
+        }
       } else if (difference.inHours < 24) {
         formattedTime = '${difference.inHours}小时前';
       } else if (difference.inDays < 30) {
         formattedTime = '${difference.inDays}天前';
       } else {
-        formattedTime = '${postTime.year}-${postTime.month}-${postTime.day}';
+        // 转换为本地时间显示
+        final localTime = postTimeUtc.toLocal();
+        formattedTime = '${localTime.year}-${localTime.month}-${localTime.day}';
       }
     } catch (e) {
       formattedTime = '未知时间';
