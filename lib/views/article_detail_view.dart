@@ -407,13 +407,21 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
     // 6. 处理段落之间的多余br标签
     processedContent = processedContent.replaceAll(RegExp(r'</p>\s*<br\s*/?>\s*<p'), '</p><p');
 
-    // 7. 移除或修改过大的line-height样式
+    // 7. 处理hr标签周围的空白
+    // 移除hr标签前后的多余br标签和空白段落
+    processedContent = processedContent.replaceAll(RegExp(r'<br\s*/?>\s*<hr\s*/?>\s*<br\s*/?>'), '<hr/>');
+    processedContent = processedContent.replaceAll(RegExp(r'</p>\s*<br\s*/?>\s*<hr\s*/?>'), '</p><hr/>');
+    processedContent = processedContent.replaceAll(RegExp(r'<hr\s*/?>\s*<br\s*/?>\s*<p'), '<hr/><p');
+    processedContent = processedContent.replaceAll(RegExp(r'</blockquote>\s*<br\s*/?>\s*<hr\s*/?>'), '</blockquote><hr/>');
+    processedContent = processedContent.replaceAll(RegExp(r'<hr\s*/?>\s*<br\s*/?>\s*<p'), '<hr/><p');
+
+    // 8. 移除或修改过大的line-height样式
     processedContent = processedContent.replaceAll(
       RegExp(r'line-height:\s*\d+px;?'),
       '',
     );
 
-    // 8. 替换过大的line-height值（超过32px的）
+    // 9. 替换过大的line-height值（超过32px的）
     processedContent = processedContent.replaceAllMapped(
       RegExp(r'line-height:\s*(\d+)px'),
       (match) {
@@ -425,7 +433,7 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
       },
     );
 
-    // 9. 处理过大的padding值
+    // 10. 处理过大的padding值
     processedContent = processedContent.replaceAllMapped(
       RegExp(r'padding-top:\s*(\d+)px'),
       (match) {
@@ -444,7 +452,7 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
       },
     );
 
-    // 10. 移除过大的margin值
+    // 11. 移除过大的margin值
     processedContent = processedContent.replaceAllMapped(
       RegExp(r'margin-top:\s*(\d+)px'),
       (match) {
@@ -463,7 +471,7 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
       },
     );
 
-    // 11. 只移除明显不需要的内联样式属性
+    // 12. 只移除明显不需要的内联样式属性
     List<String> unwantedStyles = [
       'box-sizing[^;]*;?',
       'text-wrap-mode[^;]*;?',
@@ -473,7 +481,7 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
       processedContent = processedContent.replaceAll(RegExp(style), '');
     }
 
-    // 12. 清理空的style属性
+    // 13. 清理空的style属性
     processedContent = processedContent.replaceAll(RegExp(r'style="\s*"'), '');
 
     return processedContent;
@@ -529,6 +537,12 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
             'br': Style(
               margin: Margins.only(bottom: 2),
               lineHeight: LineHeight(0.5),
+            ),
+            // 控制hr标签间距
+            'hr': Style(
+              margin: Margins.only(top: 12, bottom: 12),
+              height: Height(1),
+              backgroundColor: const Color(0xFFE5E7EB),
             ),
             // 图片样式配置 - 使用计算出的像素宽度（默认单位px）
             'img': Style(
