@@ -73,14 +73,27 @@ class JobPost {
     this.isFavorite = false,
   });
 
-  // 获取格式化后的岗位标题（最多显示前三个职位）
+  // 获取格式化后的岗位标题（使用 | 或 / 分隔时取第二个部分作为标题）
   String getFormattedTitle() {
+    // 检查是否包含 | 分隔符
     if (title.contains('|')) {
       final titleParts = title.split('|');
-      if (titleParts.length > 3) {
-        return titleParts.take(3).join('|');
+      if (titleParts.length >= 2) {
+        // 取第二个部分作为标题，并去除前后空格
+        return titleParts[1].trim();
       }
     }
+    
+    // 检查是否包含 / 分隔符
+    if (title.contains('/')) {
+      final titleParts = title.split('/');
+      if (titleParts.length >= 2) {
+        // 取第二个部分作为标题，并去除前后空格
+        return titleParts[1].trim();
+      }
+    }
+    
+    // 如果没有分隔符或只有一个部分，返回原始标题
     return title;
   }
 
@@ -92,13 +105,34 @@ class JobPost {
     }
 
     try {
-      final DateTime postTime = DateTime.parse(createdAt!);
-      final DateTime now = DateTime.now();
-      final Duration difference = now.difference(postTime);
+      // 解析时间为UTC时间，避免时区问题
+      DateTime postTime;
+      if (createdAt!.contains('T')) {
+        // ISO 8601格式，如果没有时区信息，则作为UTC处理
+        if (createdAt!.endsWith('Z') || createdAt!.contains('+') || createdAt!.contains('-')) {
+          postTime = DateTime.parse(createdAt!);
+        } else {
+          // 如果没有时区信息，添加Z后缀作为UTC时间处理
+          postTime = DateTime.parse(createdAt! + 'Z');
+        }
+      } else {
+        // 非ISO格式，尝试直接解析
+        postTime = DateTime.parse(createdAt!);
+      }
+      
+      // 确保都转换为UTC进行计算
+      final DateTime postTimeUtc = postTime.toUtc();
+      final DateTime nowUtc = DateTime.now().toUtc();
+      final Duration difference = nowUtc.difference(postTimeUtc);
 
       // 小于1小时
       if (difference.inHours < 1) {
-        return '${difference.inMinutes}分钟前';
+        final minutes = difference.inMinutes;
+        // 防止显示负数分钟
+        if (minutes <= 0) {
+          return '刚刚';
+        }
+        return '$minutes分钟前';
       }
       // 小于24小时
       else if (difference.inHours < 24) {
@@ -108,9 +142,10 @@ class JobPost {
       else if (difference.inDays < 7) {
         return '${difference.inDays}天前';
       }
-      // 超过7天
+      // 超过7天，转换为本地时间显示
       else {
-        return '${postTime.year}-${postTime.month.toString().padLeft(2, '0')}-${postTime.day.toString().padLeft(2, '0')}';
+        final localTime = postTimeUtc.toLocal();
+        return '${localTime.year}-${localTime.month.toString().padLeft(2, '0')}-${localTime.day.toString().padLeft(2, '0')}';
       }
     } catch (e) {
       // 解析失败时返回默认值
