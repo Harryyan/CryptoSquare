@@ -25,59 +25,92 @@ class HomeController extends GetxController {
   final RxInt currentTabIndex = 0.obs;
   final RxInt currentServiceTabIndex = 0.obs;
   final RxInt currentBannerIndex = 0.obs;
+  final RxBool isBannersLoading = true.obs;
+  final RxBool isServicesLoading = true.obs;
+  final RxBool isJobsLoading = true.obs;
+  final RxBool isNewsLoading = true.obs;
   final RxBool isLoading = true.obs;
   final RxBool isNetworkError = false.obs;
 
   @override
   void onInit() {
     super.onInit();
-    loadAllData();
+    loadAllDataProgressively();
   }
 
-  void loadAllData() {
+  // 渐进式加载 - 关键性能优化
+  void loadAllDataProgressively() {
     isLoading.value = true;
     isNetworkError.value = false;
+    
+    // 重置各个模块加载状态
+    isBannersLoading.value = true;
+    isServicesLoading.value = true;
+    isJobsLoading.value = true;
+    isNewsLoading.value = true;
 
-    // 使用Future.wait等待所有数据加载完成，但允许部分失败
-    Future.wait([
-          _fetchBannersAsync().catchError((error) {
-            print('Banner加载失败: $error');
-            return null; // 返回null而不是重新抛出错误
-          }),
-          _fetchServicesAsync().catchError((error) {
-            print('Services加载失败: $error');
-            return null;
-          }),
-          _fetchJobsAsync().catchError((error) {
-            print('Jobs加载失败: $error');
-            return null;
-          }),
-          _fetchNewsAsync().catchError((error) {
-            print('News加载失败: $error');
-            return null;
-          }),
-        ])
-        .then((results) {
-          // 检查是否所有请求都失败了
-          // 注意：我们的_fetchXxxAsync方法即使在出错时也会返回Future.value()而不是null
-          // 所以我们需要检查是否有任何成功的数据加载
-          bool anyDataLoaded =
-              banners.isNotEmpty ||
-              services.isNotEmpty ||
-              jobs.isNotEmpty ||
-              news.isNotEmpty;
-          isNetworkError.value = !anyDataLoaded;
-          isLoading.value = false;
-        })
-        .catchError((error) {
-          print('数据加载出错: $error');
-          isLoading.value = false;
+    // 优先级1: 立即加载轻量级且重要的数据(Banner + Services)
+    _loadCriticalData();
+    
+    // 优先级2: 延迟100ms加载次要数据，避免阻塞UI
+    Future.delayed(const Duration(milliseconds: 100), () {
+      _loadSecondaryData();
+    });
+    
+    // 检查是否所有基础数据加载完成(Banner + Services)
+    Future.delayed(const Duration(milliseconds: 50), () {
+      _checkInitialLoadingComplete();
+    });
+  }
+
+  void _loadCriticalData() {
+    // 并行加载关键数据
+    _fetchBannersAsync();
+    _fetchServicesAsync();
+  }
+
+  void _loadSecondaryData() {
+    // 并行加载次要数据
+    _fetchJobsAsync();
+    _fetchNewsAsync();
+  }
+
+  void _checkInitialLoadingComplete() {
+    // 每200ms检查一次，直到关键数据加载完成或超时
+    int checkCount = 0;
+    const maxChecks = 25; // 5秒超时
+    
+    void checkStatus() {
+      checkCount++;
+      
+      // 如果Banner和Services都加载完成，或者超时
+      if ((!isBannersLoading.value && !isServicesLoading.value) || 
+          checkCount >= maxChecks) {
+        isLoading.value = false;
+        
+        // 检查是否所有关键数据都失败了
+        if (banners.isEmpty && services.isEmpty && checkCount >= 5) {
           isNetworkError.value = true;
-        });
+        }
+        return;
+      }
+      
+      // 继续检查
+      Future.delayed(const Duration(milliseconds: 200), checkStatus);
+    }
+    
+    checkStatus();
+  }
+
+  // 兼容旧的方法名
+  void loadAllData() {
+    loadAllDataProgressively();
   }
 
   // 原来的方法保留，但改为私有，并返回Future
   Future<void> _fetchBannersAsync() {
+    isBannersLoading.value = true;
+    
     // 从API获取Banner数据
     return _restClient
         .getBanners(0, 'h5')
@@ -96,13 +129,12 @@ class HomeController extends GetxController {
                     )
                     .toList();
           }
+          isBannersLoading.value = false;
         })
         .catchError((error) {
           print('获取Banner数据失败: $error');
-          // 网络错误时不加载默认数据，保持列表为空
           banners.value = [];
-          throw error; // 重新抛出错误，让上层知道这个请求失败了
-          // 不再抛出错误，而是返回成功，这样即使这个请求失败，其他请求仍然可以继续
+          isBannersLoading.value = false;
           return Future.value();
         });
   }
@@ -113,6 +145,8 @@ class HomeController extends GetxController {
   }
 
   Future<void> _fetchServicesAsync() {
+    isServicesLoading.value = true;
+    
     // 从API获取服务项目数据
     return _restClient
         .getHomeServices()
@@ -132,13 +166,12 @@ class HomeController extends GetxController {
                     )
                     .toList();
           }
+          isServicesLoading.value = false;
         })
         .catchError((error) {
           print('获取服务项目数据失败: $error');
-          // 网络错误时不加载默认数据，保持列表为空
           services.value = [];
-          throw error; // 重新抛出错误，让上层知道这个请求失败了
-          // 不再抛出错误，而是返回成功
+          isServicesLoading.value = false;
           return Future.value();
         });
   }
@@ -172,6 +205,8 @@ class HomeController extends GetxController {
   }
 
   Future<void> _fetchJobsAsync() {
+    isJobsLoading.value = true;
+    
     // 从API获取岗位数据
     return _restClient
         .getFeaturedJobs('h5', '30')
@@ -240,12 +275,13 @@ class HomeController extends GetxController {
                   );
                 }).toList();
           }
+          isJobsLoading.value = false;
         })
         .catchError((error) {
           print('获取岗位数据失败: $error');
-          // 网络错误时不加载默认数据，保持列表为空
           jobs.value = [];
-          throw error; // 重新抛出错误，让上层知道这个请求失败了
+          isJobsLoading.value = false;
+          return Future.value();
         });
   }
 
