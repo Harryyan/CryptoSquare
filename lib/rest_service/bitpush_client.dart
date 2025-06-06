@@ -355,7 +355,6 @@ class BitpushClient {
 
 // 使用Retrofit库实现的BitpushNewsClient类
 @RestApi(baseUrl: "https://terminal-cn2.bitpush.news/")
-//https://www.bitpush.news/
 abstract class BitpushNewsClient {
   static Dio? _dio;
 

@@ -123,8 +123,8 @@ class JobListData {
 
 Dio? _dio;
 
-// @RestApi(baseUrl: 'https://d3qx0f55wsubto.cloudfront.net/api')
-@RestApi(baseUrl: 'https://terminal-cn2.bitpush.news/api')
+@RestApi(baseUrl: 'https://d3qx0f55wsubto.cloudfront.net/api')
+// @RestApi(baseUrl: 'https://terminal-cn2.bitpush.news/api')
 abstract class RestClient {
   factory RestClient() {
     _dio ??= Dio();

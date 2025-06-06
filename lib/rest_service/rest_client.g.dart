@@ -768,7 +768,7 @@ Map<String, dynamic> _$CategoryItemToJson(CategoryItem instance) =>
 
 class _RestClient implements RestClient {
   _RestClient(this._dio, {this.baseUrl, this.errorLogger}) {
-    baseUrl ??= 'https://terminal-cn2.bitpush.news/api';
+    baseUrl ??= 'https://d3qx0f55wsubto.cloudfront.net/api';
   }
 
   final Dio _dio;
