@@ -109,39 +109,45 @@ class HomeView extends StatelessWidget {
                 homeController.banners.map((banner) {
                   return Builder(
                     builder: (BuildContext context) {
-                      return Container(
-                        width: MediaQuery.of(context).size.width,
-                        margin: const EdgeInsets.symmetric(
-                          horizontal: 5.0,
-                          vertical: 5.0,
-                        ),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8),
-                          image: DecorationImage(
-                            image: NetworkImage(banner.imageUrl),
-                            fit: BoxFit.cover,
-                          ),
-                        ),
+                      return GestureDetector(
+                        onTap: () {
+                          // Handle banner tap - open link in external browser
+                          _handleBannerTap(banner.link);
+                        },
                         child: Container(
+                          width: MediaQuery.of(context).size.width,
+                          margin: const EdgeInsets.symmetric(
+                            horizontal: 5.0,
+                            vertical: 5.0,
+                          ),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(8),
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                Colors.transparent,
-                                Colors.black.withOpacity(0.7),
-                              ],
+                            image: DecorationImage(
+                              image: NetworkImage(banner.imageUrl),
+                              fit: BoxFit.cover,
                             ),
                           ),
-                          padding: const EdgeInsets.all(12),
-                          alignment: Alignment.bottomLeft,
-                          child: Text(
-                            banner.title,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8),
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.transparent,
+                                  Colors.black.withOpacity(0.7),
+                                ],
+                              ),
+                            ),
+                            padding: const EdgeInsets.all(12),
+                            alignment: Alignment.bottomLeft,
+                            child: Text(
+                              banner.title,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ),
@@ -957,6 +963,25 @@ class HomeView extends StatelessWidget {
       }
     } catch (e) {
       print('打开URL时出错: $e');
+    }
+  }
+
+  // 处理Banner点击事件
+  void _handleBannerTap(String link) {
+    if (link.isEmpty) {
+      print('Banner链接为空');
+      return;
+    }
+    
+    // 检查链接是否是有效的HTTP/HTTPS URL
+    if (link.startsWith('http://') || link.startsWith('https://')) {
+      _launchURL(link);
+    } else {
+      print('Banner链接格式不正确: $link');
+      // 如果不是完整URL，尝试添加https://前缀
+      if (link.contains('.') && !link.startsWith('//')) {
+        _launchURL('https://$link');
+      }
     }
   }
 
