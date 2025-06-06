@@ -382,37 +382,74 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
   String _preprocessHtmlContent(String htmlContent) {
     if (htmlContent.isEmpty) return htmlContent;
 
-    // 移除或修改过大的line-height样式
     String processedContent = htmlContent;
 
-    // 方法1：移除所有line-height样式
+    // 1. 移除开头和结尾的空白段落（只移除明显的空段落）
+    processedContent = processedContent.replaceAll(RegExp(r'^(\s*<p[^>]*>\s*<br\s*/?>\s*</p>\s*){2,}'), '');
+    processedContent = processedContent.replaceAll(RegExp(r'(\s*<p[^>]*>\s*<br\s*/?>\s*</p>\s*){2,}$'), '');
+
+    // 2. 移除只包含空白内容的段落
+    processedContent = processedContent.replaceAll(RegExp(r'<p[^>]*>\s*(&nbsp;|\s)*\s*</p>'), '');
+    
+    // 3. 移除只包含br标签的段落
+    processedContent = processedContent.replaceAll(RegExp(r'<p[^>]*>\s*<br\s*/?>\s*</p>'), '');
+    
+    // 4. 处理多个连续的br标签
+    // 将3个或以上的br合并为1个br
+    processedContent = processedContent.replaceAll(RegExp(r'(<br\s*/?>\s*){3,}'), '<br/>');
+    // 将2个连续的br合并为1个br
+    processedContent = processedContent.replaceAll(RegExp(r'(<br\s*/?>\s*){2}'), '<br/>');
+    
+    // 5. 移除段落开头和结尾的br标签
+    processedContent = processedContent.replaceAll(RegExp(r'<p([^>]*)>\s*<br\s*/?>\s*'), '<p\$1>');
+    processedContent = processedContent.replaceAll(RegExp(r'\s*<br\s*/?>\s*</p>'), '</p>');
+    
+    // 6. 处理段落之间的多余br标签
+    processedContent = processedContent.replaceAll(RegExp(r'</p>\s*<br\s*/?>\s*<p'), '</p><p');
+
+    // 7. 移除或修改过大的line-height样式
     processedContent = processedContent.replaceAll(
       RegExp(r'line-height:\s*\d+px;?'),
       '',
     );
 
-    // 方法2：替换过大的line-height值（超过24px的）
+    // 8. 替换过大的line-height值（超过32px的）
     processedContent = processedContent.replaceAllMapped(
       RegExp(r'line-height:\s*(\d+)px'),
       (match) {
         int lineHeight = int.tryParse(match.group(1) ?? '0') ?? 0;
-        // 如果line-height超过24px，替换为合理的值
-        if (lineHeight > 24) {
-          return 'line-height: 24px';
+        if (lineHeight > 32) {
+          return 'line-height: 1.6';
         }
         return match.group(0) ?? '';
       },
     );
 
-    // 移除过大的margin值
+    // 9. 处理过大的padding值
+    processedContent = processedContent.replaceAllMapped(
+      RegExp(r'padding-top:\s*(\d+)px'),
+      (match) {
+        int padding = int.tryParse(match.group(1) ?? '0') ?? 0;
+        if (padding > 16) return 'padding-top: 4px';
+        return match.group(0) ?? '';
+      },
+    );
+
+    processedContent = processedContent.replaceAllMapped(
+      RegExp(r'padding-bottom:\s*(\d+)px'),
+      (match) {
+        int padding = int.tryParse(match.group(1) ?? '0') ?? 0;
+        if (padding > 16) return 'padding-bottom: 4px';
+        return match.group(0) ?? '';
+      },
+    );
+
+    // 10. 移除过大的margin值
     processedContent = processedContent.replaceAllMapped(
       RegExp(r'margin-top:\s*(\d+)px'),
       (match) {
         int margin = int.tryParse(match.group(1) ?? '0') ?? 0;
-        // 如果margin-top超过16px，替换为合理的值
-        if (margin > 16) {
-          return 'margin-top: 8px';
-        }
+        if (margin > 12) return 'margin-top: 6px';
         return match.group(0) ?? '';
       },
     );
@@ -421,13 +458,23 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
       RegExp(r'margin-bottom:\s*(\d+)px'),
       (match) {
         int margin = int.tryParse(match.group(1) ?? '0') ?? 0;
-        // 如果margin-bottom超过16px，替换为合理的值
-        if (margin > 16) {
-          return 'margin-bottom: 8px';
-        }
+        if (margin > 12) return 'margin-bottom: 6px';
         return match.group(0) ?? '';
       },
     );
+
+    // 11. 只移除明显不需要的内联样式属性
+    List<String> unwantedStyles = [
+      'box-sizing[^;]*;?',
+      'text-wrap-mode[^;]*;?',
+    ];
+    
+    for (String style in unwantedStyles) {
+      processedContent = processedContent.replaceAll(RegExp(style), '');
+    }
+
+    // 12. 清理空的style属性
+    processedContent = processedContent.replaceAll(RegExp(r'style="\s*"'), '');
 
     return processedContent;
   }
@@ -450,22 +497,51 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
             'body': Style(
               fontSize: FontSize(16.0),
               lineHeight: LineHeight(1.6),
+              margin: Margins.zero,
+              padding: HtmlPaddings.zero,
+            ),
+            'h1': Style(
+              fontSize: FontSize(20.0),
+              fontWeight: FontWeight.bold,
+              margin: Margins.only(top: 16, bottom: 8),
+              lineHeight: LineHeight(1.4),
             ),
             'h2': Style(
               fontSize: FontSize(20.0),
               fontWeight: FontWeight.bold,
               margin: Margins.only(top: 16, bottom: 8),
+              lineHeight: LineHeight(1.4),
+            ),
+            'h3': Style(
+              fontSize: FontSize(18.0),
+              fontWeight: FontWeight.bold,
+              margin: Margins.only(top: 12, bottom: 6),
+              lineHeight: LineHeight(1.4),
             ),
             // 修复p标签的行间距问题，覆盖内联样式
             'p': Style(
-              margin: Margins.only(bottom: 12),
+              margin: Margins.only(bottom: 8),
               lineHeight: LineHeight(1.6), // 强制设置合理的行间距
               fontSize: FontSize(16.0), // 确保字体大小一致
+              padding: HtmlPaddings.zero,
+            ),
+            // 控制br标签间距
+            'br': Style(
+              margin: Margins.only(bottom: 2),
+              lineHeight: LineHeight(0.5),
             ),
             // 图片样式配置 - 使用计算出的像素宽度（默认单位px）
             'img': Style(
               width: Width(imageWidthPx), // 计算出的像素宽度，默认单位px
               margin: Margins.only(top: 8, bottom: 8),
+            ),
+            // blockquote样式
+            'blockquote': Style(
+              margin: Margins.only(left: 12, top: 8, bottom: 8),
+              padding: HtmlPaddings.only(left: 12),
+              border: const Border(left: BorderSide(color: Colors.grey, width: 3)),
+              backgroundColor: const Color(0xFFF5F5F5),
+              fontStyle: FontStyle.italic,
             ),
             // 为有序列表添加样式
             'ol': Style(
@@ -491,6 +567,7 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
             ),
             // 为strong标签添加样式
             'strong': Style(fontWeight: FontWeight.bold),
+            'b': Style(fontWeight: FontWeight.bold),
             // 为span标签添加样式，防止特殊样式干扰
             'span': Style(lineHeight: LineHeight(1.6)),
           },
