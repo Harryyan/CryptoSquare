@@ -31,6 +31,9 @@ class HomeController extends GetxController {
   final RxBool isNewsLoading = true.obs;
   final RxBool isLoading = true.obs;
   final RxBool isNetworkError = false.obs;
+  
+  // 添加错误计数器来跟踪失败的请求
+  final RxInt errorCount = 0.obs;
 
   @override
   void onInit() {
@@ -42,6 +45,7 @@ class HomeController extends GetxController {
   void loadAllDataProgressively() {
     isLoading.value = true;
     isNetworkError.value = false;
+    errorCount.value = 0; // 重置错误计数
     
     // 重置各个模块加载状态
     isBannersLoading.value = true;
@@ -88,8 +92,10 @@ class HomeController extends GetxController {
           checkCount >= maxChecks) {
         isLoading.value = false;
         
-        // 检查是否所有关键数据都失败了
-        if (banners.isEmpty && services.isEmpty && checkCount >= 5) {
+        // 检查是否有网络错误 - 修改判断逻辑
+        // 如果所有关键数据都为空且有错误发生，或者错误计数>=2，则认为是网络错误
+        if ((banners.isEmpty && services.isEmpty && errorCount.value > 0) || 
+            errorCount.value >= 2) {
           isNetworkError.value = true;
         }
         return;
@@ -133,9 +139,9 @@ class HomeController extends GetxController {
         })
         .catchError((error) {
           print('获取Banner数据失败: $error');
+          errorCount.value++; // 增加错误计数
           banners.value = [];
           isBannersLoading.value = false;
-          return Future.value();
         });
   }
 
@@ -170,9 +176,9 @@ class HomeController extends GetxController {
         })
         .catchError((error) {
           print('获取服务项目数据失败: $error');
+          errorCount.value++; // 增加错误计数
           services.value = [];
           isServicesLoading.value = false;
-          return Future.value();
         });
   }
 
@@ -279,9 +285,9 @@ class HomeController extends GetxController {
         })
         .catchError((error) {
           print('获取岗位数据失败: $error');
+          errorCount.value++; // 增加错误计数
           jobs.value = [];
           isJobsLoading.value = false;
-          return Future.value();
         });
   }
 
@@ -343,8 +349,8 @@ class HomeController extends GetxController {
         })
         .catchError((error) {
           print('获取Web3动态数据失败: $error');
-          // 网络错误时不加载默认数据，保持列表为空
           if (!isLoadMore) {
+            errorCount.value++; // 增加错误计数
             news.value = [];
           }
           // 重置加载状态
@@ -353,7 +359,7 @@ class HomeController extends GetxController {
             // 加载失败时，恢复页码
             currentNewsPage.value--;
           }
-          throw error; // 重新抛出错误，让上层知道这个请求失败了
+          // 不再重新抛出错误，避免未处理的异常
         });
   }
 
