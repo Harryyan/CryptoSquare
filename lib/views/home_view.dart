@@ -987,8 +987,52 @@ class HomeView extends StatelessWidget {
 
   Widget _buildNewsList() {
     return Obx(() {
-      if (homeController.news.isEmpty) {
-        return const SizedBox(height: 200);
+      // 如果正在加载且没有数据，显示loading spinner
+      if (homeController.isNewsLoading.value && homeController.news.isEmpty) {
+        return Container(
+          height: 200,
+          child: const Center(
+            child: CircularProgressIndicator(
+              color: AppTheme.primaryColor,
+            ),
+          ),
+        );
+      }
+
+      // 如果加载完成但没有数据，检查是否有错误
+      if (homeController.news.isEmpty && !homeController.isNewsLoading.value) {
+        return Container(
+          height: 200,
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text(
+                  '暂无数据',
+                  style: TextStyle(
+                    color: Colors.grey,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () {
+                    homeController.fetchNews();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryColor,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 8,
+                    ),
+                  ),
+                  child: const Text('重新加载'),
+                ),
+              ],
+            ),
+          ),
+        );
       }
 
       return Column(

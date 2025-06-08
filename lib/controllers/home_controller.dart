@@ -292,6 +292,11 @@ class HomeController extends GetxController {
   }
 
   Future<void> _fetchNewsAsync({bool isLoadMore = false}) {
+    // 设置loading状态
+    if (!isLoadMore) {
+      isNewsLoading.value = true;
+    }
+    
     // 从Bitpush API获取Web3动态数据，支持分页
     return _bitpushNewsClient
         .getWebNews(
@@ -345,6 +350,8 @@ class HomeController extends GetxController {
           // 重置加载状态
           if (isLoadMore) {
             isLoadingMoreNews.value = false;
+          } else {
+            isNewsLoading.value = false;
           }
         })
         .catchError((error) {
@@ -352,6 +359,7 @@ class HomeController extends GetxController {
           if (!isLoadMore) {
             errorCount.value++; // 增加错误计数
             news.value = [];
+            isNewsLoading.value = false;
           }
           // 重置加载状态
           if (isLoadMore) {
@@ -369,6 +377,11 @@ class HomeController extends GetxController {
 
   void changeServiceTab(int index) {
     currentServiceTabIndex.value = index;
+    
+    // 当切换到Web3动态(index=1)时，如果数据为空且不在加载中，触发加载
+    if (index == 1 && news.isEmpty && !isNewsLoading.value) {
+      fetchNews();
+    }
   }
 
   void toggleFavorite(int jobId, String jobKey) {
