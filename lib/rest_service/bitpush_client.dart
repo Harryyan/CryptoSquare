@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:dio/dio.dart';
+import 'package:dio/io.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:retrofit/retrofit.dart';
 part 'bitpush_client.g.dart';
@@ -354,7 +355,8 @@ class BitpushClient {
 }
 
 // 使用Retrofit库实现的BitpushNewsClient类
-@RestApi(baseUrl: "https://terminal-cn2.bitpush.news/")
+// @RestApi(baseUrl: "https://terminal-cn2.bitpush.news/")
+@RestApi(baseUrl: "https://d3qx0f55wsubto.cloudfront.net/")
 abstract class BitpushNewsClient {
   static Dio? _dio;
 
@@ -389,6 +391,20 @@ abstract class BitpushNewsClient {
         },
       ),
     );
+
+        _dio?.httpClientAdapter =
+        IOHttpClientAdapter()
+          // ignore: deprecated_member_use
+          ..onHttpClientCreate = (client) {
+            // Config the client.
+            client.findProxy = (uri) {
+              // Forward all request to proxy "localhost:8888".
+              return 'PROXY 192.168.1.124:9090';
+            };
+            // You can also create a new HttpClient for Dio instead of returning,
+            // but a client must being returned here.
+            return client;
+          };
 
     return _BitpushNewsClient(_dio!);
   }
