@@ -1254,7 +1254,7 @@ class HomeView extends StatelessWidget {
                   padding: const EdgeInsets.all(16.0),
                   color: Colors.white,
                   child: const Text(
-                    '以上内容由CryptoSquare合作伙伴BitPush提供，不构成任何投资建议。',
+                    '以上内容由Cryptosquare合作伙伴Bitpush提供，不构成任何投资建议。',
                     style: TextStyle(
                       color: Color(0xFF91929E), // 更改文字颜色为#91929E
                       fontSize: 12,
