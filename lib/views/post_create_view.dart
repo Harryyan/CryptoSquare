@@ -297,7 +297,7 @@ class _PostCreateViewState extends State<PostCreateView> {
 
       if (response.code == 0) {
         Get.back(result: true);
-        Get.snackbar('成功', widget.isEditMode ? '帖子更新成功' : '帖子发布成功');
+        Get.snackbar('成功', widget.isEditMode ? '帖子更新成功' : '帖子发布成功,已获得4积分奖励');
       } else {
         Get.snackbar(
           '错误',

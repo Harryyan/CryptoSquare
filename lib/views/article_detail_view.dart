@@ -962,7 +962,7 @@ Widget _buildArticleTags() {
           Image.asset('assets/images/coin-icon.png', width: 24, height: 24),
           const SizedBox(width: 8),
           Text(
-            '贡献内容可获4积分',
+            '发布评论可得2积分',
             style: TextStyle(fontSize: 14, color: Colors.grey[600]),
           ),
           const Spacer(flex: 6),
@@ -1264,7 +1264,7 @@ Widget _buildArticleTags() {
         Get.dialog(
           AlertDialog(
             title: const Text('提示'),
-            content: const Text('评论发布成功'),
+            content: const Text('评论发布成功,已获得2积分奖励'),
           ),
           barrierDismissible: true, // 允许点击外部关闭
         );
