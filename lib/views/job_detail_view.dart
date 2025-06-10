@@ -956,26 +956,22 @@ class JobDetailView extends GetView<JobController> {
           print('更新工作列表收藏状态失败: $e');
         }
         
-        // 显示成功提示
+        // 显示自动消失的中心弹窗
         Get.dialog(
           AlertDialog(
             title: const Text('提示'),
             content: Text(isCollected ? '收藏成功' : '取消收藏成功'),
-            actions: [
-              ElevatedButton(
-                onPressed: () {
-                  Get.back();
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryColor,
-                  foregroundColor: Colors.white,
-                ),
-                child: const Text('确定'),
-              ),
-            ],
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           ),
-          barrierDismissible: true,
+          barrierDismissible: false,
         );
+
+        // 1.2秒后自动关闭
+        Future.delayed(const Duration(milliseconds: 1200), () {
+          if (Get.isDialogOpen == true) {
+            Get.back();
+          }
+        });
       } else {
         // 显示失败提示
         Get.snackbar(
