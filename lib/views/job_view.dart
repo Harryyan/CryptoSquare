@@ -682,6 +682,8 @@ class _JobViewState extends State<JobView> with AutomaticKeepAliveClientMixin {
     // 添加 jobLang
     if (job.jobLang == 1) {
       propertyTags.add('英语');
+    } else if (job.jobLang == 0) {
+      propertyTags.add('不要求英语');
     }
 
     return GestureDetector(

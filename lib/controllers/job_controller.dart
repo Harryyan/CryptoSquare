@@ -46,7 +46,7 @@ class JobController extends GetxController {
 
   final RxList<String> workModes = <String>['远程办公', '实地办公'].obs;
 
-  final RxList<String> languages = <String>['英文'].obs;
+  final RxList<String> languages = <String>['英语', '不要求英语'].obs;
 
   @override
   void onInit() {
@@ -101,9 +101,9 @@ class JobController extends GetxController {
         // 将多个语言要求转换为逗号分隔的字符串
         List<int> langs = [];
         for (var lang in selectedLanguages) {
-          if (lang == '中文') {
+          if (lang == '不要求英语') {
             langs.add(0);
-          } else if (lang == '英文') {
+          } else if (lang == '英语') {
             langs.add(1);
           }
         }
