@@ -609,59 +609,67 @@ class _ProfileViewState extends State<ProfileView>
                   // 右侧小分类：岗位/帖子
                   Container(
                     width: 160,
+                    height: 40, // 保证高度一致
+                    alignment: Alignment.center,
                     child: Obx(() {
                       int segValue = postTabIndex.value;
                       if (segValue != 2 && segValue != 3) {
                         segValue = 2;
                         postTabIndex.value = 2;
                       }
-                      return CupertinoSegmentedControl<int>(
-                        children: {
-                          2: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 8,
-                            ),
-                            child: Text(
-                              '岗位',
-                              style: TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.bold,
-                                // 当选择"我的发布"时，岗位tab文字显示为灰色
-                                color:
-                                    currentTabIndex.value == 0
-                                        ? Colors.grey[400]
-                                        : null,
+                      return Visibility(
+                        visible: currentTabIndex.value == 1, // 只在"我的收藏"时显示
+                        maintainSize: true,
+                        maintainAnimation: true,
+                        maintainState: true,
+                        child: CupertinoSegmentedControl<int>(
+                          children: {
+                            2: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 8,
+                              ),
+                              child: Text(
+                                '岗位',
+                                style: TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.bold,
+                                  // 当选择"我的发布"时，岗位tab文字显示为灰色
+                                  color:
+                                      currentTabIndex.value == 0
+                                          ? Colors.grey[400]
+                                          : null,
+                                ),
                               ),
                             ),
-                          ),
-                          3: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 8,
-                            ),
-                            child: Text(
-                              '帖子',
-                              style: const TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.bold,
+                            3: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 8,
+                              ),
+                              child: Text(
+                                '帖子',
+                                style: const TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
-                          ),
-                        },
-                        groupValue: segValue,
-                        onValueChanged: (int value) {
-                          // 当选择"我的发布"时，不允许切换到岗位tab
-                          if (currentTabIndex.value == 0 && value == 2) {
-                            return; // 不执行任何操作
-                          }
-                          postTabIndex.value = value;
-                          // 如要同步TabController:
-                          // _tabController.animateTo(value);
-                        },
-                        selectedColor: const Color(0xFF2563EB),
-                        unselectedColor: Colors.grey[100]!,
-                        borderColor: Colors.transparent,
+                          },
+                          groupValue: segValue,
+                          onValueChanged: (int value) {
+                            // 当选择"我的发布"时，不允许切换到岗位tab
+                            if (currentTabIndex.value == 0 && value == 2) {
+                              return; // 不执行任何操作
+                            }
+                            postTabIndex.value = value;
+                            // 如要同步TabController:
+                            // _tabController.animateTo(value);
+                          },
+                          selectedColor: const Color(0xFF2563EB),
+                          unselectedColor: Colors.grey[100]!,
+                          borderColor: Colors.transparent,
+                        ),
                       );
                     }),
                   ),
