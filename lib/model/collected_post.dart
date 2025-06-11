@@ -46,28 +46,24 @@ class PostItem {
   final int id;
   final String title;
   final String content;
-  final int user;
+  final String summary;
+  final String cover;
+  final String createdAt;
+  final int comments;
+  final String userNickname;
+  final String userAvatar;
+  final String link;
+  final List<String> tags;
+  final int catId;
   final int status;
   final String type;
-  @JsonKey(name: 'created_at')
-  final String createdAt;
-  @JsonKey(name: 'updated_at')
-  final String updatedAt;
   final int lang;
   @JsonKey(name: 'last_view')
   final int lastView;
   @JsonKey(name: 'last_view_user')
   final int lastViewUser;
-  @JsonKey(name: 'reply_nums')
-  final int replyNums;
-  @JsonKey(name: 'reply_user')
-  final String replyUser;
-  final int ding;
-  final int cai;
   @JsonKey(name: 'reply_time')
   final int replyTime;
-  @JsonKey(name: 'cat_id')
-  final int catId;
   final String origin;
   @JsonKey(name: 'origin_link')
   final String originLink;
@@ -97,20 +93,21 @@ class PostItem {
     required this.id,
     required this.title,
     required this.content,
-    required this.user,
+    required this.summary,
+    required this.cover,
+    required this.createdAt,
+    required this.comments,
+    required this.userNickname,
+    required this.userAvatar,
+    required this.link,
+    required this.tags,
+    required this.catId,
     required this.status,
     required this.type,
-    required this.createdAt,
-    required this.updatedAt,
     required this.lang,
     required this.lastView,
     required this.lastViewUser,
-    required this.replyNums,
-    required this.replyUser,
-    required this.ding,
-    required this.cai,
     required this.replyTime,
-    required this.catId,
     required this.origin,
     required this.originLink,
     required this.createTime,
@@ -128,8 +125,55 @@ class PostItem {
     required this.catInfo,
   });
 
-  factory PostItem.fromJson(Map<String, dynamic> json) =>
-      _$PostItemFromJson(json);
+  factory PostItem.fromJson(Map<String, dynamic> json) {
+    final extension = json['extension'] ?? {};
+    final auth = extension['auth'] ?? {};
+    final tagList = (extension['tag'] as List?)?.map((e) {
+      if (e is String) return e;
+      if (e is Map && e['tag'] != null) return e['tag'].toString();
+      return '';
+    }).where((e) => e.isNotEmpty).toList() ?? [];
+
+    String content = json['content'] as String? ?? '';
+    String summary = content.replaceAll(RegExp(r'<[^>]*>'), '');
+    if (summary.length > 100) summary = summary.substring(0, 100) + '...';
+
+    return PostItem(
+      id: json['id'] as int? ?? 0,
+      title: json['title'] as String? ?? '',
+      content: content,
+      summary: summary,
+      cover: json['cover'] as String? ?? '',
+      createdAt: json['created_at'] as String? ?? '',
+      comments: json['reply_nums'] as int? ?? 0,
+      userNickname: auth['nickname'] as String? ?? '',
+      userAvatar: auth['avatar'] as String? ?? '',
+      link: json['link'] as String? ?? '',
+      tags: tagList,
+      catId: json['cat_id'] as int? ?? 0,
+      status: json['status'] as int? ?? 0,
+      type: json['type'] as String? ?? '',
+      lang: json['lang'] as int? ?? 0,
+      lastView: json['last_view'] as int? ?? 0,
+      lastViewUser: json['last_view_user'] as int? ?? 0,
+      replyTime: json['reply_time'] as int? ?? 0,
+      origin: json['origin'] as String? ?? '',
+      originLink: json['origin_link'] as String? ?? '',
+      createTime: json['create_time'] as int? ?? 0,
+      profile: json['profile'] as String? ?? '',
+      hasTag: json['has_tag'] as int? ?? 0,
+      sh5: json['sh5'] as int? ?? 0,
+      startTime: json['start_time'] as String? ?? '',
+      endTime: json['end_time'] as String? ?? '',
+      isTop: json['is_top'] as int? ?? 0,
+      isHot: json['is_hot'] as int? ?? 0,
+      contact: json['contact'] as String? ?? '',
+      address: json['address'] as String? ?? '',
+      extension: PostExtension.fromJson(extension is Map<String, dynamic> ? extension : {}),
+      catName: json['cat_name'] as String? ?? '',
+      catInfo: json['cat_info'] != null ? CatInfo.fromJson(json['cat_info'] as Map<String, dynamic>) : CatInfo(title: '', catSlug: ''),
+    );
+  }
 
   Map<String, dynamic> toJson() => _$PostItemToJson(this);
 }

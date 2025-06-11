@@ -1680,89 +1680,6 @@ class _ProfileViewState extends State<ProfileView>
     }
   }
 
-  /// 帖子样式卡片
-  Widget _buildForumCard(Map<String, dynamic> post) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 6),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 帖子标题
-          Text(
-            post['title'] ?? '',
-            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 12),
-          // 摘要 + 缩略图
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Text(
-                  post['summary'] ?? '',
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: Colors.grey[700],
-                    height: 1.3,
-                  ),
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              const SizedBox(width: 12),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  post['image'] ?? '',
-                  width: 80,
-                  height: 80,
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          // 底部时间 + 评论数
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 10,
-                backgroundImage: NetworkImage(
-                  userController.user.avatarUrl ??
-                      'https://via.placeholder.com/20',
-                ),
-              ),
-              const SizedBox(width: 6),
-              const Text(
-                '我不是游客',
-                style: TextStyle(fontSize: 12, color: Colors.grey),
-              ),
-              const SizedBox(width: 10),
-              Text(
-                post['time'] ?? '',
-                style: const TextStyle(fontSize: 12, color: Colors.grey),
-              ),
-              const Spacer(),
-              const Icon(Icons.comment_outlined, size: 14, color: Colors.grey),
-              const SizedBox(width: 5),
-              Text(
-                '${post['comments']}条评论',
-                style: const TextStyle(fontSize: 12, color: Colors.grey),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
   /// 收藏的帖子卡片
   Widget _buildCollectedPostCard(PostItem post) {
     // 从内容中提取摘要，去除HTML标签
@@ -1920,7 +1837,7 @@ class _ProfileViewState extends State<ProfileView>
                 ),
                 const SizedBox(width: 5),
                 Text(
-                  '${post.replyNums}条评论',
+                  '${post.comments}条评论',
                   style: const TextStyle(fontSize: 12, color: Colors.grey),
                 ),
               ],
