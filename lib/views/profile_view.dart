@@ -1481,212 +1481,11 @@ class _ProfileViewState extends State<ProfileView>
     await _loadFavoritePosts();
   }
 
-  /// 用户发布的帖子卡片
-  Widget _buildUserPostCard(UserPostItem post) {
-    return GestureDetector(
-      onTap: () {
-        // 使用ArticleController导航到文章详情页面
-        ArticleController().navigateToArticleDetail(
-          context,
-          post.id.toString(),
-        );
-      },
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 6),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 帖子标题
-                Expanded(
-                  child: Text(
-                    post.title,
-                    style: const TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                // 编辑按钮
-                if (post.status == 1) // 只有已发布的帖子才显示编辑按钮
-                  GestureDetector(
-                    onTap: () {
-                      // 获取文章详情并跳转到编辑页面
-                      _navigateToEditPost(post);
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        '编辑',
-                        style: TextStyle(fontSize: 12, color: Colors.blue),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            // 分类标签
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                post.catName,
-                style: TextStyle(fontSize: 12, color: Colors.blue),
-              ),
-            ),
-            const SizedBox(height: 12),
-            // 底部信息
-            Row(
-              children: [
-                CircleAvatar(
-                  radius: 10,
-                  backgroundImage: NetworkImage(
-                    userController.user.avatarUrl ??
-                        'https://via.placeholder.com/20',
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  userName.value,
-                  style: TextStyle(fontSize: 12, color: Colors.grey),
-                ),
-                const Spacer(),
-                // 状态标签
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color:
-                        post.status == 0
-                            ? Colors.grey.withOpacity(0.1)
-                            : post.status == 1
-                            ? Colors.green.withOpacity(0.1)
-                            : post.status == 2
-                            ? Colors.red.withOpacity(0.1)
-                            : post.status == 3
-                            ? Colors.grey.withOpacity(0.1)
-                            : Colors.orange.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    post.status == 0
-                        ? '审核中'
-                        : post.status == 1
-                        ? '在线'
-                        : post.status == 2
-                        ? '审核拒绝'
-                        : post.status == 3
-                        ? '下线'
-                        : '未知状态',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color:
-                          post.status == 0
-                              ? Colors.grey
-                              : post.status == 1
-                              ? Colors.green
-                              : post.status == 2
-                              ? Colors.red
-                              : post.status == 3
-                              ? Colors.grey
-                              : Colors.orange,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// 导航到编辑帖子页面
-  Future<void> _navigateToEditPost(UserPostItem post) async {
-    try {
-      // 显示加载指示器
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          return Center(child: CircularProgressIndicator());
-        },
-      );
-
-      // 获取文章详情
-      final client = RestClient();
-      final response = await client.getArticleDetail(
-        post.id.toString(),
-        GStorage().getLanguageCN() ? 1 : 0,
-        Platform.isAndroid ? "android" : "ios",
-      );
-
-      // 关闭加载指示器
-      Navigator.pop(context);
-
-      if (response.code == 0 && response.data != null) {
-        // 导航到编辑页面
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder:
-                (context) => PostCreateView(
-                  isEditMode: true,
-                  articleId: post.id.toString(),
-                  initialTitle: response.data!.title ?? '',
-                  initialContent: response.data!.content ?? '',
-                  initialCategoryId: response.data!.catId ?? 0,
-                  initialTags:
-                      response.data!.extension?.tag != null
-                          ? _extractTagsFromList(response.data!.extension!.tag!)
-                          : '',
-                ),
-          ),
-        );
-      } else {
-        // 显示错误信息
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(response.message ?? '获取文章详情失败')));
-      }
-    } catch (e) {
-      // 关闭加载指示器
-      Navigator.pop(context);
-      // 显示错误信息
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('网络错误: ${e.toString()}')));
-    }
-  }
-
   /// 收藏的帖子卡片
   Widget _buildCollectedPostCard(PostItem post) {
     // 从内容中提取摘要，去除HTML标签
     String summary = post.content;
-    // 简单处理HTML标签（实际项目中可能需要更复杂的HTML解析）
     summary = summary.replaceAll(RegExp(r'<[^>]*>'), '');
-    // 限制摘要长度
     if (summary.length > 100) {
       summary = summary.substring(0, 100) + '...';
     }
@@ -1694,28 +1493,20 @@ class _ProfileViewState extends State<ProfileView>
     // 格式化时间
     String formattedTime = '';
     try {
-      // 从Unix时间戳创建UTC时间，避免时区问题
       final DateTime postTimeUtc = DateTime.fromMillisecondsSinceEpoch(
         post.createTime * 1000,
         isUtc: true,
       );
       final DateTime nowUtc = DateTime.now().toUtc();
       final Duration difference = nowUtc.difference(postTimeUtc);
-
       if (difference.inMinutes < 60) {
         final minutes = difference.inMinutes;
-        // 防止显示负数分钟
-        if (minutes <= 0) {
-          formattedTime = '刚刚';
-        } else {
-          formattedTime = '$minutes分钟前';
-        }
+        formattedTime = minutes <= 0 ? '刚刚' : '$minutes分钟前';
       } else if (difference.inHours < 24) {
         formattedTime = '${difference.inHours}小时前';
       } else if (difference.inDays < 30) {
         formattedTime = '${difference.inDays}天前';
       } else {
-        // 转换为本地时间显示
         final localTime = postTimeUtc.toLocal();
         formattedTime = '${localTime.year}-${localTime.month}-${localTime.day}';
       }
@@ -1735,7 +1526,6 @@ class _ProfileViewState extends State<ProfileView>
 
     return GestureDetector(
       onTap: () {
-        // 使用ArticleController导航到文章详情页面
         ArticleController().navigateToArticleDetail(
           context,
           post.id.toString(),
@@ -1775,61 +1565,48 @@ class _ProfileViewState extends State<ProfileView>
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const SizedBox(width: 12),
-                // 如果有图片则显示，否则显示默认图片
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child:
-                      post.extension.auth.avatar.isNotEmpty
-                          ? Image.network(
-                            post.extension.auth.avatar,
-                            width: 80,
-                            height: 80,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Image.asset(
-                                'assets/images/logo.png',
-                                width: 80,
-                                height: 80,
-                                fit: BoxFit.cover,
-                              );
-                            },
-                          )
-                          : Image.asset(
-                            'assets/images/logo.png',
-                            width: 80,
-                            height: 80,
-                            fit: BoxFit.cover,
-                          ),
-                ),
+                if (post.cover.isNotEmpty) ...[
+                  const SizedBox(width: 12),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(
+                      post.cover,
+                      width: 80,
+                      height: 80,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Image.asset(
+                          'assets/images/logo.png',
+                          width: 80,
+                          height: 80,
+                          fit: BoxFit.cover,
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ],
             ),
             const SizedBox(height: 10),
             // 底部作者 + 时间 + 评论数
             Row(
               children: [
-                // 作者头像
                 CircleAvatar(
                   radius: 10,
                   backgroundImage: NetworkImage(authorAvatar),
-                  onBackgroundImageError: (exception, stackTrace) {
-                    // 头像加载失败时使用默认头像
-                  },
+                  onBackgroundImageError: (exception, stackTrace) {},
                 ),
                 const SizedBox(width: 6),
-                // 作者名称
                 Text(
                   authorName,
                   style: const TextStyle(fontSize: 12, color: Colors.grey),
                 ),
                 const SizedBox(width: 10),
-                // 发布时间
                 Text(
                   formattedTime,
                   style: const TextStyle(fontSize: 12, color: Colors.grey),
                 ),
                 const Spacer(),
-                // 评论图标和数量
                 const Icon(
                   Icons.comment_outlined,
                   size: 14,
@@ -1838,6 +1615,144 @@ class _ProfileViewState extends State<ProfileView>
                 const SizedBox(width: 5),
                 Text(
                   '${post.comments}条评论',
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 用户发布的帖子卡片
+  Widget _buildUserPostCard(UserPostItem post) {
+    String summary = post.content;
+    summary = summary.replaceAll(RegExp(r'<[^>]*>'), '');
+    if (summary.length > 100) {
+      summary = summary.substring(0, 100) + '...';
+    }
+
+    String formattedTime = '';
+    try {
+      final DateTime postTimeUtc = DateTime.fromMillisecondsSinceEpoch(
+        post.createTime * 1000,
+        isUtc: true,
+      );
+      final DateTime nowUtc = DateTime.now().toUtc();
+      final Duration difference = nowUtc.difference(postTimeUtc);
+      if (difference.inMinutes < 60) {
+        final minutes = difference.inMinutes;
+        formattedTime = minutes <= 0 ? '刚刚' : '$minutes分钟前';
+      } else if (difference.inHours < 24) {
+        formattedTime = '${difference.inHours}小时前';
+      } else if (difference.inDays < 30) {
+        formattedTime = '${difference.inDays}天前';
+      } else {
+        final localTime = postTimeUtc.toLocal();
+        formattedTime = '${localTime.year}-${localTime.month}-${localTime.day}';
+      }
+    } catch (e) {
+      formattedTime = '未知时间';
+    }
+
+    String authorName =
+        post.extension.auth.nickname.isNotEmpty
+            ? post.extension.auth.nickname
+            : '匿名用户';
+    String authorAvatar =
+        post.extension.auth.avatar.isNotEmpty
+            ? post.extension.auth.avatar
+            : 'https://via.placeholder.com/20';
+
+    return GestureDetector(
+      onTap: () {
+        ArticleController().navigateToArticleDetail(
+          context,
+          post.id.toString(),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 6),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              post.title,
+              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 12),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Text(
+                    summary,
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: Colors.grey[700],
+                      height: 1.3,
+                    ),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (post.cover.isNotEmpty) ...[
+                  const SizedBox(width: 12),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(
+                      post.cover,
+                      width: 80,
+                      height: 80,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Image.asset(
+                          'assets/images/logo.png',
+                          width: 80,
+                          height: 80,
+                          fit: BoxFit.cover,
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 10,
+                  backgroundImage: NetworkImage(authorAvatar),
+                  onBackgroundImageError: (exception, stackTrace) {},
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  authorName,
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  formattedTime,
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+                const Spacer(),
+                const Icon(
+                  Icons.comment_outlined,
+                  size: 14,
+                  color: Colors.grey,
+                ),
+                const SizedBox(width: 5),
+                Text(
+                  '${post.replyNums}条评论',
                   style: const TextStyle(fontSize: 12, color: Colors.grey),
                 ),
               ],
