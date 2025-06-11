@@ -129,9 +129,27 @@ abstract class RestClient {
   factory RestClient() {
     _dio ??= Dio();
 
-    // 添加拦截器处理用户认证
+    // 配置超时时间
+    _dio?.options.connectTimeout = const Duration(seconds: 10);
+    _dio?.options.receiveTimeout = const Duration(seconds: 10);
+    _dio?.options.sendTimeout = const Duration(seconds: 10);
+
+    // 添加重试拦截器
     _dio?.interceptors.add(
       InterceptorsWrapper(
+        onError: (DioException error, ErrorInterceptorHandler handler) async {
+          if (error.type == DioExceptionType.connectionError ||
+              error.type == DioExceptionType.connectionTimeout) {
+            // 如果是连接错误，尝试重试
+            try {
+              final response = await _dio?.fetch(error.requestOptions);
+              return handler.resolve(response!);
+            } catch (e) {
+              return handler.next(error);
+            }
+          }
+          return handler.next(error);
+        },
         onRequest: (options, handler) {
           String token = GStorage().getToken();
 
@@ -148,19 +166,11 @@ abstract class RestClient {
       ),
     );
 
-    // _dio?.httpClientAdapter =
-    //     IOHttpClientAdapter()
-    //       // ignore: deprecated_member_use
-    //       ..onHttpClientCreate = (client) {
-    //         // Config the client.
-    //         client.findProxy = (uri) {
-    //           // Forward all request to proxy "localhost:8888".
-    //           return 'PROXY 192.168.1.124:9090';
-    //         };
-    //         // You can also create a new HttpClient for Dio instead of returning,
-    //         // but a client must being returned here.
-    //         return client;
-    //       };
+    // 配置HTTP客户端
+    (_dio?.httpClientAdapter as IOHttpClientAdapter).onHttpClientCreate = (client) {
+      client.badCertificateCallback = (X509Certificate cert, String host, int port) => true;
+      return client;
+    };
 
     return _RestClient(_dio!);
   }
