@@ -9,7 +9,7 @@ import 'package:cryptosquare/controllers/home_controller.dart';
 import 'package:cryptosquare/controllers/job_controller.dart';
 import 'package:cryptosquare/controllers/article_controller.dart';
 import 'package:cryptosquare/theme/app_theme.dart';
-import 'package:cryptosquare/util/tag_utils.dart';
+
 import 'package:cryptosquare/util/storage.dart';
 import 'package:cryptosquare/util/event_bus.dart';
 import 'package:cryptosquare/models/app_models.dart';
@@ -984,40 +984,60 @@ class _ProfileViewState extends State<ProfileView>
 
         // 将API返回的数据转换为UI需要的格式
         for (var item in response.data!.list) {
-          // 从标题中提取薪资信息
+          // 使用新的数据结构字段
           String title = item.jobTitle;
-          String salary = "";
-
-          // 检查是否包含"薪资面议"文本
-          if (title.contains("薪资面议")) {
-            // 从标题中移除"薪资面议"并添加到salary字段
-            salary = "薪资面议";
-            title = title.replaceAll("薪资面议", "").trim();
-          } else {
-            // 查找薪资部分（如"$4000-$10000/月"）
-            RegExp salaryRegex = RegExp(r'\$\d+(?:-\$\d+)?(?:/[^|]+)?$');
-            Match? match = salaryRegex.firstMatch(title);
-
-            if (match != null) {
-              // 提取薪资部分
-              salary = match.group(0) ?? "";
-              // 从标题中移除薪资部分
-              title = title.substring(0, match.start).trim();
+          
+          // 处理title，从"xxx|xxx|xxx"格式中提取第二个部分
+          if (title.contains('|')) {
+            final titleParts = title.split('|');
+            if (titleParts.length >= 2) {
+              title = titleParts[1].trim(); // 取第二个部分并去除空格
             }
           }
-
-          // 移除标题末尾的竖线符号
-          if (title.endsWith("|")) {
-            title = title.substring(0, title.length - 1).trim();
+          
+          // 使用新的薪资字段构建薪资显示
+          String salary = "";
+          if (item.minSalary > 0 && item.maxSalary > 0) {
+            // 格式化为 $8000-$30000 的样式
+            salary = "\$${item.minSalary}-\$${item.maxSalary}";
+          }
+          
+          // 构建标签数组
+          List<String> extraTags = [];
+          extraTags.add("#${item.jobKey}");
+          
+          // 添加标签
+          if (item.tags.isNotEmpty) {
+            List<String> tagList = item.tags.split(',');
+            extraTags.addAll(tagList.map((tag) => "#${tag.trim()}"));
+          }
+          
+          // 添加工作类型属性
+          if (item.jobType.isNotEmpty) {
+            extraTags.add("#${item.jobType}");
+          }
+          
+          // 添加办公模式
+          if (item.officeMode == 1) {
+            extraTags.add("#远程");
+          } else if (item.officeMode == 0) {
+            extraTags.add("#实地");
+          }
+          
+          // 添加语言要求
+          if (item.jobLang == 1) {
+            extraTags.add("#英语");
           }
 
           favoriteJobList.add({
             "title": title,
-            "company": item.jobPosition,
-            "time": "", // 可以根据需要调整
-            "salary": salary, // 从标题中提取的薪资信息
-            "extraTags": ["#${item.jobKey}"], // 使用jobKey作为额外标签
-            "isFavorite": true,
+            "company": item.jobCompany, // 使用新的公司字段
+            "time": _formatRelativeTime(item.createdAt), // 使用相对时间格式
+            "salary": salary, // 使用新的薪资字段构建的薪资信息
+            "extraTags": extraTags, // 包含更多信息的标签
+            "propertyTags": [item.jobType, item.officeMode == 1 ? "远程" : "实地", item.jobLang == 1 ? "英语" : "中文"], // 属性标签
+            "skillTags": item.tags.split(',').map((tag) => "#${tag.trim()}").toList(), // 技能标签
+            "isFavorite": item.jobIsCollect == 1, // 使用新的收藏状态字段
           });
         }
       } else {
@@ -1031,6 +1051,45 @@ class _ProfileViewState extends State<ProfileView>
       // 无论成功失败，都结束加载状态
       isLoadingFavoriteJobs.value = false;
     }
+  }
+
+  /// 格式化相对时间
+  String _formatRelativeTime(String dateTimeStr) {
+    try {
+      DateTime createdTime = DateTime.parse(dateTimeStr);
+      DateTime now = DateTime.now();
+      Duration difference = now.difference(createdTime);
+      
+      if (difference.inDays > 0) {
+        return "${difference.inDays}天前";
+      } else if (difference.inHours > 0) {
+        return "${difference.inHours}小时前";
+      } else if (difference.inMinutes > 0) {
+        return "${difference.inMinutes}分钟前";
+      } else {
+        return "刚刚";
+      }
+    } catch (e) {
+      return dateTimeStr; // 如果解析失败，返回原始字符串
+    }
+  }
+
+  /// 构建工作标签
+  Widget _buildJobTag(String tag) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEEF2F6), // AppTheme.tagBackgroundColor
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        tag,
+        style: const TextStyle(
+          color: Color(0xFF6E8098), // AppTheme.tagTextColor
+          fontSize: 12,
+        ),
+      ),
+    );
   }
 
   /// 岗位样式卡片
@@ -1120,33 +1179,80 @@ class _ProfileViewState extends State<ProfileView>
               ],
             ),
             const SizedBox(height: 8),
-            // 标签部分已移除，因为后台没有返回相关数据
-            const SizedBox(height: 0),
-            const SizedBox(height: 6),
-            // // 额外标签
-            // Text(
-            //   (job["extraTags"] as List)
-            //       .map((tag) => TagUtils.formatTag(tag))
-            //       .join(" "),
-            //   style: TextStyle(fontSize: 13, color: Colors.grey[500]),
-            // ),
-            const SizedBox(height: 6),
-            // 收藏图标
-            Align(
-              alignment: Alignment.centerRight,
-              child:
-                  job["isFavorite"] == true
-                      ? Image.asset(
-                        "assets/images/star_fill.png",
-                        width: 20,
-                        height: 20,
-                      )
-                      : Image.asset(
-                        "assets/images/star.png",
-                        width: 20,
-                        height: 20,
+            // 参考job_view.dart的布局结构
+            if (job["propertyTags"] != null && (job["propertyTags"] as List).isNotEmpty)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Wrap(
+                          spacing: 8,
+                          runSpacing: 4,
+                          children: (job["propertyTags"] as List)
+                              .where((tag) => tag != null && tag.toString().isNotEmpty)
+                              .map((tag) => _buildJobTag(tag.toString()))
+                              .toList(),
+                        ),
                       ),
-            ),
+                      const SizedBox(width: 12),
+                      GestureDetector(
+                        onTap: () {
+                          // TODO: 添加收藏功能
+                        },
+                        child: Image.asset(
+                          job["isFavorite"] == true
+                              ? "assets/images/star_fill.png"
+                              : "assets/images/star.png",
+                          width: 20,
+                          height: 20,
+                        ),
+                      ),
+                    ],
+                  ),
+                  // 分割线和技能标签
+                  if (job["skillTags"] != null && (job["skillTags"] as List).isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      height: 1,
+                      color: const Color(0xFFF4F7FD),
+                    ),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8.0,
+                      runSpacing: 4.0,
+                      children: (job["skillTags"] as List).map((tag) => 
+                        Text(
+                          tag.toString(),
+                          style: const TextStyle(
+                            color: Color(0xFF575D6A),
+                            fontSize: 13,
+                          ),
+                        )
+                      ).toList(),
+                    ),
+                  ],
+                ],
+              )
+            else
+              // 如果没有属性标签，简单显示收藏图标
+              Align(
+                alignment: Alignment.centerRight,
+                child: GestureDetector(
+                  onTap: () {
+                    // TODO: 添加收藏功能
+                  },
+                  child: Image.asset(
+                    job["isFavorite"] == true
+                        ? "assets/images/star_fill.png"
+                        : "assets/images/star.png",
+                    width: 20,
+                    height: 20,
+                  ),
+                ),
+              ),
           ],
         ),
       ),

@@ -37,19 +37,19 @@ abstract class UserRestClient {
         },
       ),
     );
-    // _dio?.httpClientAdapter =
-    //     IOHttpClientAdapter()
-    //       // ignore: deprecated_member_use
-    //       ..onHttpClientCreate = (client) {
-    //         // Config the client.
-    //         client.findProxy = (uri) {
-    //           // Forward all request to proxy "localhost:8888".
-    //           return 'PROXY 192.168.1.124:9090';
-    //         };
-    //         // You can also create a new HttpClient for Dio instead of returning,
-    //         // but a client must being returned here.
-    //         return client;
-    //       };
+    _dio?.httpClientAdapter =
+        IOHttpClientAdapter()
+          // ignore: deprecated_member_use
+          ..onHttpClientCreate = (client) {
+            // Config the client.
+            client.findProxy = (uri) {
+              // Forward all request to proxy "localhost:8888".
+              return 'PROXY 10.10.0.140:9090';
+            };
+            // You can also create a new HttpClient for Dio instead of returning,
+            // but a client must being returned here.
+            return client;
+          };
 
     return _UserRestClient(_dio!);
   }

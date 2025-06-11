@@ -48,6 +48,33 @@ class JobCollectItem {
   final String jobTitle;
   @JsonKey(name: 'job_positon')
   final String jobPosition;
+  @JsonKey(name: 'created_at')
+  final String createdAt;
+  final String tags;
+  @JsonKey(name: 'job_company')
+  final String jobCompany;
+  @JsonKey(name: 'job_salary_type')
+  final int jobSalaryType;
+  @JsonKey(name: 'job_salary_unit')
+  final String jobSalaryUnit;
+  @JsonKey(name: 'job_salary_currency')
+  final String jobSalaryCurrency;
+  @JsonKey(name: 'min_salary')
+  final int minSalary;
+  @JsonKey(name: 'max_salary')
+  final int maxSalary;
+  @JsonKey(name: 'job_lang')
+  final int jobLang;
+  @JsonKey(name: 'office_mode')
+  final int officeMode;
+  @JsonKey(name: 'job_type')
+  final String jobType;
+  @JsonKey(name: 'job_edu')
+  final int jobEdu;
+  @JsonKey(name: 'job_is_collect')
+  final int jobIsCollect;
+  @JsonKey(name: 'job_is_like')
+  final int jobIsLike;
 
   JobCollectItem({
     required this.slug,
@@ -55,6 +82,20 @@ class JobCollectItem {
     required this.jobKey,
     required this.jobTitle,
     required this.jobPosition,
+    required this.createdAt,
+    required this.tags,
+    required this.jobCompany,
+    required this.jobSalaryType,
+    required this.jobSalaryUnit,
+    required this.jobSalaryCurrency,
+    required this.minSalary,
+    required this.maxSalary,
+    required this.jobLang,
+    required this.officeMode,
+    required this.jobType,
+    required this.jobEdu,
+    required this.jobIsCollect,
+    required this.jobIsLike,
   });
 
   factory JobCollectItem.fromJson(Map<String, dynamic> json) =>
