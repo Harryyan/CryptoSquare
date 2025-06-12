@@ -954,15 +954,53 @@ class HomeView extends StatelessWidget {
 
   // 打开外部URL的方法
   void _launchURL(String url) async {
-    final Uri uri = Uri.parse(url);
     try {
+      // 确保URL是有效的
+      if (url.isEmpty) {
+        print('URL为空');
+        return;
+      }
+
+      // 解析URL
+      final Uri uri = Uri.parse(url);
+      print('尝试打开URL: $uri');
+
+      // 检查URL是否可以打开
       if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
+        print('URL可以打开，正在启动...');
+        final bool launched = await launchUrl(
+          uri,
+          mode: LaunchMode.externalApplication,
+        );
+        if (!launched) {
+          print('URL启动失败: $url');
+        }
       } else {
         print('无法打开URL: $url');
+        // 尝试使用系统浏览器打开
+        final bool launched = await launchUrl(
+          uri,
+          mode: LaunchMode.platformDefault,
+        );
+        if (!launched) {
+          print('使用系统浏览器打开也失败了: $url');
+        }
       }
     } catch (e) {
       print('打开URL时出错: $e');
+      // 尝试使用系统浏览器打开
+      try {
+        final Uri uri = Uri.parse(url);
+        final bool launched = await launchUrl(
+          uri,
+          mode: LaunchMode.platformDefault,
+        );
+        if (!launched) {
+          print('使用系统浏览器打开也失败了: $url');
+        }
+      } catch (e2) {
+        print('使用系统浏览器打开时也出错: $e2');
+      }
     }
   }
 
