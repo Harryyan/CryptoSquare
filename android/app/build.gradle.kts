@@ -25,8 +25,8 @@ android {
         // 配置应用版本信息
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 250612002
+        versionName = "2.0.0"
     }
 
     // 添加签名配置
@@ -34,11 +34,10 @@ android {
         // 使用已有的debug签名配置
         // release签名配置使用debug keystore，仅用于测试目的
         create("release") {
-            // 使用默认的debug keystore位置
-            storeFile = file("${System.getProperty("user.home")}/.android/debug.keystore")
-            storePassword = "android"
-            keyAlias = "androiddebugkey"
-            keyPassword = "android"
+            storeFile = file("../key17.jks")
+            storePassword = "123456"
+            keyAlias = "key17"
+            keyPassword = "123456"
         }
     }
 
@@ -57,6 +56,6 @@ flutter {
 }
 
 dependencies {
-    // 添加Play Core库依赖，解决缺少类的问题
-    implementation("com.google.android.play:core:1.10.3")
+    // 移除Play Core库依赖，代码中未使用
+    // implementation("com.google.android.play:core-ktx:2.0.1")
 }

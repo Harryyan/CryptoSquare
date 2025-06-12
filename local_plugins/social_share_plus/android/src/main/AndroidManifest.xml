@@ -11,7 +11,7 @@
 
         <provider
             android:name="com.chejdj.social_share.provider.ShareFileProvider"
-            android:authorities="com.pplingo.share"
+            android:authorities="org.cryptosquare.app.social_share.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data

@@ -1,5 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+    <!-- 移除不需要的权限 -->
+    <!-- <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" /> -->
     <uses-permission android:name="android.permission.INTERNET" />
     <queries>
         <package android:name="com.facebook.katana" />
@@ -17,7 +18,7 @@
         android:icon="@mipmap/ic_launcher">
         <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="${applicationId}.social.share.fileprovider"
+            android:authorities="${applicationId}.fileprovider"
             android:grantUriPermissions="true"
             android:exported="false">
             <meta-data

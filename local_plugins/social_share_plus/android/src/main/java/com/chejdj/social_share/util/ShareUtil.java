@@ -14,7 +14,7 @@ import java.io.File;
 
 public class ShareUtil {
 
-    private static final String FILE_PROVIDER_AUTHORITY = "com.pplingo.share";
+    private static final String FILE_PROVIDER_AUTHORITY = "org.cryptosquare.app.social_share.fileprovider";
 
     public static Uri generateFilePath(Context context, File file, String pkgName) {
         Uri uri;
