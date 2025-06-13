@@ -25,7 +25,7 @@ android {
         // 配置应用版本信息
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
-        versionCode = 250612003
+        versionCode = 250614001
         versionName = "2.0.0"
     }
 
