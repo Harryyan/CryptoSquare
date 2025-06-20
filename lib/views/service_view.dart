@@ -22,14 +22,22 @@ class _ServiceViewState extends State<ServiceView>
     super.build(context);
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // Header + Tab导航栏 (共享背景图片)
-            _buildHeaderWithTabs(),
-            // 内容区域
-            _buildTabContent(),
-          ],
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/service_list_bg.png'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              // Header + Tab导航栏 (共享背景图片)
+              _buildHeaderWithTabs(),
+              // 内容区域
+              _buildTabContent(),
+            ],
+          ),
         ),
       ),
     );
@@ -205,12 +213,6 @@ class _ServiceViewState extends State<ServiceView>
   Widget _buildServiceIntroContent() {
     return Container(
       width: double.infinity,
-      decoration: const BoxDecoration(
-        image: DecorationImage(
-          image: AssetImage('assets/images/service_list_bg.png'),
-          fit: BoxFit.cover,
-        ),
-      ),
       child: Padding(
         padding: const EdgeInsets.only(top: 10, bottom: 30),
         child: Column(
@@ -268,6 +270,7 @@ class _ServiceViewState extends State<ServiceView>
 
   Widget _buildRecommendedCoursesContent() {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(20),
       child: Column(
         children: [
@@ -298,6 +301,7 @@ class _ServiceViewState extends State<ServiceView>
 
   Widget _buildStudentInterviewsContent() {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(20),
       child: Column(
         children: [
@@ -349,9 +353,16 @@ class _ServiceViewState extends State<ServiceView>
               ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
+              color: Colors.black.withOpacity(0.12),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+              spreadRadius: 2,
+            ),
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+              spreadRadius: 0,
             ),
           ],
         ),
