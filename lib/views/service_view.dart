@@ -132,16 +132,23 @@ class _ServiceViewState extends State<ServiceView>
             child: Column(
               children: [
                 Container(
-                  padding: const EdgeInsets.only(top: 15, left: 15, right: 15),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _buildTabItem('服务介绍', 0),
-                      const SizedBox(width: 15),
-                      _buildTabItem('推荐课程', 1),
-                      const SizedBox(width: 15),
-                      _buildTabItem('学员访谈', 2),
-                    ],
+                  padding: const EdgeInsets.only(top: 15, bottom: 0),
+                  child: Center(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.all(4),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _buildSegmentTabItem('服务介绍', 0),
+                          _buildSegmentTabItem('推荐课程', 1),
+                          _buildSegmentTabItem('学员访谈', 2),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -154,7 +161,7 @@ class _ServiceViewState extends State<ServiceView>
     );
   }
 
-  Widget _buildTabItem(String title, int index) {
+  Widget _buildSegmentTabItem(String title, int index) {
     final isSelected = selectedTabIndex == index;
     return GestureDetector(
       onTap: () {
@@ -163,17 +170,18 @@ class _ServiceViewState extends State<ServiceView>
         });
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        width: 80,
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF2563EB) : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
+          color: isSelected ? const Color(0xFF2563EB) : Color(0xFFEEF2F6),
+          borderRadius: BorderRadius.circular(6),
         ),
         child: Text(
           title,
           textAlign: TextAlign.center,
           style: TextStyle(
-            fontSize: 16,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+            fontSize: 15,
+            fontWeight: FontWeight.w500,
             color: isSelected ? Colors.white : Colors.black54,
           ),
         ),
