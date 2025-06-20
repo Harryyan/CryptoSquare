@@ -21,14 +21,14 @@ class _ServiceViewState extends State<ServiceView>
   Widget build(BuildContext context) {
     super.build(context);
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: selectedTabIndex == 0 ? const Color(0xFFF5F7FA) : const Color(0xFFF2F5F9),
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: selectedTabIndex == 0 ? const BoxDecoration(
           image: DecorationImage(
             image: AssetImage('assets/images/service_list_bg.png'),
             fit: BoxFit.cover,
           ),
-        ),
+        ) : null,
         child: SingleChildScrollView(
           child: Column(
             children: [
