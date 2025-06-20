@@ -1,13 +1,13 @@
 import 'package:cryptosquare/models/app_models.dart';
 import 'package:cryptosquare/views/page_login.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:cryptosquare/controllers/home_controller.dart';
 import 'package:cryptosquare/controllers/job_controller.dart';
 import 'package:cryptosquare/controllers/user_controller.dart';
 import 'package:cryptosquare/views/home_view.dart';
 import 'package:cryptosquare/views/job_view.dart';
+import 'package:cryptosquare/views/service_view.dart';
 import 'package:cryptosquare/views/profile_view.dart';
 import 'package:cryptosquare/views/forum_view.dart';
 import 'package:cryptosquare/theme/app_theme.dart';
@@ -36,7 +36,7 @@ class _MainViewState extends State<MainView>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
     
     // 监听Tab切换，确保UI更新与控制器同步
     _tabController.addListener(() {
@@ -161,6 +161,8 @@ class _MainViewState extends State<MainView>
                   case 1:
                     return JobView();
                   case 2:
+                    return const ServiceView();
+                  case 3:
                     return const ForumView();
                   default:
                     return HomeView();
@@ -233,7 +235,8 @@ class _MainViewState extends State<MainView>
         tabs: [
           _buildTab('首页', 0),
           _buildTab('Web3工作', 1),
-          _buildTab('全球论坛', 2),
+          _buildTab('求职服务', 2),
+          _buildTab('全球论坛', 3),
         ],
         indicatorColor: AppTheme.primaryColor,
         indicatorWeight: 2,
