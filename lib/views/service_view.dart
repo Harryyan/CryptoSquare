@@ -302,28 +302,32 @@ class _ServiceViewState extends State<ServiceView>
   Widget _buildStudentInterviewsContent() {
     return Container(
       width: double.infinity,
+      color: const Color(0xFFF2F5F9),
       padding: const EdgeInsets.all(20),
       child: Column(
         children: [
-          _buildInterviewCard(
-            name: '张同学',
-            from: '传统互联网产品经理',
-            to: 'Web3项目运营总监',
-            content: '"通过系统学习，我成功从传统产品经理转型为Web3项目运营，薪资提升了40%"',
+          _buildStudentInterviewCard(
+            title: '勇闯 Web3 后：发现我已经过上了梦想中的生活',
+            content: '如果没有老师的引导，她可能只会对商店本身去准备，而忽略了如何将Web3的行业特点融入面试。"老师不是提醒我...',
+            index: 0,
           ),
-          const SizedBox(height: 16),
-          _buildInterviewCard(
-            name: '李同学',
-            from: '前端开发工程师',
-            to: '区块链开发工程师',
-            content: '"6个月的学习让我掌握了Solidity开发，现在在顶级DeFi项目担任核心开发"',
+          const SizedBox(height: 20),
+          _buildStudentInterviewCard(
+            title: '转行后的心得体会',
+            content: '如果没有老师的引导，她可能只会对商店本身去准备，而忽略了如何将Web3的行业特点融入面试。"老师不是提醒我教学，而是通过引导让我更有方向性"...',
+            index: 1,
           ),
-          const SizedBox(height: 16),
-          _buildInterviewCard(
-            name: '王同学',
-            from: '市场营销专员',
-            to: 'Web3社区负责人',
-            content: '"Web3的社区运营与传统营销完全不同，这里学到的技能让我找到了理想工作"',
+          const SizedBox(height: 20),
+          _buildStudentInterviewCard(
+            title: '勇闯 Web3 后：发现我已经过上了梦想中的生活',
+            content: '如果没有老师的引导，她可能只会对商店本身去准备，而忽略了如何将Web3的行业特点融入面试。"老师不是提醒我...',
+            index: 2,
+          ),
+          const SizedBox(height: 20),
+          _buildStudentInterviewCard(
+            title: '转行后的心得体会',
+            content: '如果没有老师的引导，她可能只会对商店本身去准备，而忽略了如何将Web3的行业特点融入面试。"老师不是提醒我教学，而是通过引导让我更有方向性"...',
+            index: 3,
           ),
         ],
       ),
@@ -651,6 +655,91 @@ class _ServiceViewState extends State<ServiceView>
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildStudentInterviewCard({
+    required String title,
+    required String content,
+    required int index,
+  }) {
+    final isImageLeft = index % 2 == 0; // 奇数项(index 0,2,4...)图片在左，偶数项(index 1,3,5...)图片在右
+    
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (isImageLeft) ...[
+              // 图片在左边
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.asset(
+                  'assets/images/student_placeholder.png',
+                  width: 80,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              const SizedBox(width: 12),
+            ],
+            // 文字内容
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                      height: 1.3,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    content,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Colors.black54,
+                      height: 1.4,
+                    ),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            if (!isImageLeft) ...[
+              // 图片在右边
+              const SizedBox(width: 12),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.asset(
+                  'assets/images/student_placeholder.png',
+                  width: 80,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
