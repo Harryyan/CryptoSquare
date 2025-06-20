@@ -212,7 +212,7 @@ class _ServiceViewState extends State<ServiceView>
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.only(top: 30, bottom: 30),
+        padding: const EdgeInsets.only(top: 10, bottom: 30),
         child: Column(
           children: [
             // 第一个卡片 - 左对齐
@@ -220,41 +220,46 @@ class _ServiceViewState extends State<ServiceView>
               title: '运营转型',
               description: '基于你的情况，为你定制 1v1 的转型咨询服务，由行业资深从业者专程指导。',
               features: ['Web3运营策略学习', '履历优化', 'Web3运营基础知识学习', '模拟面试', '项目实战及发展', '就业指导'],
+              iconPath: 'assets/images/online_course.png',
               isLeftAligned: true,
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 20),
             // 第二个卡片 - 右对齐  
             _buildServiceItemCard(
               title: '1v1 咨询服务',
               description: '由行业资深从业者，TOP 关老师主管等级的专家教授，解答你的Web3求职工作转型相关问题。',
               features: ['社区运营及用户画像', '活动运营', '内容运营与品牌建设', '合作推广', '用户增长与服务策略', '数据分析'],
+              iconPath: 'assets/images/1_1.png',
               isLeftAligned: false,
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 20),
             // 第三个卡片 - 左对齐
             _buildServiceItemCard(
               title: '求职实流',
               description: '进入 Web3 求职交流群，交流求职经验，获取最新职位信息。',
               features: [],
+              iconPath: 'assets/images/job_share.png',
               isLeftAligned: true,
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 20),
             // 第四个卡片 - 右对齐
             _buildServiceItemCard(
               title: '简历推送',
               description: '留下你的求职意向，有适合的你的新职位，我们会第一时间推荐，这样你可以保持一步，跟招聘方提前接触。',
               features: [],
+              iconPath: 'assets/images/job_post.png',
               isLeftAligned: false,
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 20),
             // 第五个卡片 - 左对齐
             _buildServiceItemCard(
               title: '简历优化',
               description: '手把手帮你做好简历优化，提升简历与目标职位的适配度，直达招聘平台。',
               features: [],
+              iconPath: 'assets/images/cv_opt.png',
               isLeftAligned: true,
             ),
-            const SizedBox(height: 30),
+            const SizedBox(height: 20),
           ],
         ),
       ),
@@ -325,14 +330,23 @@ class _ServiceViewState extends State<ServiceView>
     required String title,
     required String description,
     required List<String> features,
+    required String iconPath,
     required bool isLeftAligned,
   }) {
     Widget buildCard() {
       return Container(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: isLeftAligned 
+            ? const BorderRadius.only(
+                topRight: Radius.circular(12),
+                bottomRight: Radius.circular(12),
+              )
+            : const BorderRadius.only(
+                topLeft: Radius.circular(12),
+                bottomLeft: Radius.circular(12),
+              ),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.08),
@@ -346,21 +360,10 @@ class _ServiceViewState extends State<ServiceView>
           children: [
             Row(
               children: [
-                Container(
+                Image.asset(
+                  iconPath,
                   width: 40,
                   height: 40,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF2563EB),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Center(
-                    child: Image.asset(
-                      'assets/images/tick_service.png',
-                      width: 20,
-                      height: 20,
-                      color: Colors.white,
-                    ),
-                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -375,59 +378,101 @@ class _ServiceViewState extends State<ServiceView>
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             Text(
               description,
               style: const TextStyle(
                 fontSize: 14,
                 color: Colors.black87,
-                height: 1.5,
+                height: 1.4,
               ),
             ),
             if (features.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 3.5,
-                  crossAxisSpacing: 8,
-                  mainAxisSpacing: 10,
+              const SizedBox(height: 8),
+              Container(
+                decoration: const BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage('assets/images/service_feature.png'),
+                    fit: BoxFit.cover,
+                  ),
+                  borderRadius: BorderRadius.all(Radius.circular(8)),
                 ),
-                itemCount: features.length,
-                itemBuilder: (context, index) {
-                  return Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF2563EB).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.check,
-                          size: 14,
-                          color: Color(0xFF2563EB),
-                        ),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: Text(
-                            features[index],
-                            style: const TextStyle(
-                              fontSize: 13,
-                              color: Color(0xFF2563EB),
-                              fontWeight: FontWeight.w500,
+                padding: const EdgeInsets.only(left: 8, right: 8, top: 10, bottom: 5),
+                child: Column(
+                  children: [
+                    for (int i = 0; i < features.length; i += 2)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 2),
+                                    child: Image.asset(
+                                      'assets/images/tick_service.png',
+                                      width: 12,
+                                      height: 12,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Expanded(
+                                    child: Text(
+                                      features[i],
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.black87,
+                                        fontWeight: FontWeight.w500,
+                                        height: 1.3,
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                            const SizedBox(width: 23),
+                            if (i + 1 < features.length)
+                              Expanded(
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 2),
+                                      child: Image.asset(
+                                        'assets/images/tick_service.png',
+                                        width: 12,
+                                        height: 12,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Expanded(
+                                      child: Text(
+                                        features[i + 1],
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.black87,
+                                          fontWeight: FontWeight.w500,
+                                          height: 1.3,
+                                        ),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            else
+                              const Expanded(child: SizedBox()),
+                          ],
                         ),
-                      ],
-                    ),
-                  );
-                },
+                      ),
+                  ],
+                ),
               ),
             ],
           ],
@@ -438,13 +483,13 @@ class _ServiceViewState extends State<ServiceView>
     if (isLeftAligned) {
       // 左对齐：卡片贴左边，右边有空间
       return Padding(
-        padding: const EdgeInsets.only(right: 60),
+        padding: const EdgeInsets.only(right: 30),
         child: buildCard(),
       );
     } else {
       // 右对齐：左边有空间，卡片贴右边
       return Padding(
-        padding: const EdgeInsets.only(left: 60),
+        padding: const EdgeInsets.only(left: 30),
         child: buildCard(),
       );
     }
