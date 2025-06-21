@@ -74,8 +74,8 @@ class _ServiceViewState extends State<ServiceView>
                   textAlign: TextAlign.center,
                   text: const TextSpan(
                     style: TextStyle(
-                      fontSize: 14, // 减少字体大小
-                      color: Colors.black54,
+                      fontSize: 15, // 减少字体大小
+                      color: Colors.black,
                       height: 1.5,
                     ),
                     children: [
@@ -186,7 +186,7 @@ class _ServiceViewState extends State<ServiceView>
           style: TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.w500,
-            color: isSelected ? Colors.white : Colors.black54,
+            color: isSelected ? Colors.white : Colors.black,
           ),
         ),
       ),
@@ -439,7 +439,7 @@ class _ServiceViewState extends State<ServiceView>
                                       features[i],
                                       style: const TextStyle(
                                         fontSize: 12,
-                                        color: Colors.black87,
+                                        color: Color(0xFF575D6A),
                                         fontWeight: FontWeight.w500,
                                         height: 1.3,
                                       ),
@@ -470,7 +470,7 @@ class _ServiceViewState extends State<ServiceView>
                                         features[i + 1],
                                         style: const TextStyle(
                                           fontSize: 12,
-                                          color: Colors.black87,
+                                          color: Color(0xFF575D6A),
                                           fontWeight: FontWeight.w500,
                                           height: 1.3,
                                         ),
@@ -643,10 +643,15 @@ class _ServiceViewState extends State<ServiceView>
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
+                                 const SizedBox(height: 16),
+                 Container(
+                   height: 1,
+                   color: Colors.grey.shade200,
+                 ),
+                 const SizedBox(height: 16),
+                 Row(
+                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                   children: [
                     Text(
                       price,
                       style: const TextStyle(
@@ -658,7 +663,7 @@ class _ServiceViewState extends State<ServiceView>
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF2563EB),
+                        color: Colors.white,
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Row(
@@ -667,16 +672,15 @@ class _ServiceViewState extends State<ServiceView>
                           const Text(
                             '立即购买',
                             style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
+                              fontSize: 16,
+                              color: Colors.black,
                             ),
                           ),
                           const SizedBox(width: 4),
                           const Icon(
                             Icons.arrow_forward,
                             size: 16,
-                            color: Colors.white,
+                            color: Colors.black,
                           ),
                         ],
                       ),
@@ -825,7 +829,7 @@ class _ServiceViewState extends State<ServiceView>
                     content,
                     style: const TextStyle(
                       fontSize: 14,
-                      color: Colors.black54,
+                      color: Colors.black,
                       height: 1.4,
                     ),
                     maxLines: 3,
