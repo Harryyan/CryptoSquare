@@ -42,7 +42,7 @@ class AppTheme {
         systemNavigationBarIconBrightness: Brightness.dark,
       ),
     ),
-    tabBarTheme: const TabBarTheme(
+    tabBarTheme: const TabBarThemeData(
       labelColor: primaryColor,
       unselectedLabelColor: subtitleColor,
       indicatorSize: TabBarIndicatorSize.label,
@@ -92,7 +92,7 @@ class AppTheme {
         systemNavigationBarIconBrightness: Brightness.light,
       ),
     ),
-    tabBarTheme: TabBarTheme(
+    tabBarTheme: const TabBarThemeData(
       labelColor: darkPrimaryColor,
       unselectedLabelColor: darkSubtitleColor,
       indicatorSize: TabBarIndicatorSize.label,
