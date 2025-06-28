@@ -261,7 +261,7 @@ class _ServiceViewState extends State<ServiceView>
             const SizedBox(height: 20),
             // 第三个卡片 - 左对齐
             _buildServiceItemCard(
-              title: '求职实流',
+              title: '求职交流',
               description: '进入 Web3 求职交流群，交流求职经验，获取最新职位信息。',
               features: [],
               iconPath: 'assets/images/job_share.png',
