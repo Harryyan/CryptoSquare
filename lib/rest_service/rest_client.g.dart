@@ -796,6 +796,42 @@ Map<String, dynamic> _$StudentViewItemToJson(StudentViewItem instance) =>
       'img': instance.img,
     };
 
+CourseListResponse _$CourseListResponseFromJson(Map<String, dynamic> json) =>
+    CourseListResponse(
+      message: json['message'] as String?,
+      code: (json['code'] as num?)?.toInt(),
+      data:
+          (json['data'] as List<dynamic>?)
+              ?.map((e) => CourseItem.fromJson(e as Map<String, dynamic>))
+              .toList(),
+    );
+
+Map<String, dynamic> _$CourseListResponseToJson(CourseListResponse instance) =>
+    <String, dynamic>{
+      'message': instance.message,
+      'code': instance.code,
+      'data': instance.data,
+    };
+
+CourseItem _$CourseItemFromJson(Map<String, dynamic> json) => CourseItem(
+  id: (json['id'] as num?)?.toInt(),
+  title: json['title'] as String?,
+  intro: json['intro'] as String?,
+  link: json['link'] as String?,
+  img: json['img'] as String?,
+  price: (json['price'] as num?)?.toInt(),
+);
+
+Map<String, dynamic> _$CourseItemToJson(CourseItem instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'title': instance.title,
+      'intro': instance.intro,
+      'link': instance.link,
+      'img': instance.img,
+      'price': instance.price,
+    };
+
 // **************************************************************************
 // RetrofitGenerator
 // **************************************************************************
@@ -1405,6 +1441,33 @@ class _RestClient implements RestClient {
     late StudentViewResponse _value;
     try {
       _value = StudentViewResponse.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
+  Future<CourseListResponse> getCourseList() async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<CourseListResponse>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/v3/job/course_list',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late CourseListResponse _value;
+    try {
+      _value = CourseListResponse.fromJson(_result.data!);
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options);
       rethrow;

@@ -287,6 +287,9 @@ abstract class RestClient {
 
   @GET('/v3/job/student_view')
   Future<StudentViewResponse> getStudentViewList();
+
+  @GET('/v3/job/course_list')
+  Future<CourseListResponse> getCourseList();
 }
 
 @JsonSerializable()
@@ -1487,5 +1490,70 @@ class StudentViewItem {
     'intro': intro,
     'link': link,
     'img': img,
+  };
+}
+
+@JsonSerializable()
+class CourseListResponse {
+  const CourseListResponse({this.message, this.code, this.data});
+
+  factory CourseListResponse.fromJson(Map<String, dynamic> json) {
+    return CourseListResponse(
+      message: json['message'] as String?,
+      code: json['code'] as int?,
+      data:
+          (json['data'] as List<dynamic>?)
+              ?.map((e) => CourseItem.fromJson(e as Map<String, dynamic>))
+              .toList(),
+    );
+  }
+
+  final String? message;
+  final int? code;
+  final List<CourseItem>? data;
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+    'message': message,
+    'code': code,
+    'data': data?.map((e) => e.toJson()).toList(),
+  };
+}
+
+@JsonSerializable()
+class CourseItem {
+  const CourseItem({
+    this.id,
+    this.title,
+    this.intro,
+    this.link,
+    this.img,
+    this.price,
+  });
+
+  factory CourseItem.fromJson(Map<String, dynamic> json) {
+    return CourseItem(
+      id: json['id'] as int?,
+      title: json['title'] as String?,
+      intro: json['intro'] as String?,
+      link: json['link'] as String?,
+      img: json['img'] as String?,
+      price: json['price'] as int?,
+    );
+  }
+
+  final int? id;
+  final String? title;
+  final String? intro;
+  final String? link;
+  final String? img;
+  final int? price;
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+    'id': id,
+    'title': title,
+    'intro': intro,
+    'link': link,
+    'img': img,
+    'price': price,
   };
 }
