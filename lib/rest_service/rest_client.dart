@@ -290,6 +290,9 @@ abstract class RestClient {
 
   @GET('/v3/job/course_list')
   Future<CourseListResponse> getCourseList();
+
+  @GET('/v3/index/serverintro')
+  Future<ServerIntroResponse> getServerIntro();
 }
 
 @JsonSerializable()
@@ -1555,5 +1558,130 @@ class CourseItem {
     'link': link,
     'img': img,
     'price': price,
+  };
+}
+
+@JsonSerializable()
+class ServerIntroResponse {
+  const ServerIntroResponse({this.message, this.code, this.data});
+
+  factory ServerIntroResponse.fromJson(Map<String, dynamic> json) {
+    return ServerIntroResponse(
+      message: json['message'] as String?,
+      code: json['code'] as int?,
+      data:
+          json['data'] != null
+              ? ServerIntroData.fromJson(json['data'] as Map<String, dynamic>)
+              : null,
+    );
+  }
+
+  final String? message;
+  final int? code;
+  final ServerIntroData? data;
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+    'message': message,
+    'code': code,
+    'data': data?.toJson(),
+  };
+}
+
+@JsonSerializable()
+class ServerIntroData {
+  const ServerIntroData({this.banner, this.data});
+
+  factory ServerIntroData.fromJson(Map<String, dynamic> json) {
+    return ServerIntroData(
+      banner:
+          json['banner'] != null
+              ? ServerIntroBanner.fromJson(
+                json['banner'] as Map<String, dynamic>,
+              )
+              : null,
+      data:
+          (json['data'] as List<dynamic>?)
+              ?.map((e) => ServerIntroItem.fromJson(e as Map<String, dynamic>))
+              .toList(),
+    );
+  }
+
+  final ServerIntroBanner? banner;
+  final List<ServerIntroItem>? data;
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+    'banner': banner?.toJson(),
+    'data': data?.map((e) => e.toJson()).toList(),
+  };
+}
+
+@JsonSerializable()
+class ServerIntroBanner {
+  const ServerIntroBanner({
+    this.img,
+    this.title,
+    this.intro,
+    this.link,
+    this.linkText,
+  });
+
+  factory ServerIntroBanner.fromJson(Map<String, dynamic> json) {
+    return ServerIntroBanner(
+      img: json['img'] as String?,
+      title: json['title'] as String?,
+      intro: json['intro'] as String?,
+      link: json['link'] as String?,
+      linkText: json['link_text'] as String?,
+    );
+  }
+
+  final String? img;
+  final String? title;
+  final String? intro;
+  final String? link;
+  @JsonKey(name: 'link_text')
+  final String? linkText;
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+    'img': img,
+    'title': title,
+    'intro': intro,
+    'link': link,
+    'link_text': linkText,
+  };
+}
+
+@JsonSerializable()
+class ServerIntroItem {
+  const ServerIntroItem({
+    this.id,
+    this.icon,
+    this.title,
+    this.intro,
+    this.tips,
+  });
+
+  factory ServerIntroItem.fromJson(Map<String, dynamic> json) {
+    return ServerIntroItem(
+      id: json['id'] as int?,
+      icon: json['icon'] as String?,
+      title: json['title'] as String?,
+      intro: json['intro'] as String?,
+      tips: (json['tips'] as List<dynamic>?)?.map((e) => e as String).toList(),
+    );
+  }
+
+  final int? id;
+  final String? icon;
+  final String? title;
+  final String? intro;
+  final List<String>? tips;
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+    'id': id,
+    'icon': icon,
+    'title': title,
+    'intro': intro,
+    'tips': tips,
   };
 }

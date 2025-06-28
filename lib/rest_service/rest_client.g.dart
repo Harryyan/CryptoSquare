@@ -832,6 +832,77 @@ Map<String, dynamic> _$CourseItemToJson(CourseItem instance) =>
       'price': instance.price,
     };
 
+ServerIntroResponse _$ServerIntroResponseFromJson(Map<String, dynamic> json) =>
+    ServerIntroResponse(
+      message: json['message'] as String?,
+      code: (json['code'] as num?)?.toInt(),
+      data:
+          json['data'] == null
+              ? null
+              : ServerIntroData.fromJson(json['data'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$ServerIntroResponseToJson(
+  ServerIntroResponse instance,
+) => <String, dynamic>{
+  'message': instance.message,
+  'code': instance.code,
+  'data': instance.data,
+};
+
+ServerIntroData _$ServerIntroDataFromJson(Map<String, dynamic> json) =>
+    ServerIntroData(
+      banner:
+          json['banner'] == null
+              ? null
+              : ServerIntroBanner.fromJson(
+                json['banner'] as Map<String, dynamic>,
+              ),
+      data:
+          (json['data'] as List<dynamic>?)
+              ?.map((e) => ServerIntroItem.fromJson(e as Map<String, dynamic>))
+              .toList(),
+    );
+
+Map<String, dynamic> _$ServerIntroDataToJson(ServerIntroData instance) =>
+    <String, dynamic>{'banner': instance.banner, 'data': instance.data};
+
+ServerIntroBanner _$ServerIntroBannerFromJson(Map<String, dynamic> json) =>
+    ServerIntroBanner(
+      img: json['img'] as String?,
+      title: json['title'] as String?,
+      intro: json['intro'] as String?,
+      link: json['link'] as String?,
+      linkText: json['link_text'] as String?,
+    );
+
+Map<String, dynamic> _$ServerIntroBannerToJson(ServerIntroBanner instance) =>
+    <String, dynamic>{
+      'img': instance.img,
+      'title': instance.title,
+      'intro': instance.intro,
+      'link': instance.link,
+      'link_text': instance.linkText,
+    };
+
+ServerIntroItem _$ServerIntroItemFromJson(Map<String, dynamic> json) =>
+    ServerIntroItem(
+      id: (json['id'] as num?)?.toInt(),
+      icon: json['icon'] as String?,
+      title: json['title'] as String?,
+      intro: json['intro'] as String?,
+      tips: (json['tips'] as List<dynamic>?)?.map((e) => e as String).toList(),
+    );
+
+Map<String, dynamic> _$ServerIntroItemToJson(ServerIntroItem instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'icon': instance.icon,
+      'title': instance.title,
+      'intro': instance.intro,
+      'tips': instance.tips,
+    };
+
 // **************************************************************************
 // RetrofitGenerator
 // **************************************************************************
@@ -1468,6 +1539,33 @@ class _RestClient implements RestClient {
     late CourseListResponse _value;
     try {
       _value = CourseListResponse.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
+  Future<ServerIntroResponse> getServerIntro() async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<ServerIntroResponse>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/v3/index/serverintro',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late ServerIntroResponse _value;
+    try {
+      _value = ServerIntroResponse.fromJson(_result.data!);
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options);
       rethrow;
