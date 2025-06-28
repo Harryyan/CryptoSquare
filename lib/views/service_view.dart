@@ -296,30 +296,29 @@ class _ServiceViewState extends State<ServiceView>
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
-      child: Column(
-        children: [
-          _buildNewCourseCard(
-            title: 'Web3 行业求职入门课程',
-            description: '本课程由专业导师团队打造，帮助你深度理解 WEB3 3A 项目，掌握求职的方方面面以及求职技巧。',
-            price: '¥299',
-            imagePath: 'assets/images/course_placeholder.png',
-          ),
-          const SizedBox(height: 20),
-          _buildNewCourseCard(
-            title: 'OpenAI 编程教学',
-            description: '由专业导师团队执力打造，帮你全面掌握 OpenAI 基础知识，提升你解决问题的思维模式。',
-            price: '¥299',
-            imagePath: 'assets/images/course_placeholder.png',
-          ),
-          const SizedBox(height: 20),
-          _buildNewCourseCard(
-            title: 'LLM 大语言模型基础入门',
-            description: '通过行业真实案例的方式轻松掌握核心技巧，让你变身求职专家心理专家。',
-            price: '¥299',
-            imagePath: 'assets/images/course_placeholder.png',
-          ),
-        ],
-      ),
+      child: Obx(() {
+        if (serviceController.isCourseLoading.value) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (serviceController.courses.isEmpty) {
+          return const Center(child: Text('暂无课程数据'));
+        }
+
+        return Column(
+          children:
+              serviceController.courses.asMap().entries.map((entry) {
+                final index = entry.key;
+                final course = entry.value;
+                return Column(
+                  children: [
+                    if (index > 0) const SizedBox(height: 20),
+                    _buildNewCourseCard(course: course),
+                  ],
+                );
+              }).toList(),
+        );
+      }),
     );
   }
 
@@ -605,111 +604,153 @@ class _ServiceViewState extends State<ServiceView>
     );
   }
 
-  Widget _buildNewCourseCard({
-    required String title,
-    required String description,
-    required String price,
-    required String imagePath,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 课程封面图片
-          ClipRRect(
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(12),
-              topRight: Radius.circular(12),
+  Widget _buildNewCourseCard({required dynamic course}) {
+    return GestureDetector(
+      onTap: () async {
+        final url = course.link;
+        if (url != null && url.isNotEmpty) {
+          final uri = Uri.parse(url);
+          if (await canLaunchUrl(uri)) {
+            await launchUrl(uri, mode: LaunchMode.externalApplication);
+          }
+        }
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
             ),
-            child: Image.asset(
-              imagePath,
-              width: double.infinity,
-              height: 180,
-              fit: BoxFit.cover,
-            ),
-          ),
-          // 课程信息
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                    height: 1.3,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  description,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.black54,
-                    height: 1.4,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 16),
-                Container(height: 1, color: Colors.grey.shade200),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      price,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFFFF6B35),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 课程封面图片
+            ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(12),
+                topRight: Radius.circular(12),
+              ),
+              child:
+                  course.img != null && course.img!.isNotEmpty
+                      ? Image.network(
+                        course.img!,
+                        width: double.infinity,
+                        height: 180,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Image.asset(
+                            'assets/images/course_placeholder.png',
+                            width: double.infinity,
+                            height: 180,
+                            fit: BoxFit.cover,
+                          );
+                        },
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Container(
+                            width: double.infinity,
+                            height: 180,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[200],
+                              borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(12),
+                                topRight: Radius.circular(12),
+                              ),
+                            ),
+                            child: const Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          );
+                        },
+                      )
+                      : Image.asset(
+                        'assets/images/course_placeholder.png',
+                        width: double.infinity,
+                        height: 180,
+                        fit: BoxFit.cover,
                       ),
+            ),
+            // 课程信息
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    course.title ?? '暂无标题',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                      height: 1.3,
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Text(
-                            '立即购买',
-                            style: TextStyle(fontSize: 16, color: Colors.black),
-                          ),
-                          const SizedBox(width: 4),
-                          const Icon(
-                            Icons.arrow_forward,
-                            size: 16,
-                            color: Colors.black,
-                          ),
-                        ],
-                      ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    course.intro ?? '暂无简介',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Colors.black54,
+                      height: 1.4,
                     ),
-                  ],
-                ),
-              ],
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 16),
+                  Container(height: 1, color: Colors.grey.shade200),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        course.price != null ? '¥${course.price}' : '价格待定',
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFFFF6B35),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text(
+                              '立即购买',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.black,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            const Icon(
+                              Icons.arrow_forward,
+                              size: 16,
+                              color: Colors.black,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
