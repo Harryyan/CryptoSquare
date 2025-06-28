@@ -7,10 +7,12 @@ class ServiceController extends GetxController {
   final RxList<JobServiceItem> jobServices = <JobServiceItem>[].obs;
   final RxList<StudentViewItem> studentViews = <StudentViewItem>[].obs;
   final RxList<CourseItem> courses = <CourseItem>[].obs;
+  final Rx<ServerIntroResponse?> serverIntro = Rx<ServerIntroResponse?>(null);
   final RxBool isLoading = true.obs;
   final RxBool isNetworkError = false.obs;
   final RxBool isStudentViewLoading = true.obs;
   final RxBool isCourseLoading = true.obs;
+  final RxBool isServerIntroLoading = true.obs;
 
   @override
   void onInit() {
@@ -19,6 +21,7 @@ class ServiceController extends GetxController {
     initJobServices();
     fetchStudentViews();
     fetchCourses();
+    fetchServerIntro();
   }
 
   // 初始化求职服务数据（placeholder）
@@ -111,6 +114,25 @@ class ServiceController extends GetxController {
           // 加载失败时使用空列表
           courses.value = [];
           isCourseLoading.value = false;
+        });
+  }
+
+  Future<void> fetchServerIntro() {
+    isServerIntroLoading.value = true;
+
+    return _restClient
+        .getServerIntro()
+        .then((response) {
+          if (response.data != null) {
+            serverIntro.value = response;
+          }
+          isServerIntroLoading.value = false;
+        })
+        .catchError((error) {
+          print('获取服务介绍数据失败: $error');
+          // 加载失败时设为null
+          serverIntro.value = null;
+          isServerIntroLoading.value = false;
         });
   }
 

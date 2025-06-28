@@ -63,76 +63,87 @@ class _ServiceViewState extends State<ServiceView>
           // Header 内容
           Padding(
             padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const SizedBox(height: 20), // 减少顶部间距
-                const Text(
-                  '帮助更多人转行到 Web3',
-                  style: TextStyle(
-                    fontSize: 24, // 减少字体大小
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+            child: Obx(() {
+              final banner = serviceController.serverIntro.value?.data?.banner;
+              return Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(height: 20), // 减少顶部间距
+                  // 如果有 banner 图片，显示图片，否则不显示
+                  if (banner?.img != null && banner!.img!.isNotEmpty) ...[
+                    Image.network(
+                      banner.img!,
+                      height: 80,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const SizedBox.shrink(); // 图片加载失败时不显示
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                  Text(
+                    banner?.title ?? '帮助更多人转行到 Web3',
+                    style: const TextStyle(
+                      fontSize: 24, // 减少字体大小
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 12), // 减少间距
-                RichText(
-                  textAlign: TextAlign.center,
-                  text: const TextSpan(
-                    style: TextStyle(
+                  const SizedBox(height: 12), // 减少间距
+                  Text(
+                    banner?.intro ?? '通过系统性指导、学习和实践，我们已经帮助 1000+ 客户成功转型到 Web3',
+                    style: const TextStyle(
                       fontSize: 15, // 减少字体大小
                       color: Colors.black,
                       height: 1.5,
                     ),
-                    children: [
-                      TextSpan(text: '通过系统性指导、学习和实践，我们已经帮助 '),
-                      TextSpan(
-                        text: '1000+',
-                        style: TextStyle(
-                          color: Color(0xFF2563EB),
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      TextSpan(text: ' 客户成功转型到 Web3'),
-                    ],
+                    textAlign: TextAlign.center,
                   ),
-                ),
-                const SizedBox(height: 16), // 减少间距
-                ElevatedButton(
-                  onPressed: () {
-                    // 处理按钮点击
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2563EB),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 10,
-                    ), // 减少内边距
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(5),
+                  const SizedBox(height: 16), // 减少间距
+                  ElevatedButton(
+                    onPressed: () async {
+                      final link = banner?.link;
+                      if (link != null && link.isNotEmpty) {
+                        final uri = Uri.parse(link);
+                        if (await canLaunchUrl(uri)) {
+                          await launchUrl(
+                            uri,
+                            mode: LaunchMode.externalApplication,
+                          );
+                        }
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF2563EB),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 10,
+                      ), // 减少内边距
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      elevation: 2,
                     ),
-                    elevation: 2,
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        '联系我们，免费获取转型咨询',
-                        style: TextStyle(
-                          fontSize: 14, // 减少字体大小
-                          fontWeight: FontWeight.w600,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          banner?.linkText ?? '联系我们，免费获取转型咨询',
+                          style: const TextStyle(
+                            fontSize: 14, // 减少字体大小
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                      ),
-                      SizedBox(width: 6),
-                      Icon(Icons.arrow_forward, size: 16), // 减少图标大小
-                    ],
+                        const SizedBox(width: 6),
+                        const Icon(Icons.arrow_forward, size: 16), // 减少图标大小
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 20), // 减少底部间距
-              ],
-            ),
+                  const SizedBox(height: 20), // 减少底部间距
+                ],
+              );
+            }),
           ),
           // Tab 导航栏 (白色背景，圆角)
           Container(
@@ -225,69 +236,37 @@ class _ServiceViewState extends State<ServiceView>
       width: double.infinity,
       child: Padding(
         padding: const EdgeInsets.only(top: 10, bottom: 30),
-        child: Column(
-          children: [
-            // 第一个卡片 - 左对齐
-            _buildServiceItemCard(
-              title: '运营转型',
-              description: '基于你的情况，为你定制 1v1 的转型咨询服务，由行业资深从业者专程指导。',
-              features: [
-                'Web3运营策略学习',
-                '履历优化',
-                'Web3运营基础知识学习',
-                '模拟面试',
-                '项目实战及发展',
-                '就业指导',
-              ],
-              iconPath: 'assets/images/online_course.png',
-              isLeftAligned: true,
-            ),
-            const SizedBox(height: 20),
-            // 第二个卡片 - 右对齐
-            _buildServiceItemCard(
-              title: '1v1 咨询服务',
-              description: '由行业资深从业者，TOP 关老师主管等级的专家教授，解答你的Web3求职工作转型相关问题。',
-              features: [
-                '社区运营及用户画像',
-                '活动运营',
-                '内容运营与品牌建设',
-                '合作推广',
-                '用户增长与服务策略',
-                '数据分析',
-              ],
-              iconPath: 'assets/images/1_1.png',
-              isLeftAligned: false,
-            ),
-            const SizedBox(height: 20),
-            // 第三个卡片 - 左对齐
-            _buildServiceItemCard(
-              title: '求职交流',
-              description: '进入 Web3 求职交流群，交流求职经验，获取最新职位信息。',
-              features: [],
-              iconPath: 'assets/images/job_share.png',
-              isLeftAligned: true,
-            ),
-            const SizedBox(height: 20),
-            // 第四个卡片 - 右对齐
-            _buildServiceItemCard(
-              title: '简历推送',
-              description: '留下你的求职意向，有适合的你的新职位，我们会第一时间推荐，这样你可以保持一步，跟招聘方提前接触。',
-              features: [],
-              iconPath: 'assets/images/job_post.png',
-              isLeftAligned: false,
-            ),
-            const SizedBox(height: 20),
-            // 第五个卡片 - 左对齐
-            _buildServiceItemCard(
-              title: '简历优化',
-              description: '手把手帮你做好简历优化，提升简历与目标职位的适配度，直达招聘平台。',
-              features: [],
-              iconPath: 'assets/images/cv_opt.png',
-              isLeftAligned: true,
-            ),
-            const SizedBox(height: 20),
-          ],
-        ),
+        child: Obx(() {
+          if (serviceController.isServerIntroLoading.value) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final serverIntroData =
+              serviceController.serverIntro.value?.data?.data;
+          if (serverIntroData == null || serverIntroData.isEmpty) {
+            return const Center(child: Text('暂无服务介绍数据'));
+          }
+
+          return Column(
+            children:
+                serverIntroData.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final item = entry.value;
+                  return Column(
+                    children: [
+                      if (index > 0) const SizedBox(height: 20),
+                      _buildServiceItemCard(
+                        title: item.title ?? '',
+                        description: item.intro ?? '',
+                        features: item.tips ?? [],
+                        iconUrl: item.icon,
+                        isLeftAligned: index % 2 == 0, // 偶数索引左对齐，奇数索引右对齐
+                      ),
+                    ],
+                  );
+                }).toList(),
+          );
+        }),
       ),
     );
   }
@@ -360,7 +339,8 @@ class _ServiceViewState extends State<ServiceView>
     required String title,
     required String description,
     required List<String> features,
-    required String iconPath,
+    String? iconPath,
+    String? iconUrl,
     required bool isLeftAligned,
   }) {
     Widget buildCard() {
@@ -398,7 +378,40 @@ class _ServiceViewState extends State<ServiceView>
           children: [
             Row(
               children: [
-                Image.asset(iconPath, width: 40, height: 40),
+                // 优先使用网络图片，如果没有则使用本地图片，都没有则使用占位符
+                (iconUrl != null && iconUrl!.isNotEmpty)
+                    ? Image.network(
+                      iconUrl!,
+                      width: 40,
+                      height: 40,
+                      errorBuilder: (context, error, stackTrace) {
+                        return (iconPath != null && iconPath!.isNotEmpty)
+                            ? Image.asset(iconPath!, width: 40, height: 40)
+                            : Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade300,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(
+                                Icons.image,
+                                color: Colors.grey,
+                              ),
+                            );
+                      },
+                    )
+                    : (iconPath != null && iconPath!.isNotEmpty)
+                    ? Image.asset(iconPath!, width: 40, height: 40)
+                    : Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade300,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.image, color: Colors.grey),
+                    ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
