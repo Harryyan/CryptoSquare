@@ -760,6 +760,42 @@ Map<String, dynamic> _$CategoryItemToJson(CategoryItem instance) =>
       'name_en': instance.nameEn,
     };
 
+StudentViewResponse _$StudentViewResponseFromJson(Map<String, dynamic> json) =>
+    StudentViewResponse(
+      message: json['message'] as String?,
+      code: (json['code'] as num?)?.toInt(),
+      data:
+          (json['data'] as List<dynamic>?)
+              ?.map((e) => StudentViewItem.fromJson(e as Map<String, dynamic>))
+              .toList(),
+    );
+
+Map<String, dynamic> _$StudentViewResponseToJson(
+  StudentViewResponse instance,
+) => <String, dynamic>{
+  'message': instance.message,
+  'code': instance.code,
+  'data': instance.data,
+};
+
+StudentViewItem _$StudentViewItemFromJson(Map<String, dynamic> json) =>
+    StudentViewItem(
+      id: (json['id'] as num?)?.toInt(),
+      title: json['title'] as String?,
+      intro: json['intro'] as String?,
+      link: json['link'] as String?,
+      img: json['img'] as String?,
+    );
+
+Map<String, dynamic> _$StudentViewItemToJson(StudentViewItem instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'title': instance.title,
+      'intro': instance.intro,
+      'link': instance.link,
+      'img': instance.img,
+    };
+
 // **************************************************************************
 // RetrofitGenerator
 // **************************************************************************
@@ -1342,6 +1378,33 @@ class _RestClient implements RestClient {
     late CSBBSCategoryResp _value;
     try {
       _value = CSBBSCategoryResp.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
+  Future<StudentViewResponse> getStudentViewList() async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<StudentViewResponse>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/v3/job/student_view',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late StudentViewResponse _value;
+    try {
+      _value = StudentViewResponse.fromJson(_result.data!);
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options);
       rethrow;

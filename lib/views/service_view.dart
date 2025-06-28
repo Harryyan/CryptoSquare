@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cryptosquare/controllers/service_controller.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ServiceView extends StatefulWidget {
   const ServiceView({super.key});
@@ -21,14 +22,20 @@ class _ServiceViewState extends State<ServiceView>
   Widget build(BuildContext context) {
     super.build(context);
     return Scaffold(
-      backgroundColor: selectedTabIndex == 0 ? const Color(0xFFF5F7FA) : const Color(0xFFF2F5F9),
+      backgroundColor:
+          selectedTabIndex == 0
+              ? const Color(0xFFF5F7FA)
+              : const Color(0xFFF2F5F9),
       body: Container(
-        decoration: selectedTabIndex == 0 ? const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/images/service_list_bg.png'),
-            fit: BoxFit.cover,
-          ),
-        ) : null,
+        decoration:
+            selectedTabIndex == 0
+                ? const BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage('assets/images/service_list_bg.png'),
+                    fit: BoxFit.cover,
+                  ),
+                )
+                : null,
         child: SingleChildScrollView(
           child: Column(
             children: [
@@ -99,7 +106,10 @@ class _ServiceViewState extends State<ServiceView>
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF2563EB),
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10), // 减少内边距
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 10,
+                    ), // 减少内边距
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(5),
                     ),
@@ -221,16 +231,30 @@ class _ServiceViewState extends State<ServiceView>
             _buildServiceItemCard(
               title: '运营转型',
               description: '基于你的情况，为你定制 1v1 的转型咨询服务，由行业资深从业者专程指导。',
-              features: ['Web3运营策略学习', '履历优化', 'Web3运营基础知识学习', '模拟面试', '项目实战及发展', '就业指导'],
+              features: [
+                'Web3运营策略学习',
+                '履历优化',
+                'Web3运营基础知识学习',
+                '模拟面试',
+                '项目实战及发展',
+                '就业指导',
+              ],
               iconPath: 'assets/images/online_course.png',
               isLeftAligned: true,
             ),
             const SizedBox(height: 20),
-            // 第二个卡片 - 右对齐  
+            // 第二个卡片 - 右对齐
             _buildServiceItemCard(
               title: '1v1 咨询服务',
               description: '由行业资深从业者，TOP 关老师主管等级的专家教授，解答你的Web3求职工作转型相关问题。',
-              features: ['社区运营及用户画像', '活动运营', '内容运营与品牌建设', '合作推广', '用户增长与服务策略', '数据分析'],
+              features: [
+                '社区运营及用户画像',
+                '活动运营',
+                '内容运营与品牌建设',
+                '合作推广',
+                '用户增长与服务策略',
+                '数据分析',
+              ],
               iconPath: 'assets/images/1_1.png',
               isLeftAligned: false,
             ),
@@ -304,33 +328,32 @@ class _ServiceViewState extends State<ServiceView>
       width: double.infinity,
       color: const Color(0xFFF2F5F9),
       padding: const EdgeInsets.all(20),
-      child: Column(
-        children: [
-          _buildStudentInterviewCard(
-            title: '勇闯 Web3 后：发现我已经过上了梦想中的生活',
-            content: '如果没有老师的引导，她可能只会对商店本身去准备，而忽略了如何将Web3的行业特点融入面试。"老师不是提醒我...',
-            index: 0,
-          ),
-          const SizedBox(height: 20),
-          _buildStudentInterviewCard(
-            title: '转行后的心得体会',
-            content: '如果没有老师的引导，她可能只会对商店本身去准备，而忽略了如何将Web3的行业特点融入面试。"老师不是提醒我教学，而是通过引导让我更有方向性"...',
-            index: 1,
-          ),
-          const SizedBox(height: 20),
-          _buildStudentInterviewCard(
-            title: '勇闯 Web3 后：发现我已经过上了梦想中的生活',
-            content: '如果没有老师的引导，她可能只会对商店本身去准备，而忽略了如何将Web3的行业特点融入面试。"老师不是提醒我...',
-            index: 2,
-          ),
-          const SizedBox(height: 20),
-          _buildStudentInterviewCard(
-            title: '转行后的心得体会',
-            content: '如果没有老师的引导，她可能只会对商店本身去准备，而忽略了如何将Web3的行业特点融入面试。"老师不是提醒我教学，而是通过引导让我更有方向性"...',
-            index: 3,
-          ),
-        ],
-      ),
+      child: Obx(() {
+        if (serviceController.isStudentViewLoading.value) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (serviceController.studentViews.isEmpty) {
+          return const Center(child: Text('暂无学员访谈数据'));
+        }
+
+        return Column(
+          children:
+              serviceController.studentViews.asMap().entries.map((entry) {
+                final index = entry.key;
+                final studentView = entry.value;
+                return Column(
+                  children: [
+                    if (index > 0) const SizedBox(height: 20),
+                    _buildStudentInterviewCard(
+                      studentView: studentView,
+                      index: index,
+                    ),
+                  ],
+                );
+              }).toList(),
+        );
+      }),
     );
   }
 
@@ -346,15 +369,16 @@ class _ServiceViewState extends State<ServiceView>
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: isLeftAligned 
-            ? const BorderRadius.only(
-                topRight: Radius.circular(12),
-                bottomRight: Radius.circular(12),
-              )
-            : const BorderRadius.only(
-                topLeft: Radius.circular(12),
-                bottomLeft: Radius.circular(12),
-              ),
+          borderRadius:
+              isLeftAligned
+                  ? const BorderRadius.only(
+                    topRight: Radius.circular(12),
+                    bottomRight: Radius.circular(12),
+                  )
+                  : const BorderRadius.only(
+                    topLeft: Radius.circular(12),
+                    bottomLeft: Radius.circular(12),
+                  ),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.12),
@@ -375,11 +399,7 @@ class _ServiceViewState extends State<ServiceView>
           children: [
             Row(
               children: [
-                Image.asset(
-                  iconPath,
-                  width: 40,
-                  height: 40,
-                ),
+                Image.asset(iconPath, width: 40, height: 40),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
@@ -412,7 +432,12 @@ class _ServiceViewState extends State<ServiceView>
                   ),
                   borderRadius: BorderRadius.all(Radius.circular(8)),
                 ),
-                padding: const EdgeInsets.only(left: 8, right: 8, top: 10, bottom: 5),
+                padding: const EdgeInsets.only(
+                  left: 8,
+                  right: 8,
+                  top: 10,
+                  bottom: 5,
+                ),
                 child: Column(
                   children: [
                     for (int i = 0; i < features.length; i += 2)
@@ -571,10 +596,7 @@ class _ServiceViewState extends State<ServiceView>
               const SizedBox(width: 4),
               Text(
                 duration,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Colors.grey.shade600,
-                ),
+                style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
               ),
             ],
           ),
@@ -643,15 +665,12 @@ class _ServiceViewState extends State<ServiceView>
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                                 const SizedBox(height: 16),
-                 Container(
-                   height: 1,
-                   color: Colors.grey.shade200,
-                 ),
-                 const SizedBox(height: 16),
-                 Row(
-                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                   children: [
+                const SizedBox(height: 16),
+                Container(height: 1, color: Colors.grey.shade200),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
                     Text(
                       price,
                       style: const TextStyle(
@@ -661,7 +680,10 @@ class _ServiceViewState extends State<ServiceView>
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(6),
@@ -671,10 +693,7 @@ class _ServiceViewState extends State<ServiceView>
                         children: [
                           const Text(
                             '立即购买',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.black,
-                            ),
+                            style: TextStyle(fontSize: 16, color: Colors.black),
                           ),
                           const SizedBox(width: 4),
                           const Icon(
@@ -772,87 +791,164 @@ class _ServiceViewState extends State<ServiceView>
   }
 
   Widget _buildStudentInterviewCard({
-    required String title,
-    required String content,
+    required dynamic studentView,
     required int index,
   }) {
-    final isImageLeft = index % 2 == 0; // 奇数项(index 0,2,4...)图片在左，偶数项(index 1,3,5...)图片在右
-    
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (isImageLeft) ...[
-              // 图片在左边
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.asset(
-                  'assets/images/student_placeholder.png',
-                  width: 80,
-                  fit: BoxFit.cover,
-                ),
-              ),
-              const SizedBox(width: 12),
-            ],
-            // 文字内容
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black87,
-                      height: 1.3,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    content,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Colors.black,
-                      height: 1.4,
-                    ),
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
+    final isImageLeft =
+        index % 2 == 0; // 奇数项(index 0,2,4...)图片在左，偶数项(index 1,3,5...)图片在右
+
+    return GestureDetector(
+      onTap: () async {
+        final url = studentView.link;
+        if (url != null && url.isNotEmpty) {
+          final uri = Uri.parse(url);
+          if (await canLaunchUrl(uri)) {
+            await launchUrl(uri, mode: LaunchMode.externalApplication);
+          }
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
             ),
-            if (!isImageLeft) ...[
-              // 图片在右边
-              const SizedBox(width: 12),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.asset(
-                  'assets/images/student_placeholder.png',
-                  width: 80,
-                  fit: BoxFit.cover,
+          ],
+        ),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (isImageLeft) ...[
+                // 图片在左边
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child:
+                      studentView.img != null && studentView.img!.isNotEmpty
+                          ? Image.network(
+                            studentView.img!,
+                            width: 80,
+                            height: 80,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Image.asset(
+                                'assets/images/student_placeholder.png',
+                                width: 80,
+                                height: 80,
+                                fit: BoxFit.cover,
+                              );
+                            },
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Container(
+                                width: 80,
+                                height: 80,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Center(
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                ),
+                              );
+                            },
+                          )
+                          : Image.asset(
+                            'assets/images/student_placeholder.png',
+                            width: 80,
+                            height: 80,
+                            fit: BoxFit.cover,
+                          ),
+                ),
+                const SizedBox(width: 12),
+              ],
+              // 文字内容
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      studentView.title ?? '暂无标题',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                        height: 1.3,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      studentView.intro ?? '暂无简介',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.black,
+                        height: 1.4,
+                      ),
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
               ),
+              if (!isImageLeft) ...[
+                // 图片在右边
+                const SizedBox(width: 12),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child:
+                      studentView.img != null && studentView.img!.isNotEmpty
+                          ? Image.network(
+                            studentView.img!,
+                            width: 80,
+                            height: 80,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Image.asset(
+                                'assets/images/student_placeholder.png',
+                                width: 80,
+                                height: 80,
+                                fit: BoxFit.cover,
+                              );
+                            },
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Container(
+                                width: 80,
+                                height: 80,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Center(
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                ),
+                              );
+                            },
+                          )
+                          : Image.asset(
+                            'assets/images/student_placeholder.png',
+                            width: 80,
+                            height: 80,
+                            fit: BoxFit.cover,
+                          ),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
   }
-} 
+}

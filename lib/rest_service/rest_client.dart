@@ -167,8 +167,11 @@ abstract class RestClient {
     );
 
     // 配置HTTP客户端
-    (_dio?.httpClientAdapter as IOHttpClientAdapter).onHttpClientCreate = (client) {
-      client.badCertificateCallback = (X509Certificate cert, String host, int port) => true;
+    (_dio?.httpClientAdapter as IOHttpClientAdapter).onHttpClientCreate = (
+      client,
+    ) {
+      client.badCertificateCallback =
+          (X509Certificate cert, String host, int port) => true;
       return client;
     };
 
@@ -281,6 +284,9 @@ abstract class RestClient {
 
   @GET("/bbs/category")
   Future<CSBBSCategoryResp> category(@Query("lang") int lang);
+
+  @GET('/v3/job/student_view')
+  Future<StudentViewResponse> getStudentViewList();
 }
 
 @JsonSerializable()
@@ -1426,5 +1432,60 @@ class CategoryItem {
     'id': id,
     'name': name,
     'name_en': nameEn,
+  };
+}
+
+@JsonSerializable()
+class StudentViewResponse {
+  const StudentViewResponse({this.message, this.code, this.data});
+
+  factory StudentViewResponse.fromJson(Map<String, dynamic> json) {
+    return StudentViewResponse(
+      message: json['message'] as String?,
+      code: json['code'] as int?,
+      data:
+          (json['data'] as List<dynamic>?)
+              ?.map((e) => StudentViewItem.fromJson(e as Map<String, dynamic>))
+              .toList(),
+    );
+  }
+
+  final String? message;
+  final int? code;
+  final List<StudentViewItem>? data;
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+    'message': message,
+    'code': code,
+    'data': data?.map((e) => e.toJson()).toList(),
+  };
+}
+
+@JsonSerializable()
+class StudentViewItem {
+  const StudentViewItem({this.id, this.title, this.intro, this.link, this.img});
+
+  factory StudentViewItem.fromJson(Map<String, dynamic> json) {
+    return StudentViewItem(
+      id: json['id'] as int?,
+      title: json['title'] as String?,
+      intro: json['intro'] as String?,
+      link: json['link'] as String?,
+      img: json['img'] as String?,
+    );
+  }
+
+  final int? id;
+  final String? title;
+  final String? intro;
+  final String? link;
+  final String? img;
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+    'id': id,
+    'title': title,
+    'intro': intro,
+    'link': link,
+    'img': img,
   };
 }
