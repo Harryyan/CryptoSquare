@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cryptosquare/controllers/service_controller.dart';
+import 'package:cryptosquare/rest_service/rest_client.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ServiceView extends StatefulWidget {
@@ -261,6 +262,7 @@ class _ServiceViewState extends State<ServiceView>
                         features: item.tips ?? [],
                         iconUrl: item.icon,
                         isLeftAligned: index % 2 == 0, // 偶数索引左对齐，奇数索引右对齐
+                        serverIntroItem: item, // 传递完整的 ServerIntroItem 对象
                       ),
                     ],
                   );
@@ -342,153 +344,129 @@ class _ServiceViewState extends State<ServiceView>
     String? iconPath,
     String? iconUrl,
     required bool isLeftAligned,
+    ServerIntroItem? serverIntroItem,
   }) {
     Widget buildCard() {
-      return Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius:
-              isLeftAligned
-                  ? const BorderRadius.only(
-                    topRight: Radius.circular(12),
-                    bottomRight: Radius.circular(12),
-                  )
-                  : const BorderRadius.only(
-                    topLeft: Radius.circular(12),
-                    bottomLeft: Radius.circular(12),
-                  ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.12),
-              blurRadius: 16,
-              offset: const Offset(0, 6),
-              spreadRadius: 2,
-            ),
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-              spreadRadius: 0,
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                // 优先使用网络图片，如果没有则使用本地图片，都没有则使用占位符
-                (iconUrl != null && iconUrl!.isNotEmpty)
-                    ? Image.network(
-                      iconUrl!,
-                      width: 40,
-                      height: 40,
-                      errorBuilder: (context, error, stackTrace) {
-                        return (iconPath != null && iconPath!.isNotEmpty)
-                            ? Image.asset(iconPath!, width: 40, height: 40)
-                            : Container(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade300,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: const Icon(
-                                Icons.image,
-                                color: Colors.grey,
-                              ),
-                            );
-                      },
+      return GestureDetector(
+        onTap: () {
+          if (serverIntroItem != null) {
+            _onServiceItemTap(serverIntroItem!);
+          }
+        },
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius:
+                isLeftAligned
+                    ? const BorderRadius.only(
+                      topRight: Radius.circular(12),
+                      bottomRight: Radius.circular(12),
                     )
-                    : (iconPath != null && iconPath!.isNotEmpty)
-                    ? Image.asset(iconPath!, width: 40, height: 40)
-                    : Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade300,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Icon(Icons.image, color: Colors.grey),
+                    : const BorderRadius.only(
+                      topLeft: Radius.circular(12),
+                      bottomLeft: Radius.circular(12),
                     ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black87,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              description,
-              style: const TextStyle(
-                fontSize: 14,
-                color: Colors.black87,
-                height: 1.4,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.12),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
+                spreadRadius: 2,
               ),
-            ),
-            if (features.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Container(
-                decoration: const BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage('assets/images/service_feature.png'),
-                    fit: BoxFit.cover,
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+                spreadRadius: 0,
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  // 优先使用网络图片，如果没有则使用本地图片，都没有则使用占位符
+                  (iconUrl != null && iconUrl!.isNotEmpty)
+                      ? Image.network(
+                        iconUrl!,
+                        width: 40,
+                        height: 40,
+                        errorBuilder: (context, error, stackTrace) {
+                          return (iconPath != null && iconPath!.isNotEmpty)
+                              ? Image.asset(iconPath!, width: 40, height: 40)
+                              : Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade300,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(
+                                  Icons.image,
+                                  color: Colors.grey,
+                                ),
+                              );
+                        },
+                      )
+                      : (iconPath != null && iconPath!.isNotEmpty)
+                      ? Image.asset(iconPath!, width: 40, height: 40)
+                      : Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade300,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(Icons.image, color: Colors.grey),
+                      ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
                   ),
-                  borderRadius: BorderRadius.all(Radius.circular(8)),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(
+                description,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.black87,
+                  height: 1.4,
                 ),
-                padding: const EdgeInsets.only(
-                  left: 8,
-                  right: 8,
-                  top: 10,
-                  bottom: 5,
-                ),
-                child: Column(
-                  children: [
-                    for (int i = 0; i < features.length; i += 2)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 2),
-                                    child: Image.asset(
-                                      'assets/images/tick_service.png',
-                                      width: 12,
-                                      height: 12,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Expanded(
-                                    child: Text(
-                                      features[i],
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: Color(0xFF575D6A),
-                                        fontWeight: FontWeight.w500,
-                                        height: 1.3,
-                                      ),
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 23),
-                            if (i + 1 < features.length)
+              ),
+              if (features.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Container(
+                  decoration: const BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage('assets/images/service_feature.png'),
+                      fit: BoxFit.cover,
+                    ),
+                    borderRadius: BorderRadius.all(Radius.circular(8)),
+                  ),
+                  padding: const EdgeInsets.only(
+                    left: 8,
+                    right: 8,
+                    top: 10,
+                    bottom: 5,
+                  ),
+                  child: Column(
+                    children: [
+                      for (int i = 0; i < features.length; i += 2)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
                               Expanded(
                                 child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -504,7 +482,7 @@ class _ServiceViewState extends State<ServiceView>
                                     const SizedBox(width: 6),
                                     Expanded(
                                       child: Text(
-                                        features[i + 1],
+                                        features[i],
                                         style: const TextStyle(
                                           fontSize: 12,
                                           color: Color(0xFF575D6A),
@@ -517,19 +495,52 @@ class _ServiceViewState extends State<ServiceView>
                                     ),
                                   ],
                                 ),
-                              )
-                            else
-                              const Expanded(child: SizedBox()),
-                          ],
+                              ),
+                              const SizedBox(width: 23),
+                              if (i + 1 < features.length)
+                                Expanded(
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.only(top: 2),
+                                        child: Image.asset(
+                                          'assets/images/tick_service.png',
+                                          width: 12,
+                                          height: 12,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Expanded(
+                                        child: Text(
+                                          features[i + 1],
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: Color(0xFF575D6A),
+                                            fontWeight: FontWeight.w500,
+                                            height: 1.3,
+                                          ),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              else
+                                const Expanded(child: SizedBox()),
+                            ],
+                          ),
                         ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
+              ],
             ],
-          ],
-        ),
-      );
+          ),
+        ), // Container 结束
+      ); // GestureDetector 结束
     }
 
     if (isLeftAligned) {
@@ -1004,5 +1015,293 @@ class _ServiceViewState extends State<ServiceView>
         ),
       ),
     );
+  }
+
+  // 处理服务项目点击事件
+  void _onServiceItemTap(ServerIntroItem item) {
+    // 检查 redirectType
+    if (item.redirectType == '1' &&
+        item.redirectLink != null &&
+        item.redirectLink!.isNotEmpty) {
+      // 类型1：打开外部链接
+      _launchURL(item.redirectLink!);
+    } else if (item.redirectType == '2') {
+      // 类型2：显示弹窗
+      _showServiceDetailBottomSheet(item);
+    }
+  }
+
+  // 显示服务详情底部弹窗
+  void _showServiceDetailBottomSheet(ServerIntroItem item) {
+    final pop = item.pop;
+
+    // 处理标题
+    String titleText =
+        pop?.title?.isNotEmpty == true ? pop!.title! : item.title ?? '服务详情';
+
+    // 处理intro数组
+    String introText = '';
+    if (pop?.intro != null && pop!.intro!.isNotEmpty) {
+      for (int i = 0; i < pop.intro!.length; i++) {
+        introText += pop.intro![i];
+        if (i < pop.intro!.length - 1) {
+          introText += '\n';
+        }
+      }
+    } else {
+      introText = item.intro ?? '暂无详细介绍';
+    }
+
+    // 处理tips数组
+    String tipsText = '';
+    if (pop?.tips != null && pop!.tips!.isNotEmpty) {
+      for (int i = 0; i < pop.tips!.length; i++) {
+        tipsText += pop.tips![i];
+        if (i < pop.tips!.length - 1) {
+          tipsText += '\n';
+        }
+      }
+    } else {
+      tipsText = '扫码添加客服，获取更多服务';
+    }
+
+    // 确定二维码图片路径
+    String qrCodeImagePath = 'assets/images/qr-code.jpg';
+    if (pop?.img != null && pop!.img!.isNotEmpty) {
+      qrCodeImagePath = pop.img!;
+    }
+
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(24.0),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(16),
+            topRight: Radius.circular(16),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // 标题栏
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    item.icon != null && item.icon!.isNotEmpty
+                        ? Container(
+                          width: 24,
+                          height: 24,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Image.network(
+                            item.icon!,
+                            width: 16,
+                            height: 16,
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.blue[50],
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: const Icon(
+                                  Icons.person,
+                                  color: Colors.blue,
+                                  size: 16,
+                                ),
+                              );
+                            },
+                          ),
+                        )
+                        : Container(
+                          width: 24,
+                          height: 24,
+                          decoration: BoxDecoration(
+                            color: Colors.blue[50],
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Icon(
+                            Icons.person,
+                            color: Colors.blue,
+                            size: 16,
+                          ),
+                        ),
+                    const SizedBox(width: 8),
+                    Text(
+                      titleText,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                GestureDetector(
+                  onTap: () => Get.back(),
+                  child: const Icon(Icons.close, size: 24),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+
+            // 服务详情描述
+            Text(
+              introText,
+              style: const TextStyle(
+                fontSize: 14,
+                height: 1.5,
+                letterSpacing: 0.3,
+              ),
+              textAlign: TextAlign.justify,
+            ),
+
+            const SizedBox(height: 32),
+
+            // 二维码部分
+            Center(
+              child: Column(
+                children: [
+                  SizedBox(
+                    width: 180,
+                    height: 180,
+                    child: Stack(
+                      children: [
+                        // 边框图片
+                        Center(
+                          child: Image.asset(
+                            'assets/images/qr-box.png',
+                            width: 180,
+                            height: 180,
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                        // 二维码图片
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child:
+                                  qrCodeImagePath.startsWith('http') ||
+                                          qrCodeImagePath.startsWith('https')
+                                      ? Image.network(
+                                        qrCodeImagePath,
+                                        width: 160,
+                                        height: 160,
+                                        fit: BoxFit.contain,
+                                        loadingBuilder: (
+                                          context,
+                                          child,
+                                          loadingProgress,
+                                        ) {
+                                          if (loadingProgress == null)
+                                            return child;
+                                          return const Center(
+                                            child: CircularProgressIndicator(),
+                                          );
+                                        },
+                                        errorBuilder: (
+                                          context,
+                                          error,
+                                          stackTrace,
+                                        ) {
+                                          return Image.asset(
+                                            'assets/images/qr-code.jpg',
+                                            width: 160,
+                                            height: 160,
+                                            fit: BoxFit.contain,
+                                          );
+                                        },
+                                      )
+                                      : Image.asset(
+                                        qrCodeImagePath,
+                                        width: 160,
+                                        height: 160,
+                                        fit: BoxFit.contain,
+                                      ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Tips显示
+                  if (tipsText.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    Text(
+                      tipsText,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        height: 1.5,
+                        color: Colors.grey,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+    );
+  }
+
+  // 打开外部URL的方法
+  void _launchURL(String url) async {
+    try {
+      if (url.isEmpty) {
+        print('URL为空');
+        return;
+      }
+
+      final Uri uri = Uri.parse(url);
+      print('尝试打开URL: $uri');
+
+      if (await canLaunchUrl(uri)) {
+        print('URL可以打开，正在启动...');
+        final bool launched = await launchUrl(
+          uri,
+          mode: LaunchMode.externalApplication,
+        );
+        if (!launched) {
+          print('URL启动失败: $url');
+        }
+      } else {
+        print('无法打开URL: $url');
+        final bool launched = await launchUrl(
+          uri,
+          mode: LaunchMode.platformDefault,
+        );
+        if (!launched) {
+          print('使用系统浏览器打开也失败了: $url');
+        }
+      }
+    } catch (e) {
+      print('打开URL时出错: $e');
+      try {
+        final Uri uri = Uri.parse(url);
+        final bool launched = await launchUrl(
+          uri,
+          mode: LaunchMode.platformDefault,
+        );
+        if (!launched) {
+          print('使用系统浏览器打开也失败了: $url');
+        }
+      } catch (e2) {
+        print('使用系统浏览器打开时也出错: $e2');
+      }
+    }
   }
 }

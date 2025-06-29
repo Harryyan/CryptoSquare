@@ -892,6 +892,14 @@ ServerIntroItem _$ServerIntroItemFromJson(Map<String, dynamic> json) =>
       title: json['title'] as String?,
       intro: json['intro'] as String?,
       tips: (json['tips'] as List<dynamic>?)?.map((e) => e as String).toList(),
+      redirectMsg: json['redirect_msg'] as String?,
+      redirectColor: json['redirect_color'] as String?,
+      redirectType: json['redirect_type'] as String?,
+      redirectLink: json['redirect_link'] as String?,
+      pop:
+          json['pop'] == null
+              ? null
+              : ServerIntroPopup.fromJson(json['pop'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$ServerIntroItemToJson(ServerIntroItem instance) =>
@@ -900,6 +908,28 @@ Map<String, dynamic> _$ServerIntroItemToJson(ServerIntroItem instance) =>
       'icon': instance.icon,
       'title': instance.title,
       'intro': instance.intro,
+      'tips': instance.tips,
+      'redirect_msg': instance.redirectMsg,
+      'redirect_color': instance.redirectColor,
+      'redirect_type': instance.redirectType,
+      'redirect_link': instance.redirectLink,
+      'pop': instance.pop,
+    };
+
+ServerIntroPopup _$ServerIntroPopupFromJson(Map<String, dynamic> json) =>
+    ServerIntroPopup(
+      title: json['title'] as String?,
+      intro:
+          (json['intro'] as List<dynamic>?)?.map((e) => e as String).toList(),
+      img: json['img'] as String?,
+      tips: (json['tips'] as List<dynamic>?)?.map((e) => e as String).toList(),
+    );
+
+Map<String, dynamic> _$ServerIntroPopupToJson(ServerIntroPopup instance) =>
+    <String, dynamic>{
+      'title': instance.title,
+      'intro': instance.intro,
+      'img': instance.img,
       'tips': instance.tips,
     };
 

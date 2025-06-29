@@ -1659,6 +1659,11 @@ class ServerIntroItem {
     this.title,
     this.intro,
     this.tips,
+    this.redirectMsg,
+    this.redirectColor,
+    this.redirectType,
+    this.redirectLink,
+    this.pop,
   });
 
   factory ServerIntroItem.fromJson(Map<String, dynamic> json) {
@@ -1668,6 +1673,14 @@ class ServerIntroItem {
       title: json['title'] as String?,
       intro: json['intro'] as String?,
       tips: (json['tips'] as List<dynamic>?)?.map((e) => e as String).toList(),
+      redirectMsg: json['redirect_msg'] as String?,
+      redirectColor: json['redirect_color'] as String?,
+      redirectType: json['redirect_type'] as String?,
+      redirectLink: json['redirect_link'] as String?,
+      pop:
+          json['pop'] != null
+              ? ServerIntroPopup.fromJson(json['pop'] as Map<String, dynamic>)
+              : null,
     );
   }
 
@@ -1676,12 +1689,53 @@ class ServerIntroItem {
   final String? title;
   final String? intro;
   final List<String>? tips;
+  @JsonKey(name: 'redirect_msg')
+  final String? redirectMsg;
+  @JsonKey(name: 'redirect_color')
+  final String? redirectColor;
+  @JsonKey(name: 'redirect_type')
+  final String? redirectType;
+  @JsonKey(name: 'redirect_link')
+  final String? redirectLink;
+  final ServerIntroPopup? pop;
 
   Map<String, dynamic> toJson() => <String, dynamic>{
     'id': id,
     'icon': icon,
     'title': title,
     'intro': intro,
+    'tips': tips,
+    'redirect_msg': redirectMsg,
+    'redirect_color': redirectColor,
+    'redirect_type': redirectType,
+    'redirect_link': redirectLink,
+    'pop': pop?.toJson(),
+  };
+}
+
+@JsonSerializable()
+class ServerIntroPopup {
+  const ServerIntroPopup({this.title, this.intro, this.img, this.tips});
+
+  factory ServerIntroPopup.fromJson(Map<String, dynamic> json) {
+    return ServerIntroPopup(
+      title: json['title'] as String?,
+      intro:
+          (json['intro'] as List<dynamic>?)?.map((e) => e as String).toList(),
+      img: json['img'] as String?,
+      tips: (json['tips'] as List<dynamic>?)?.map((e) => e as String).toList(),
+    );
+  }
+
+  final String? title;
+  final List<String>? intro;
+  final String? img;
+  final List<String>? tips;
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+    'title': title,
+    'intro': intro,
+    'img': img,
     'tips': tips,
   };
 }
