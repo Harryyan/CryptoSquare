@@ -727,49 +727,49 @@ class _ServiceViewState extends State<ServiceView>
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 16),
-                  Container(height: 1, color: Colors.grey.shade200),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        course.price != null ? '¥${course.price}' : '价格待定',
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFFFF6B35),
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Text(
-                              '立即购买',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.black,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            const Icon(
-                              Icons.arrow_forward,
-                              size: 16,
-                              color: Colors.black,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+                  // Container(height: 1, color: Colors.grey.shade200),
+                  // const SizedBox(height: 16),
+                  // Row(
+                  //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  //   children: [
+                  //     Text(
+                  //       course.price != null ? '¥${course.price}' : '价格待定',
+                  //       style: const TextStyle(
+                  //         fontSize: 20,
+                  //         fontWeight: FontWeight.bold,
+                  //         color: Color(0xFFFF6B35),
+                  //       ),
+                  //     ),
+                  //     Container(
+                  //       padding: const EdgeInsets.symmetric(
+                  //         horizontal: 16,
+                  //         vertical: 8,
+                  //       ),
+                  //       decoration: BoxDecoration(
+                  //         color: Colors.white,
+                  //         borderRadius: BorderRadius.circular(6),
+                  //       ),
+                  //       child: Row(
+                  //         mainAxisSize: MainAxisSize.min,
+                  //         children: [
+                  //           const Text(
+                  //             '立即购买',
+                  //             style: TextStyle(
+                  //               fontSize: 16,
+                  //               color: Colors.black,
+                  //             ),
+                  //           ),
+                  //           const SizedBox(width: 4),
+                  //           const Icon(
+                  //             Icons.arrow_forward,
+                  //             size: 16,
+                  //             color: Colors.black,
+                  //           ),
+                  //         ],
+                  //       ),
+                  //     ),
+                  //   ],
+                  // ),
                 ],
               ),
             ),
