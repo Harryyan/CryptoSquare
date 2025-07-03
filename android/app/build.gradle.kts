@@ -24,9 +24,9 @@ android {
         applicationId = "org.cryptosquare.app"
         // 配置应用版本信息
         minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
-        versionCode = 250614001
-        versionName = "2.0.0"
+        targetSdk = 35
+        versionCode = 250703001
+        versionName = "2.0.1"
     }
 
     // 添加签名配置
