@@ -407,19 +407,19 @@ class HomeView extends StatelessWidget {
   Widget _buildJobItem(JobPost job) {
     // 构建新的属性标签
     List<String> propertyTags = [];
-    
+
     // 添加 jobType
     if (job.jobType?.isNotEmpty == true) {
       propertyTags.add(job.jobType!);
     }
-    
+
     // 添加 officeMode
     if (job.officeMode == 1) {
       propertyTags.add('远程');
     } else if (job.officeMode == 0) {
       propertyTags.add('实地');
     }
-    
+
     // 添加 jobLang
     if (job.jobLang == 1) {
       propertyTags.add('英语');
@@ -519,15 +519,19 @@ class HomeView extends StatelessWidget {
                           child: Wrap(
                             spacing: 8,
                             runSpacing: 4,
-                            children: propertyTags.map((tag) => _buildJobTag(tag)).toList(),
+                            children:
+                                propertyTags
+                                    .map((tag) => _buildJobTag(tag))
+                                    .toList(),
                           ),
                         ),
                         const SizedBox(width: 12),
                         GestureDetector(
-                          onTap: () => homeController.toggleFavorite(
-                            job.id,
-                            job.jobKey ?? "",
-                          ),
+                          onTap:
+                              () => homeController.toggleFavorite(
+                                job.id,
+                                job.jobKey ?? "",
+                              ),
                           child: Image.asset(
                             job.isFavorite
                                 ? 'assets/images/star_fill.png'
@@ -541,10 +545,7 @@ class HomeView extends StatelessWidget {
                     // 分割线和原始tags
                     if (_hasDisplayableTags(job)) ...[
                       const SizedBox(height: 12),
-                      Container(
-                        height: 1,
-                        color: const Color(0xFFF4F7FD),
-                      ),
+                      Container(height: 1, color: const Color(0xFFF4F7FD)),
                       const SizedBox(height: 12),
                       LayoutBuilder(
                         builder: (context, constraints) {
@@ -563,23 +564,25 @@ class HomeView extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
-                      child: _hasDisplayableTags(job)
-                          ? LayoutBuilder(
-                              builder: (context, constraints) {
-                                return _buildHashTagsWithMaxLines(
-                                  _getDisplayableTags(job),
-                                  constraints.maxWidth - 32, // 减去收藏按钮和间距的宽度
-                                );
-                              },
-                            )
-                          : const SizedBox(),
+                      child:
+                          _hasDisplayableTags(job)
+                              ? LayoutBuilder(
+                                builder: (context, constraints) {
+                                  return _buildHashTagsWithMaxLines(
+                                    _getDisplayableTags(job),
+                                    constraints.maxWidth - 32, // 减去收藏按钮和间距的宽度
+                                  );
+                                },
+                              )
+                              : const SizedBox(),
                     ),
                     const SizedBox(width: 12),
                     GestureDetector(
-                      onTap: () => homeController.toggleFavorite(
-                        job.id,
-                        job.jobKey ?? "",
-                      ),
+                      onTap:
+                          () => homeController.toggleFavorite(
+                            job.id,
+                            job.jobKey ?? "",
+                          ),
                       child: Image.asset(
                         job.isFavorite
                             ? 'assets/images/star_fill.png'
@@ -616,27 +619,21 @@ class HomeView extends StatelessWidget {
   // 构建带#标识的tags，显示所有tags
   Widget _buildHashTagsWithMaxLines(List<String> tags, double maxWidth) {
     if (tags.isEmpty) return const SizedBox();
-    
+
     // 直接显示所有tags，不进行任何截断，不使用TagUtils.formatTag
-    List<Widget> tagWidgets = tags.map((tag) {
-      final tagText = '#$tag'; // 直接使用原始tag，不经过formatTag处理
-      return _buildHashTag(tagText);
-    }).toList();
-    
-    return Wrap(
-      spacing: 8.0,
-      runSpacing: 4.0,
-      children: tagWidgets,
-    );
+    List<Widget> tagWidgets =
+        tags.map((tag) {
+          final tagText = '#$tag'; // 直接使用原始tag，不经过formatTag处理
+          return _buildHashTag(tagText);
+        }).toList();
+
+    return Wrap(spacing: 8.0, runSpacing: 4.0, children: tagWidgets);
   }
 
   Widget _buildHashTag(String tag) {
     return Text(
       tag,
-      style: const TextStyle(
-        color: Color(0xFF575D6A),
-        fontSize: 13,
-      ),
+      style: const TextStyle(color: Color(0xFF575D6A), fontSize: 13),
     );
   }
 
@@ -1010,7 +1007,13 @@ class HomeView extends StatelessWidget {
       print('Banner链接为空');
       return;
     }
-    
+
+    // 处理应用内页面跳转
+    if (_shouldNavigateInternally(link)) {
+      _navigateToInternalPage(link);
+      return;
+    }
+
     // 检查链接是否是有效的HTTP/HTTPS URL
     if (link.startsWith('http://') || link.startsWith('https://')) {
       _launchURL(link);
@@ -1023,6 +1026,35 @@ class HomeView extends StatelessWidget {
     }
   }
 
+  // 检查是否应该在应用内跳转
+  bool _shouldNavigateInternally(String link) {
+    // 去除链接中的语言参数，统一判断
+    String normalizedLink = link.replaceAll(RegExp(r'[?&]lng=[^&]*'), '');
+
+    return normalizedLink.contains('cryptosquare.org/bbs') ||
+        normalizedLink.contains('cryptosquare.org/jobs') ||
+        normalizedLink.contains('cryptosquare.org/course');
+  }
+
+  // 执行应用内页面跳转
+  void _navigateToInternalPage(String link) {
+    String normalizedLink = link.replaceAll(RegExp(r'[?&]lng=[^&]*'), '');
+
+    if (normalizedLink.contains('cryptosquare.org/bbs')) {
+      // 跳转到全球论坛tab (index 3)
+      homeController.changeTab(3);
+      print('跳转到全球论坛');
+    } else if (normalizedLink.contains('cryptosquare.org/jobs')) {
+      // 跳转到Web3工作tab (index 1)
+      homeController.changeTab(1);
+      print('跳转到Web3工作');
+    } else if (normalizedLink.contains('cryptosquare.org/course')) {
+      // 跳转到求职服务tab (index 2)
+      homeController.changeTab(2);
+      print('跳转到求职服务');
+    }
+  }
+
   Widget _buildNewsList() {
     return Obx(() {
       // 如果正在加载且没有数据，显示loading spinner
@@ -1030,9 +1062,7 @@ class HomeView extends StatelessWidget {
         return Container(
           height: 200,
           child: const Center(
-            child: CircularProgressIndicator(
-              color: AppTheme.primaryColor,
-            ),
+            child: CircularProgressIndicator(color: AppTheme.primaryColor),
           ),
         );
       }
@@ -1047,10 +1077,7 @@ class HomeView extends StatelessWidget {
               children: [
                 const Text(
                   '暂无数据',
-                  style: TextStyle(
-                    color: Colors.grey,
-                    fontSize: 16,
-                  ),
+                  style: TextStyle(color: Colors.grey, fontSize: 16),
                 ),
                 const SizedBox(height: 16),
                 ElevatedButton(
@@ -1125,9 +1152,7 @@ class HomeView extends StatelessWidget {
       Duration(minutes: newsItem.timeAgo),
     );
     // 使用DateFormat格式化为指定格式
-    final String formattedTime = DateFormat(
-      'MM-dd HH:mm',
-    ).format(newsTime);
+    final String formattedTime = DateFormat('MM-dd HH:mm').format(newsTime);
 
     return GestureDetector(
       onTap: () {
@@ -1183,7 +1208,7 @@ class HomeView extends StatelessWidget {
       Container(
         constraints: BoxConstraints(
           maxHeight: Get.height * 0.85, // 最大高度限制
-          minHeight: Get.height * 0.3,  // 最小高度限制
+          minHeight: Get.height * 0.3, // 最小高度限制
         ),
         decoration: const BoxDecoration(
           color: Colors.white,
@@ -1282,10 +1307,7 @@ class HomeView extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 // 分割线
-                Container(
-                  height: 1,
-                  color: Colors.grey[300],
-                ),
+                Container(height: 1, color: Colors.grey[300]),
                 // 声明文字
                 Container(
                   width: double.infinity,
@@ -1301,7 +1323,9 @@ class HomeView extends StatelessWidget {
                   ),
                 ),
                 // 增加底部安全区域间距
-                SizedBox(height: MediaQuery.of(Get.context!).padding.bottom + 16),
+                SizedBox(
+                  height: MediaQuery.of(Get.context!).padding.bottom + 16,
+                ),
               ],
             ),
           ],
