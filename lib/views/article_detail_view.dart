@@ -361,7 +361,8 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
 
       // 构建分享链接
       final String shareLink =
-          "https://cryptosquare.io/article/${_articleData?.id}";
+          _articleData?.link ??
+          "https://cryptosquare.org/bbs/${_articleData?.id}?lng=zh-CN"; // "https://cryptosquare.org/bbs/8033?lng=zh-CN"
 
       // 显示分享底部弹窗
       showModalBottomSheet(
@@ -385,35 +386,77 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
     String processedContent = htmlContent;
 
     // 1. 移除开头和结尾的空白段落（只移除明显的空段落）
-    processedContent = processedContent.replaceAll(RegExp(r'^(\s*<p[^>]*>\s*<br\s*/?>\s*</p>\s*){2,}'), '');
-    processedContent = processedContent.replaceAll(RegExp(r'(\s*<p[^>]*>\s*<br\s*/?>\s*</p>\s*){2,}$'), '');
+    processedContent = processedContent.replaceAll(
+      RegExp(r'^(\s*<p[^>]*>\s*<br\s*/?>\s*</p>\s*){2,}'),
+      '',
+    );
+    processedContent = processedContent.replaceAll(
+      RegExp(r'(\s*<p[^>]*>\s*<br\s*/?>\s*</p>\s*){2,}$'),
+      '',
+    );
 
     // 2. 移除只包含空白内容的段落
-    processedContent = processedContent.replaceAll(RegExp(r'<p[^>]*>\s*(&nbsp;|\s)*\s*</p>'), '');
-    
+    processedContent = processedContent.replaceAll(
+      RegExp(r'<p[^>]*>\s*(&nbsp;|\s)*\s*</p>'),
+      '',
+    );
+
     // 3. 移除只包含br标签的段落
-    processedContent = processedContent.replaceAll(RegExp(r'<p[^>]*>\s*<br\s*/?>\s*</p>'), '');
-    
+    processedContent = processedContent.replaceAll(
+      RegExp(r'<p[^>]*>\s*<br\s*/?>\s*</p>'),
+      '',
+    );
+
     // 4. 处理多个连续的br标签
     // 将3个或以上的br合并为1个br
-    processedContent = processedContent.replaceAll(RegExp(r'(<br\s*/?>\s*){3,}'), '<br/>');
+    processedContent = processedContent.replaceAll(
+      RegExp(r'(<br\s*/?>\s*){3,}'),
+      '<br/>',
+    );
     // 将2个连续的br合并为1个br
-    processedContent = processedContent.replaceAll(RegExp(r'(<br\s*/?>\s*){2}'), '<br/>');
-    
+    processedContent = processedContent.replaceAll(
+      RegExp(r'(<br\s*/?>\s*){2}'),
+      '<br/>',
+    );
+
     // 5. 移除段落开头和结尾的br标签
-    processedContent = processedContent.replaceAll(RegExp(r'<p([^>]*)>\s*<br\s*/?>\s*'), '<p\$1>');
-    processedContent = processedContent.replaceAll(RegExp(r'\s*<br\s*/?>\s*</p>'), '</p>');
-    
+    processedContent = processedContent.replaceAll(
+      RegExp(r'<p([^>]*)>\s*<br\s*/?>\s*'),
+      '<p\$1>',
+    );
+    processedContent = processedContent.replaceAll(
+      RegExp(r'\s*<br\s*/?>\s*</p>'),
+      '</p>',
+    );
+
     // 6. 处理段落之间的多余br标签
-    processedContent = processedContent.replaceAll(RegExp(r'</p>\s*<br\s*/?>\s*<p'), '</p><p');
+    processedContent = processedContent.replaceAll(
+      RegExp(r'</p>\s*<br\s*/?>\s*<p'),
+      '</p><p',
+    );
 
     // 7. 处理hr标签周围的空白
     // 移除hr标签前后的多余br标签和空白段落
-    processedContent = processedContent.replaceAll(RegExp(r'<br\s*/?>\s*<hr\s*/?>\s*<br\s*/?>'), '<hr/>');
-    processedContent = processedContent.replaceAll(RegExp(r'</p>\s*<br\s*/?>\s*<hr\s*/?>'), '</p><hr/>');
-    processedContent = processedContent.replaceAll(RegExp(r'<hr\s*/?>\s*<br\s*/?>\s*<p'), '<hr/><p');
-    processedContent = processedContent.replaceAll(RegExp(r'</blockquote>\s*<br\s*/?>\s*<hr\s*/?>'), '</blockquote><hr/>');
-    processedContent = processedContent.replaceAll(RegExp(r'<hr\s*/?>\s*<br\s*/?>\s*<p'), '<hr/><p');
+    processedContent = processedContent.replaceAll(
+      RegExp(r'<br\s*/?>\s*<hr\s*/?>\s*<br\s*/?>'),
+      '<hr/>',
+    );
+    processedContent = processedContent.replaceAll(
+      RegExp(r'</p>\s*<br\s*/?>\s*<hr\s*/?>'),
+      '</p><hr/>',
+    );
+    processedContent = processedContent.replaceAll(
+      RegExp(r'<hr\s*/?>\s*<br\s*/?>\s*<p'),
+      '<hr/><p',
+    );
+    processedContent = processedContent.replaceAll(
+      RegExp(r'</blockquote>\s*<br\s*/?>\s*<hr\s*/?>'),
+      '</blockquote><hr/>',
+    );
+    processedContent = processedContent.replaceAll(
+      RegExp(r'<hr\s*/?>\s*<br\s*/?>\s*<p'),
+      '<hr/><p',
+    );
 
     // 8. 移除或修改过大的line-height样式
     processedContent = processedContent.replaceAll(
@@ -476,7 +519,7 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
       'box-sizing[^;]*;?',
       'text-wrap-mode[^;]*;?',
     ];
-    
+
     for (String style in unwantedStyles) {
       processedContent = processedContent.replaceAll(RegExp(style), '');
     }
@@ -492,7 +535,7 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
     final screenWidth = MediaQuery.of(context).size.width;
     // 减去左右padding (16 * 2 = 32)，得到可用像素宽度
     final imageWidthPx = (screenWidth - 32).toDouble();
-    
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       // 使用 SelectionArea 包装 Html 组件，使其内容可选择和复制
@@ -553,7 +596,9 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
             'blockquote': Style(
               margin: Margins.only(left: 12, top: 8, bottom: 8),
               padding: HtmlPaddings.only(left: 12),
-              border: const Border(left: BorderSide(color: Colors.grey, width: 3)),
+              border: const Border(
+                left: BorderSide(color: Colors.grey, width: 3),
+              ),
               backgroundColor: const Color(0xFFF5F5F5),
               fontStyle: FontStyle.italic,
             ),
@@ -595,56 +640,55 @@ class _ArticleDetailViewState extends State<ArticleDetailView> {
     );
   }
 
-Widget _buildArticleTags() {
-  final tags = _articleData?.extension?.tag;
-  if (tags == null || tags.isEmpty) {
-    return const SizedBox.shrink();
+  Widget _buildArticleTags() {
+    final tags = _articleData?.extension?.tag;
+    if (tags == null || tags.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    // 过滤：只保留 value 字段不为 null 且去掉空白后长度 > 0 的标签
+    final nonEmptyTags =
+        tags.where((tag) {
+          // 假设 tag 是一个 Map 或者一个有 value 属性的对象
+          final rawValue =
+              tag is Map ? tag['value'] : (tag.value); // 如果是自定义类，使用 tag.value
+          if (rawValue == null) return false;
+          final str = rawValue.toString().trim();
+          return str.isNotEmpty;
+        }).toList();
+
+    if (nonEmptyTags.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children:
+            nonEmptyTags.map((tag) {
+              final rawValue = tag is Map ? tag['value'] : (tag.value);
+              final text = rawValue.toString().trim();
+
+              return Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF4F7FD),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Text(
+                  text,
+                  style: TextStyle(color: Colors.grey[800], fontSize: 12),
+                ),
+              );
+            }).toList(),
+      ),
+    );
   }
-
-  // 过滤：只保留 value 字段不为 null 且去掉空白后长度 > 0 的标签
-  final nonEmptyTags = tags.where((tag) {
-    // 假设 tag 是一个 Map 或者一个有 value 属性的对象
-    final rawValue = tag is Map
-        ? tag['value']
-        : (tag.value); // 如果是自定义类，使用 tag.value
-    if (rawValue == null) return false;
-    final str = rawValue.toString().trim();
-    return str.isNotEmpty;
-  }).toList();
-
-  if (nonEmptyTags.isEmpty) {
-    return const SizedBox.shrink();
-  }
-
-  return Padding(
-    padding: const EdgeInsets.all(16.0),
-    child: Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: nonEmptyTags.map((tag) {
-        final rawValue = tag is Map
-            ? tag['value']
-            : (tag.value);
-        final text = rawValue.toString().trim();
-
-        return Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 12,
-            vertical: 6,
-          ),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF4F7FD),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Text(
-            text,
-            style: TextStyle(color: Colors.grey[800], fontSize: 12),
-          ),
-        );
-      }).toList(),
-    ),
-  );
-}
 
   Widget _buildArticleStats() {
     return const SizedBox.shrink(); // 移除统计信息显示
@@ -1203,21 +1247,26 @@ Widget _buildArticleTags() {
 
         // 重新加载评论列表
         await _loadArticleComments();
-        
+
         // 更新评论数量：当_comments不为null时，使用实际评论数量更新_articleData
         if (_comments != null && _articleData != null) {
           setState(() {
             // 计算顶级评论数量（不包括回复）
-            final topLevelComments = _comments!
-                .where((comment) => comment.parentComment == null || comment.parentComment == 0)
-                .toList();
-            
+            final topLevelComments =
+                _comments!
+                    .where(
+                      (comment) =>
+                          comment.parentComment == null ||
+                          comment.parentComment == 0,
+                    )
+                    .toList();
+
             // 计算总评论数量（包括回复）
             int totalComments = topLevelComments.length;
             for (final comment in topLevelComments) {
               totalComments += (comment.reply?.length ?? 0);
             }
-            
+
             // 更新文章数据中的评论数量
             _articleData = ArticleDetailData(
               id: _articleData!.id,
@@ -1268,7 +1317,7 @@ Widget _buildArticleTags() {
           ),
           barrierDismissible: true, // 允许点击外部关闭
         );
-        
+
         // 1秒后自动关闭对话框
         Future.delayed(const Duration(seconds: 1), () {
           if (Get.isDialogOpen == true) {
@@ -1368,21 +1417,21 @@ Widget _buildArticleTags() {
           );
         } else {
           // 无法打开链接时显示提示
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('无法打开链接: $url')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('无法打开链接: $url')));
         }
       } else {
         // 不是http(s)链接时显示提示
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('不支持的链接类型: $url')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('不支持的链接类型: $url')));
       }
     } catch (e) {
       // 发生错误时显示提示
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('打开链接时发生错误: ${e.toString()}')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('打开链接时发生错误: ${e.toString()}')));
     }
   }
 }
