@@ -13,10 +13,13 @@ import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:app_links/app_links.dart';
+import 'package:cryptosquare/controllers/article_controller.dart';
+import 'package:cryptosquare/views/topic_webview.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // 设置系统UI样式，统一状态栏样式
   SystemChrome.setSystemUIOverlayStyle(
     SystemUiOverlayStyle(
@@ -27,13 +30,109 @@ void main() async {
       systemNavigationBarIconBrightness: Brightness.dark, // 导航栏图标
     ),
   );
-  
+
   // 默认使用正式环境
   // 如需切换到测试环境，取消下面这行注释
   EnvironmentConfig.switchToProduction();
   await GetStorage.init();
 
+  // 初始化深度链接监听器
+  _initDeepLinkListener();
+
   runApp(const MyApp());
+}
+
+// 初始化深度链接监听器
+void _initDeepLinkListener() async {
+  try {
+    final appLinks = AppLinks();
+
+    // 监听所有深度链接事件（包括初始链接和运行时链接）
+    appLinks.uriLinkStream.listen((Uri uri) {
+      _handleDeepLink(uri);
+    });
+  } catch (e) {
+    print('初始化深度链接监听器失败: $e');
+  }
+}
+
+// 处理深度链接
+void _handleDeepLink(Uri uri) async {
+  print('收到深度链接: $uri');
+
+  try {
+    // 检查scheme是否匹配
+    if (uri.scheme == 'cryptosquare' ||
+        (uri.scheme == 'https' && uri.host == 'cryptosquare.org')) {
+      // 解析topicId参数
+      String? topicId = uri.queryParameters['topicId'];
+
+      if (topicId != null && topicId.isNotEmpty) {
+        // 有topicId参数，延迟执行，确保应用已完全启动
+        Future.delayed(const Duration(milliseconds: 500), () {
+          _navigateToArticle(topicId);
+        });
+      } else {
+        // 没有topicId，直接打开app停留在首页，不做任何跳转
+        print('深度链接没有topicId参数，app正常启动到首页');
+      }
+    }
+  } catch (e) {
+    print('处理深度链接时出错: $e');
+  }
+}
+
+// 导航到文章详情页面
+void _navigateToArticle(String topicId) {
+  try {
+    // 获取HomeController实例
+    final homeController = Get.find<HomeController>();
+
+    // 先切换到全球论坛Tab（index 3）
+    homeController.changeTab(3);
+
+    // 延迟导航到文章详情，确保论坛页面已加载
+    Future.delayed(const Duration(milliseconds: 300), () {
+      // 获取当前context并导航到文章详情
+      final context = Get.context;
+      if (context != null) {
+        // 处理特定的topicId（参考截图中的逻辑）
+        if (topicId == '5313' || topicId == '5981') {
+          // 这些是特殊的topicId，导航到WebView页面
+          Get.toNamed(
+            '/topic/$topicId',
+            arguments: {
+              'title':
+                  topicId == '5313' || topicId == '5981'
+                      ? '300U大奖过来拿！Web2与Web3大佬选美大比拼！'
+                      : '话题详情',
+              'path': topicId,
+            },
+          );
+        } else {
+          // 普通文章，导航到文章详情页面
+          ArticleController().navigateToArticleDetail(context, topicId);
+        }
+      }
+    });
+  } catch (e) {
+    print('导航到文章详情页面失败: $e');
+    // 如果导航失败，至少跳转到论坛页面
+    _navigateToForum();
+  }
+}
+
+// 导航到论坛页面
+void _navigateToForum() {
+  try {
+    // 获取HomeController实例
+    final homeController = Get.find<HomeController>();
+
+    // 切换到全球论坛Tab（index 3）
+    homeController.changeTab(3);
+  } catch (e) {
+    print('导航到论坛页面失败: $e');
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -57,6 +156,19 @@ class MyApp extends StatelessWidget {
       fallbackLocale: const Locale('en', 'US'),
       home: MainView(),
       debugShowCheckedModeBanner: false,
+      // 添加路由配置，支持深度链接
+      getPages: [
+        GetPage(
+          name: '/topic/:topicId',
+          page: () {
+            final arguments = Get.arguments as Map<String, dynamic>?;
+            return TopicWebView(
+              title: arguments?['title'] ?? '话题详情',
+              path: arguments?['path'] ?? '',
+            );
+          },
+        ),
+      ],
       // 添加本地化代理
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,

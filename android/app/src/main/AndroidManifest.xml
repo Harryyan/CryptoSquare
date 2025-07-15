@@ -52,12 +52,20 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
-            <!-- 添加处理URL的intent filter -->
-            <intent-filter>
+            <!-- Deep Link: Custom Scheme -->
+            <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" />
+                <data android:scheme="cryptosquare" />
+            </intent-filter>
+            <!-- Deep Link: HTTPS URLs -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https"
+                      android:host="cryptosquare.org" />
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.
