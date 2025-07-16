@@ -16,6 +16,7 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'package:app_links/app_links.dart';
 import 'package:cryptosquare/controllers/article_controller.dart';
 import 'package:cryptosquare/views/topic_webview.dart';
+import 'package:cryptosquare/rest_service/rest_client.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -64,17 +65,23 @@ void _handleDeepLink(Uri uri) async {
     // 检查scheme是否匹配
     if (uri.scheme == 'cryptosquare' ||
         (uri.scheme == 'https' && uri.host == 'cryptosquare.org')) {
-      // 解析topicId参数
+      // 解析参数
       String? topicId = uri.queryParameters['topicId'];
+      String? jobId = uri.queryParameters['jobId'];
 
       if (topicId != null && topicId.isNotEmpty) {
-        // 有topicId参数，延迟执行，确保应用已完全启动
+        // 有topicId参数，导航到文章详情
         Future.delayed(const Duration(milliseconds: 500), () {
           _navigateToArticle(topicId);
         });
+      } else if (jobId != null && jobId.isNotEmpty) {
+        // 有jobId参数，导航到工作详情
+        Future.delayed(const Duration(milliseconds: 500), () {
+          _navigateToJob(jobId);
+        });
       } else {
-        // 没有topicId，直接打开app停留在首页，不做任何跳转
-        print('深度链接没有topicId参数，app正常启动到首页');
+        // 没有任何参数，直接打开app停留在首页，不做任何跳转
+        print('深度链接没有特定参数，app正常启动到首页');
       }
     }
   } catch (e) {
@@ -135,6 +142,40 @@ void _navigateToForum() {
   }
 }
 
+// 导航到工作详情页面
+void _navigateToJob(String jobId) {
+  try {
+    // 获取HomeController实例
+    final homeController = Get.find<HomeController>();
+
+    // 先切换到Web3工作Tab（index 1）
+    homeController.changeTab(1);
+
+    // 延迟导航到工作详情，确保工作页面已加载
+    Future.delayed(const Duration(milliseconds: 300), () {
+      // 创建一个JobData对象用于导航
+      // 使用jobId作为jobKey，其他字段使用默认值
+      final jobData = JobData(
+        jobKey: jobId,
+        jobTitle: "职位详情", // 占位符，实际详情会通过API获取
+        jobCompany: "加载中...", // 占位符
+        jobSalaryCurrency: "USD", // 默认值
+      );
+
+      // 使用JobController导航到工作详情页面
+      Get.find<JobController>().navigateToJobDetail(jobData);
+    });
+  } catch (e) {
+    print('导航到工作详情页面失败: $e');
+    // 如果导航失败，至少跳转到工作页面
+    try {
+      Get.find<HomeController>().changeTab(1);
+    } catch (fallbackError) {
+      print('切换到工作页面也失败: $fallbackError');
+    }
+  }
+}
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -166,6 +207,19 @@ class MyApp extends StatelessWidget {
               title: arguments?['title'] ?? '话题详情',
               path: arguments?['path'] ?? '',
             );
+          },
+        ),
+        GetPage(
+          name: '/job/:jobId',
+          page: () {
+            final arguments = Get.arguments as Map<String, dynamic>?;
+            final jobData = arguments?['jobData'] as JobData?;
+            if (jobData != null) {
+              // 直接导航到JobDetailView，让JobController处理详情获取
+              Get.find<JobController>().navigateToJobDetail(jobData);
+            }
+            // 返回一个占位页面，实际会被JobDetailView替换
+            return Container();
           },
         ),
       ],

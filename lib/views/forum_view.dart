@@ -657,7 +657,8 @@ class _ForumViewState extends State<ForumView>
                                     },
                                   );
                                 },
-                                textAlignVertical: TextAlignVertical.center, // 确保文字垂直居中
+                                textAlignVertical:
+                                    TextAlignVertical.center, // 确保文字垂直居中
                                 decoration: InputDecoration(
                                   hintText: '搜索',
                                   hintStyle: TextStyle(
@@ -862,7 +863,8 @@ class _ForumViewState extends State<ForumView>
         child: NotificationListener<ScrollNotification>(
           onNotification: (ScrollNotification scrollInfo) {
             if (!isLoadingMore.value &&
-                scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent) {
+                scrollInfo.metrics.pixels ==
+                    scrollInfo.metrics.maxScrollExtent) {
               _onLoadMore();
             }
             return false;
@@ -882,7 +884,11 @@ class _ForumViewState extends State<ForumView>
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.error_outline, size: 48, color: Colors.grey[400]),
+                    Icon(
+                      Icons.error_outline,
+                      size: 48,
+                      color: Colors.grey[400],
+                    ),
                     const SizedBox(height: 16),
                     Text(
                       '加载失败',
@@ -1009,10 +1015,7 @@ class _ForumViewState extends State<ForumView>
               // 底部提示文字
               Text(
                 '没有符合的帖子',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey[600],
-                ),
+                style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                 textAlign: TextAlign.center, // 确保文字居中
               ),
             ],
@@ -1224,7 +1227,8 @@ class _ForumViewState extends State<ForumView>
                     ),
 
                   // 图片与内容之间的间距
-                  if (hasImage && contentText.isNotEmpty) const SizedBox(width: 12),
+                  if (hasImage && contentText.isNotEmpty)
+                    const SizedBox(width: 12),
 
                   // 右侧文章内容文字（或无图片时从左侧开始）
                   if (contentText.isNotEmpty)
@@ -1248,10 +1252,7 @@ class _ForumViewState extends State<ForumView>
 
             // 分割线
             if (hasImage || contentText.isNotEmpty)
-              Container(
-                height: 1,
-                color: const Color(0xFFF4F7FD),
-              ),
+              Container(height: 1, color: const Color(0xFFF4F7FD)),
 
             // 分割线下方间距
             if (hasImage || contentText.isNotEmpty) const SizedBox(height: 12),
@@ -1324,7 +1325,7 @@ class _ForumViewState extends State<ForumView>
 
                       // 发布时间
                       Text(
-                        article.createdAt ?? "",
+                        article.updatedAt ?? "",
                         style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                       ),
                     ],

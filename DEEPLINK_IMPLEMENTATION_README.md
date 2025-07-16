@@ -8,8 +8,15 @@
 
 ### 1. 支持的深度链接格式
 
-- **自定义协议**: `cryptosquare://app?topicId=123`
-- **Universal Links (推荐)**: `https://cryptosquare.org/app?topicId=123`
+- **文章深度链接**: 
+  - 自定义协议: `cryptosquare://app?topicId=123`
+  - Universal Links: `https://cryptosquare.org/app?topicId=123`
+- **工作深度链接**: 
+  - 自定义协议: `cryptosquare://app?jobId=456`
+  - Universal Links: `https://cryptosquare.org/app?jobId=456`
+- **普通app启动**: 
+  - 自定义协议: `cryptosquare://app`
+  - Universal Links: `https://cryptosquare.org/app`
 
 ### 2. 网页端JavaScript代码
 
@@ -18,20 +25,34 @@
 ```javascript
 // 推荐方案：使用Universal Links
 let r = "https://cryptosquare.org/app";
-if (y.params.id) {
-    r = "https://cryptosquare.org/app?topicId=" + y.params.id;
+
+// 如果是文章详情页面
+if (y.params.topicId) {
+    r = "https://cryptosquare.org/app?topicId=" + y.params.topicId;
 }
+// 如果是工作详情页面
+else if (y.params.jobId) {
+    r = "https://cryptosquare.org/app?jobId=" + y.params.jobId;
+}
+
 window.location.href = r;
 ```
 
-**备用方案：使用自定义协议（需要配置iOS URL Scheme）：**
+**备用方案：使用自定义协议：**
 
 ```javascript
 // 备用方案：自定义协议
 let r = "cryptosquare://app";
-if (y.params.id) {
-    r = "cryptosquare://app?topicId=" + y.params.id;
+
+// 如果是文章详情页面
+if (y.params.topicId) {
+    r = "cryptosquare://app?topicId=" + y.params.topicId;
 }
+// 如果是工作详情页面
+else if (y.params.jobId) {
+    r = "cryptosquare://app?jobId=" + y.params.jobId;
+}
+
 window.location.href = r;
 ```
 
@@ -39,17 +60,19 @@ window.location.href = r;
 
 当用户点击深度链接时，应用会：
 
-1. **解析topicId参数**
-   - 如果有topicId，则自动切换到"全球论坛"Tab并导航到对应的文章详情页面
-   - 如果没有topicId，则直接打开app停留在首页，不做任何跳转
+1. **参数解析和导航**
+   - **有topicId参数**: 自动切换到"全球论坛"Tab并导航到对应的文章详情页面
+   - **有jobId参数**: 自动切换到"Web3工作"Tab并导航到对应的工作详情页面
+   - **无任何参数**: 直接打开app停留在首页，不做任何跳转
 
 2. **特殊topicId处理**
    - topicId为5313或5981时，会打开特殊的WebView页面，显示"300U大奖过来拿！Web2与Web3大佬选美大比拼！"
    - 其他topicId则使用标准的文章详情页面
 
 3. **Tab切换逻辑**
-   - **有topicId参数时**: 自动切换到"全球论坛"Tab（第4个Tab，index=3），然后导航到相应的页面
-   - **无topicId参数时**: 保持在首页，不进行任何Tab切换
+   - **有topicId参数时**: 自动切换到"全球论坛"Tab（第4个Tab，index=3），然后导航到文章详情页面
+   - **有jobId参数时**: 自动切换到"Web3工作"Tab（第2个Tab，index=1），然后导航到工作详情页面
+   - **无任何参数时**: 保持在首页，不进行任何Tab切换
 
 ## 技术实现
 
@@ -178,6 +201,34 @@ flutter build appbundle --release
 flutter build ios --release
 ```
 
+## 使用场景
+
+1. **深度链接到文章**: 
+   - `cryptosquare://app?topicId=123` → 直接跳转到对应文章
+   - `https://cryptosquare.org/app?topicId=123` → 通过Universal Links跳转
+
+2. **深度链接到工作**: 
+   - `cryptosquare://app?jobId=456` → 直接跳转到对应工作详情
+   - `https://cryptosquare.org/app?jobId=456` → 通过Universal Links跳转
+
+3. **普通app唤起**: 
+   - `cryptosquare://app` → 停留在首页，用户可以自由浏览
+   - `https://cryptosquare.org/app` → 通过Universal Links启动app
+
+## 测试步骤
+
+### 测试文章深度链接
+1. 在Safari中输入: `cryptosquare://app?topicId=5313`
+2. 验证app是否跳转到全球论坛Tab并显示对应文章
+
+### 测试工作深度链接
+1. 在Safari中输入: `cryptosquare://app?jobId=YOUR_JOB_ID`
+2. 验证app是否跳转到Web3工作Tab并显示对应工作详情
+
+### 测试普通启动
+1. 在Safari中输入: `cryptosquare://app`
+2. 验证app是否正常启动并停留在首页
+
 ## 功能流程图
 
 ```
@@ -185,15 +236,15 @@ flutter build ios --release
     ↓
 解析深度链接URL
     ↓
-检查topicId参数
+检查参数类型
     ↓
-┌─────────────┬─────────────┐
-│   有topicId  │  无topicId   │
-└─────────────┴─────────────┘
+┌─────────────┬─────────────┬─────────────┐
+│   有topicId  │   有jobId    │   无参数     │
+└─────────────┴─────────────┴─────────────┘
+    ↓                ↓                ↓
+切换到论坛Tab      切换到工作Tab      停留在首页
     ↓                ↓
-切换到论坛Tab      切换到论坛Tab
-    ↓                ↓
-检查是否特殊ID      停留在论坛页面
+检查是否特殊ID      导航到工作详情
     ↓
 ┌─────────────┬─────────────┐
 │ 5313/5981   │   其他ID     │
