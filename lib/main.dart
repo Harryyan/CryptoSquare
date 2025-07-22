@@ -17,9 +17,15 @@ import 'package:app_links/app_links.dart';
 import 'package:cryptosquare/controllers/article_controller.dart';
 import 'package:cryptosquare/views/topic_webview.dart';
 import 'package:cryptosquare/rest_service/rest_client.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:cryptosquare/services/analytics_service.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // 初始化Firebase
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // 设置系统UI样式，统一状态栏样式
   SystemChrome.setSystemUIOverlayStyle(
@@ -244,7 +250,10 @@ class MyApp extends StatelessWidget {
         );
         return FlutterSmartDialog.init()(context, child);
       },
-      navigatorObservers: [FlutterSmartDialog.observer],
+      navigatorObservers: [
+        FlutterSmartDialog.observer,
+        AnalyticsService.observer,
+      ],
     );
   }
 }
