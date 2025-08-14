@@ -24,8 +24,16 @@ import 'firebase_options.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 初始化Firebase
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  try {
+    // 初始化Firebase
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    print('Firebase初始化成功');
+  } catch (e) {
+    print('Firebase初始化失败: $e');
+    // 继续运行app，但Firebase功能将不可用
+  }
 
   // 设置系统UI样式，统一状态栏样式
   SystemChrome.setSystemUIOverlayStyle(
@@ -38,10 +46,15 @@ void main() async {
     ),
   );
 
-  // 默认使用正式环境
-  // 如需切换到测试环境，取消下面这行注释
-  EnvironmentConfig.switchToProduction();
-  await GetStorage.init();
+  try {
+    // 默认使用正式环境
+    // 如需切换到测试环境，取消下面这行注释
+    EnvironmentConfig.switchToProduction();
+    await GetStorage.init();
+    print('GetStorage初始化成功');
+  } catch (e) {
+    print('GetStorage初始化失败: $e');
+  }
 
   // 初始化深度链接监听器
   _initDeepLinkListener();
@@ -55,11 +68,19 @@ void _initDeepLinkListener() async {
     final appLinks = AppLinks();
 
     // 监听所有深度链接事件（包括初始链接和运行时链接）
-    appLinks.uriLinkStream.listen((Uri uri) {
-      _handleDeepLink(uri);
-    });
+    appLinks.uriLinkStream.listen(
+      (Uri uri) {
+        _handleDeepLink(uri);
+      },
+      onError: (error) {
+        print('深度链接监听器错误: $error');
+      },
+    );
+
+    print('深度链接监听器初始化成功');
   } catch (e) {
     print('初始化深度链接监听器失败: $e');
+    // 深度链接失败不应该阻止app启动
   }
 }
 
