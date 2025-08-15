@@ -28,8 +28,8 @@ android {
         // 配置应用版本信息
         minSdk = flutter.minSdkVersion
         targetSdk = 35
-        versionCode = 250801001
-        versionName = "2.0.1"
+        versionCode = 250814001
+        versionName = "2.0.2"
     }
 
     // 添加签名配置
