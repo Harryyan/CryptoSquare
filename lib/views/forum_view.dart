@@ -9,6 +9,7 @@ import 'dart:async';
 import 'package:cryptosquare/views/article_list_example.dart';
 import 'package:cryptosquare/rest_service/rest_client.dart';
 import 'package:cryptosquare/model/article_list.dart';
+import 'package:cryptosquare/model/wiki_list.dart';
 import 'package:cryptosquare/controllers/article_controller.dart';
 import 'package:cryptosquare/controllers/user_controller.dart';
 import 'package:cryptosquare/views/post_create_view.dart';
@@ -112,54 +113,40 @@ class _ForumViewState extends State<ForumView>
     _loadForumArticles();
   }
 
-  // 加载加密百科数据（hardcode）
-  void _loadWikiItems() {
-    // Hardcode 数据，根据截图中的项目
-    wikiItems.value = [
-      WikiItem(
-        id: 1,
-        logo: 'assets/images/coin-icon.png', // 使用占位图，后续可替换
-        title: 'StarkWare',
-        description: '区块链隐私解决方案提供商 StarkWare,总部位于以色列 内坦亚 Netanya,公司两位联合创始人 Eli Ben-Sasson...',
-      ),
-      WikiItem(
-        id: 2,
-        logo: 'assets/images/coin-icon.png',
-        title: 'Solana',
-        description: 'Solana 是第三代权益证明区块链网络,由 Anatoly Yakovenko 于2017年创立。该网络试图通过其独特的历...',
-      ),
-      WikiItem(
-        id: 3,
-        logo: 'assets/images/coin-icon.png',
-        title: 'OpenSea',
-        description: '目前全球最大的加密数字藏品市场 OpenSea 成立于 2018 年1月,涵盖最广泛的类别、最多的可转让数字藏品,...',
-      ),
-      WikiItem(
-        id: 4,
-        logo: 'assets/images/coin-icon.png',
-        title: 'Aave',
-        description: 'Aave是一个基于以太坊区块链的开源、去中心化的借贷协议。该协议实现了一个市场,用户可以从他们的存款中获...',
-      ),
-      WikiItem(
-        id: 5,
-        logo: 'assets/images/coin-icon.png',
-        title: 'Uniswap',
-        description: 'Uniswap是一个用于交换ERC20令牌的简单智能合约平台,汇集流动性储备的正式模型,一个面向交易员和流动...',
-      ),
-      WikiItem(
-        id: 6,
-        logo: 'assets/images/coin-icon.png',
-        title: 'Cosmos',
-        description: 'Cosmos 是一个不断扩展的独立互连区块链生态系统- 区块链互联网- 使用开发人员友好的工具构建并与IBC(区...',
-      ),
-      WikiItem(
-        id: 7,
-        logo: 'assets/images/coin-icon.png',
-        title: '以太坊',
-        description: '以太坊具拥有 ETH为百生货币的开源区块链 虽然这两个...',
-      ),
-    ];
-    _filterWikiItems();
+  // 加载加密百科数据
+  Future<void> _loadWikiItems() async {
+    try {
+      isWikiLoading.value = true;
+
+      // 获取平台信息
+      String platform = 'ios';
+      if (Platform.isAndroid) {
+        platform = 'android';
+      }
+
+      // 获取语言设置
+      int lang = GStorage().getLanguageCN() ? 1 : 0;
+
+      // 调用API获取加密百科列表
+      final response = await _restClient.getWikiTopList(
+        lang,
+        platform,
+      );
+
+      // 处理响应数据
+      if (response.data != null && response.data!.isNotEmpty) {
+        wikiItems.value = response.data!;
+      } else {
+        wikiItems.clear();
+      }
+    } catch (e) {
+      print('加载加密百科失败: $e');
+      // 如果加载失败，清空列表
+      wikiItems.clear();
+    } finally {
+      isWikiLoading.value = false;
+      _filterWikiItems();
+    }
   }
 
   // 过滤加密百科数据
@@ -170,8 +157,8 @@ class _ForumViewState extends State<ForumView>
       final keyword = searchKeyword.value.toLowerCase();
       filteredWikiItems.value = wikiItems
           .where((item) =>
-              item.title.toLowerCase().contains(keyword) ||
-              item.description.toLowerCase().contains(keyword))
+              (item.name?.toLowerCase().contains(keyword) ?? false) ||
+              (item.intro?.toLowerCase().contains(keyword) ?? false))
           .toList();
     }
   }
@@ -1039,6 +1026,25 @@ class _ForumViewState extends State<ForumView>
         },
         child: Obx(() {
           // 在 Obx 内部访问 observable 变量
+          if (isWikiLoading.value && wikiItems.isEmpty) {
+            // 首次加载显示加载指示器
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(
+                    color: const Color(0xFF2563EB),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    '正在加载...',
+                    style: TextStyle(color: Colors.grey[600]),
+                  ),
+                ],
+              ),
+            );
+          }
+
           if (filteredWikiItems.isEmpty && searchKeyword.value.isNotEmpty) {
             // 搜索无结果
             return _buildWikiEmptyState();
@@ -1155,9 +1161,9 @@ class _ForumViewState extends State<ForumView>
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: item.logo.startsWith('http')
+                child: (item.img != null && item.img!.isNotEmpty && item.img!.startsWith('http'))
                     ? Image.network(
-                        item.logo,
+                        item.img!,
                         width: 56,
                         height: 56,
                         fit: BoxFit.cover,
@@ -1174,23 +1180,15 @@ class _ForumViewState extends State<ForumView>
                           );
                         },
                       )
-                    : Image.asset(
-                        item.logo,
+                    : Container(
                         width: 56,
                         height: 56,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            width: 56,
-                            height: 56,
-                            color: Colors.grey[200],
-                            child: Icon(
-                              Icons.image_not_supported,
-                              color: Colors.grey[400],
-                              size: 24,
-                            ),
-                          );
-                        },
+                        color: Colors.grey[200],
+                        child: Icon(
+                          Icons.image_not_supported,
+                          color: Colors.grey[400],
+                          size: 24,
+                        ),
                       ),
               ),
             ),
@@ -1202,7 +1200,7 @@ class _ForumViewState extends State<ForumView>
                 children: [
                   // 标题
                   Text(
-                    item.title,
+                    item.name ?? '',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -1214,7 +1212,7 @@ class _ForumViewState extends State<ForumView>
                   const SizedBox(height: 8),
                   // 描述
                   Text(
-                    item.description,
+                    item.intro ?? '',
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey[700],
@@ -1473,19 +1471,4 @@ String _formatTime(int timestamp) {
   } else {
     return '刚刚';
   }
-}
-
-// 加密百科数据模型
-class WikiItem {
-  final int id;
-  final String logo;
-  final String title;
-  final String description;
-
-  WikiItem({
-    required this.id,
-    required this.logo,
-    required this.title,
-    required this.description,
-  });
 }

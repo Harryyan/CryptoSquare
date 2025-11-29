@@ -8,6 +8,7 @@ import 'package:cryptosquare/util/storage.dart';
 import 'package:cryptosquare/model/article_list.dart';
 import 'package:cryptosquare/model/article_comment_post.dart';
 import 'package:cryptosquare/model/job_collect_list.dart';
+import 'package:cryptosquare/model/wiki_list.dart';
 
 part 'rest_client.g.dart';
 
@@ -230,6 +231,12 @@ abstract class RestClient {
     @Query('lang') int lang,
     @Query('PLATFORM') String platform,
     @Query('keyword') String? keyword,
+  );
+
+  @GET('/wiki/topList')
+  Future<WikiListResponse> getWikiTopList(
+    @Query('lang') int lang,
+    @Query('PLATFORM') String platform,
   );
 
   @GET('/job/index/job_list')
