@@ -4,7 +4,6 @@ import 'package:cryptosquare/views/page_login.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 import 'dart:io';
 import 'dart:async';
 import 'package:cryptosquare/views/article_list_example.dart';
@@ -30,16 +29,17 @@ class _ForumViewState extends State<ForumView>
   final RxBool isRefreshing = false.obs;
   final RxBool isLoadingMore = false.obs;
   final RxBool hasSearchText = false.obs;
-  final RxBool isNetworkAvailable = true.obs; // 网络连接状态
-  final RxBool isSearching = false.obs; // 搜索状态ggg
+  final RxBool isSearching = false.obs; // 搜索状态
   final RxString searchKeyword = ''.obs; // 搜索关键词
 
   // 防抖计时器
   Timer? _debounce;
 
-  // WebView相关
-  WebViewController? _webViewController;
-  final RxInt webViewProgress = 0.obs; // WebView加载进度
+  // 加密百科数据
+  final RxList<WikiItem> wikiItems = <WikiItem>[].obs;
+  final RxList<WikiItem> filteredWikiItems = <WikiItem>[].obs;
+  final RxBool isWikiLoading = false.obs;
+  final RxBool wikiInitialized = false.obs; // 是否已初始化
 
   // 论坛文章数据 - 全部
   final RxList<ArticleItem> forumArticles = <ArticleItem>[].obs;
@@ -99,7 +99,10 @@ class _ForumViewState extends State<ForumView>
             }
             break;
           case 3: // 加密百科
-            _checkNetworkAndLoadWebView();
+            if (!wikiInitialized.value) {
+              _loadWikiItems();
+              wikiInitialized.value = true;
+            }
             break;
         }
       }
@@ -109,44 +112,84 @@ class _ForumViewState extends State<ForumView>
     _loadForumArticles();
   }
 
-  // 检查网络连接并加载WebView
-  void _checkNetworkAndLoadWebView() {
-    // 如果WebView控制器已经初始化，则不需要重新创建
-    if (_webViewController != null) return;
+  // 加载加密百科数据（hardcode）
+  void _loadWikiItems() {
+    // Hardcode 数据，根据截图中的项目
+    wikiItems.value = [
+      WikiItem(
+        id: 1,
+        logo: 'assets/images/coin-icon.png', // 使用占位图，后续可替换
+        title: 'StarkWare',
+        description: '区块链隐私解决方案提供商 StarkWare,总部位于以色列 内坦亚 Netanya,公司两位联合创始人 Eli Ben-Sasson...',
+      ),
+      WikiItem(
+        id: 2,
+        logo: 'assets/images/coin-icon.png',
+        title: 'Solana',
+        description: 'Solana 是第三代权益证明区块链网络,由 Anatoly Yakovenko 于2017年创立。该网络试图通过其独特的历...',
+      ),
+      WikiItem(
+        id: 3,
+        logo: 'assets/images/coin-icon.png',
+        title: 'OpenSea',
+        description: '目前全球最大的加密数字藏品市场 OpenSea 成立于 2018 年1月,涵盖最广泛的类别、最多的可转让数字藏品,...',
+      ),
+      WikiItem(
+        id: 4,
+        logo: 'assets/images/coin-icon.png',
+        title: 'Aave',
+        description: 'Aave是一个基于以太坊区块链的开源、去中心化的借贷协议。该协议实现了一个市场,用户可以从他们的存款中获...',
+      ),
+      WikiItem(
+        id: 5,
+        logo: 'assets/images/coin-icon.png',
+        title: 'Uniswap',
+        description: 'Uniswap是一个用于交换ERC20令牌的简单智能合约平台,汇集流动性储备的正式模型,一个面向交易员和流动...',
+      ),
+      WikiItem(
+        id: 6,
+        logo: 'assets/images/coin-icon.png',
+        title: 'Cosmos',
+        description: 'Cosmos 是一个不断扩展的独立互连区块链生态系统- 区块链互联网- 使用开发人员友好的工具构建并与IBC(区...',
+      ),
+      WikiItem(
+        id: 7,
+        logo: 'assets/images/coin-icon.png',
+        title: '以太坊',
+        description: '以太坊具拥有 ETH为百生货币的开源区块链 虽然这两个...',
+      ),
+    ];
+    _filterWikiItems();
+  }
 
-    try {
-      // 尝试初始化WebView控制器
-      _initWebViewController();
-    } catch (e) {
-      // 捕获可能的异常
-      print('WebView初始化错误: $e');
-      webViewProgress.value = 0;
-      isNetworkAvailable.value = false;
-
-      // 显示错误提示
-      Get.snackbar(
-        '加载错误',
-        '无法加载网页内容，请检查网络连接',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red[100],
-        colorText: Colors.red[900],
-        duration: const Duration(seconds: 3),
-      );
+  // 过滤加密百科数据
+  void _filterWikiItems() {
+    if (searchKeyword.value.isEmpty) {
+      filteredWikiItems.value = List.from(wikiItems);
+    } else {
+      final keyword = searchKeyword.value.toLowerCase();
+      filteredWikiItems.value = wikiItems
+          .where((item) =>
+              item.title.toLowerCase().contains(keyword) ||
+              item.description.toLowerCase().contains(keyword))
+          .toList();
     }
   }
 
   // 底部发布栏
   Widget _buildBottomPublishBar() {
     // 获取底部安全区域高度
-    return Container(
-      // 高度包含内容高度(60)加上底部安全区域高度
-      height: 80,
-      padding: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        top: 8,
-        bottom: 18, // 底部padding增加安全区域高度
-      ),
+    return SafeArea(
+      top: false,
+      child: Container(
+        // 高度包含内容高度(60)加上底部安全区域高度
+        height: 80,
+        padding: EdgeInsets.only(
+          left: 16,
+          right: 16,
+          top: 8,
+          bottom: 18, // 底部padding增加安全区域高度
+        ),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -230,71 +273,8 @@ class _ForumViewState extends State<ForumView>
           const Spacer(flex: 1),
         ],
       ),
+      ),
     );
-  }
-
-  // 初始化WebView控制器
-  void _initWebViewController() {
-    // 添加一个标志，表示是否是初始加载
-    bool isInitialLoad = true;
-
-    final controller =
-        WebViewController()
-          ..setJavaScriptMode(JavaScriptMode.unrestricted)
-          ..setNavigationDelegate(
-            NavigationDelegate(
-              onProgress: (int progress) {
-                webViewProgress.value = progress;
-                // 如果进度大于0，说明网络连接正常
-                if (progress > 0) {
-                  isNetworkAvailable.value = true;
-                  isInitialLoad = false; // 已经开始加载，不再是初始状态
-                }
-              },
-              onPageStarted: (String url) {
-                webViewProgress.value = 0;
-                isNetworkAvailable.value = true; // 页面开始加载，网络应该是可用的
-                isInitialLoad = false; // 已经开始加载，不再是初始状态
-              },
-              onPageFinished: (String url) {
-                webViewProgress.value = 100;
-                isNetworkAvailable.value = true; // 页面加载完成，网络是可用的
-                isInitialLoad = false; // 已经完成加载，不再是初始状态
-              },
-              onWebResourceError: (WebResourceError error) {
-                print(
-                  'WebView error: ${error.description} (${error.errorCode})',
-                );
-
-                // 根据错误类型判断网络状态
-                if (error.description.contains('SocketException') ||
-                    error.description.contains('Connection refused') ||
-                    error.description.contains('net::ERR_') ||
-                    error.description.contains('Failed host lookup')) {
-                  // 只有在初始加载时才更新状态和显示错误
-                  if (isInitialLoad) {
-                    webViewProgress.value = 0;
-                    isNetworkAvailable.value = false;
-
-                    Get.snackbar(
-                      '网络连接错误',
-                      '无法连接到服务器，请检查您的网络连接',
-                      snackPosition: SnackPosition.BOTTOM,
-                      backgroundColor: Colors.red[100],
-                      colorText: Colors.red[900],
-                      duration: const Duration(seconds: 3),
-                    );
-                  }
-                }
-              },
-            ),
-          )
-          ..loadRequest(
-            Uri.parse('https://www.cryptosquare.org/wiki-panel?lng=zh-CN'),
-          );
-
-    // 保存控制器引用
-    _webViewController = controller;
   }
 
   @override
@@ -521,6 +501,10 @@ class _ForumViewState extends State<ForumView>
         // 加载第一页数据
         await _loadCasualArticles();
         break;
+      case 3: // 加密百科
+        // 重新加载数据
+        _loadWikiItems();
+        break;
     }
 
     isRefreshing.value = false;
@@ -573,6 +557,7 @@ class _ForumViewState extends State<ForumView>
     return Scaffold(
       backgroundColor: Colors.grey[100],
       body: SafeArea(
+        bottom: false, // 底部由 bottomSheet 处理
         child: Column(
           children: [
             _buildSearchBar(),
@@ -587,123 +572,128 @@ class _ForumViewState extends State<ForumView>
 
   // 搜索栏
   Widget _buildSearchBar() {
-    return Obx(
-      () =>
-          currentTabIndex.value == 3
-              ? const SizedBox.shrink() // 如果当前是加密百科标签，则不显示搜索栏
-              : Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                color: Colors.white,
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: Color(0xFFF4F7FD),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Row(
-                          children: [
-                            const SizedBox(width: 12),
-                            // 搜索图标，搜索中显示加载动画
-                            Obx(
-                              () =>
-                                  isSearching.value
-                                      ? SizedBox(
-                                        width: 20,
-                                        height: 20,
-                                        child: CupertinoActivityIndicator(
-                                          radius: 10,
-                                          color: Colors.grey[400],
-                                        ),
-                                      )
-                                      : Icon(
-                                        Icons.search,
-                                        color: Colors.grey[400],
-                                        size: 20,
-                                      ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: TextField(
-                                controller: _searchController,
-                                onChanged: (value) {
-                                  hasSearchText.value = value.isNotEmpty;
-
-                                  // 防抖处理，避免频繁请求
-                                  if (_debounce?.isActive ?? false)
-                                    _debounce?.cancel();
-
-                                  // 如果输入为空，重置搜索
-                                  if (value.isEmpty) {
-                                    searchKeyword.value = '';
-                                    _resetSearch();
-                                    return;
-                                  }
-
-                                  // 至少2个字符才触发搜索
-                                  if (value.length < 2) return;
-
-                                  // 设置防抖，500ms后触发搜索
-                                  _debounce = Timer(
-                                    const Duration(milliseconds: 500),
-                                    () {
-                                      searchKeyword.value = value;
-                                      _performSearch();
-                                    },
-                                  );
-                                },
-                                textAlignVertical:
-                                    TextAlignVertical.center, // 确保文字垂直居中
-                                decoration: InputDecoration(
-                                  hintText: '搜索',
-                                  hintStyle: TextStyle(
-                                    color: Colors.grey[400],
-                                    fontSize: 14,
-                                  ),
-                                  border: InputBorder.none,
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    vertical: 0, // 调整垂直padding为0
-                                  ),
-                                  isDense: true, // 使输入框更紧凑
-                                ),
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 8,
+      ),
+      color: Colors.white,
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
+              height: 40,
+              decoration: BoxDecoration(
+                color: Color(0xFFF4F7FD),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                children: [
+                  const SizedBox(width: 12),
+                  // 搜索图标，搜索中显示加载动画
+                  Obx(
+                    () =>
+                        isSearching.value
+                            ? SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CupertinoActivityIndicator(
+                                radius: 10,
+                                color: Colors.grey[400],
                               ),
+                            )
+                            : Icon(
+                              Icons.search,
+                              color: Colors.grey[400],
+                              size: 20,
                             ),
-                            Obx(
-                              () =>
-                                  hasSearchText.value
-                                      ? Container(
-                                        width: 40,
-                                        child: IconButton(
-                                          icon: Icon(
-                                            Icons.clear,
-                                            color: Colors.grey[400],
-                                            size: 18,
-                                          ),
-                                          onPressed: () {
-                                            _searchController.clear();
-                                            hasSearchText.value = false;
-                                            searchKeyword.value = '';
-                                            _resetSearch();
-                                          },
-                                          padding: EdgeInsets.zero,
-                                          constraints: const BoxConstraints(),
-                                          splashRadius: 16,
-                                        ),
-                                      )
-                                      : const SizedBox(width: 12),
-                            ),
-                          ],
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextField(
+                      controller: _searchController,
+                      onChanged: (value) {
+                        hasSearchText.value = value.isNotEmpty;
+
+                        // 防抖处理，避免频繁请求
+                        if (_debounce?.isActive ?? false)
+                          _debounce?.cancel();
+
+                        // 如果输入为空，重置搜索
+                        if (value.isEmpty) {
+                          searchKeyword.value = '';
+                          _resetSearch();
+                          return;
+                        }
+
+                        // 至少2个字符才触发搜索
+                        if (value.length < 2) return;
+
+                        // 设置防抖，500ms后触发搜索
+                        _debounce = Timer(
+                          const Duration(milliseconds: 500),
+                          () {
+                            searchKeyword.value = value;
+                            if (currentTabIndex.value == 3) {
+                              // 加密百科搜索
+                              _filterWikiItems();
+                            } else {
+                              _performSearch();
+                            }
+                          },
+                        );
+                      },
+                      textAlignVertical:
+                          TextAlignVertical.center, // 确保文字垂直居中
+                      decoration: InputDecoration(
+                        hintText: '搜索',
+                        hintStyle: TextStyle(
+                          color: Colors.grey[400],
+                          fontSize: 14,
                         ),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 0, // 调整垂直padding为0
+                        ),
+                        isDense: true, // 使输入框更紧凑
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                  Obx(
+                    () =>
+                        hasSearchText.value
+                            ? Container(
+                              width: 40,
+                              child: IconButton(
+                                icon: Icon(
+                                  Icons.clear,
+                                  color: Colors.grey[400],
+                                  size: 18,
+                                ),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  hasSearchText.value = false;
+                                  searchKeyword.value = '';
+                                  if (currentTabIndex.value == 3) {
+                                    // 加密百科重置搜索
+                                    _filterWikiItems();
+                                  } else {
+                                    _resetSearch();
+                                  }
+                                },
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                                splashRadius: 16,
+                              ),
+                            )
+                            : const SizedBox(width: 12),
+                  ),
+                ],
               ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -723,6 +713,9 @@ class _ForumViewState extends State<ForumView>
         casualCurrentPage.value = 1;
         _loadCasualArticles();
         break;
+      case 3: // 加密百科
+        _filterWikiItems();
+        break;
     }
   }
 
@@ -741,6 +734,9 @@ class _ForumViewState extends State<ForumView>
       case 2: // 闲谈天地
         casualCurrentPage.value = 1;
         _loadCasualArticles();
+        break;
+      case 3: // 加密百科
+        _filterWikiItems();
         break;
     }
   }
@@ -811,7 +807,7 @@ class _ForumViewState extends State<ForumView>
       case 2:
         return _buildForumList(2); // 闲谈天地
       case 3:
-        return _buildEncyclopediaWebView(); // 加密百科
+        return _buildWikiList(); // 加密百科
       default:
         return _buildForumList(0);
     }
@@ -959,12 +955,19 @@ class _ForumViewState extends State<ForumView>
             }
 
             // 显示文章列表
+            final hasMoreIndicator = isLoadingMore.value || hasMoreDataState.value;
             return ListView.builder(
-              padding: const EdgeInsets.only(bottom: 70), // 为底部发布按钮留出空间
+              padding: const EdgeInsets.only(bottom: 100), // 为底部发布按钮留出更多空间
               itemCount:
                   articleList.length +
-                  (isLoadingMore.value || hasMoreDataState.value ? 1 : 0),
+                  (hasMoreIndicator ? 1 : 0) +
+                  1, // 添加一个footer item
               itemBuilder: (context, index) {
+                final totalItems = articleList.length + (hasMoreIndicator ? 1 : 0);
+                // 如果是最后一个item，返回footer
+                if (index == totalItems) {
+                  return const SizedBox(height: 20); // Footer占位符，确保最后一个item完全显示
+                }
                 if (index == articleList.length) {
                   // 底部加载更多指示器
                   return Center(
@@ -1025,121 +1028,207 @@ class _ForumViewState extends State<ForumView>
     );
   }
 
-  // 加密百科WebView
-  Widget _buildEncyclopediaWebView() {
-    // 如果WebView控制器未初始化，则初始化
-    if (_webViewController == null) {
-      _initWebViewController();
-    }
+  // 加密百科列表
+  Widget _buildWikiList() {
+    return Container(
+      color: const Color(0xFFF4F7FD), // 添加背景色
+      child: RefreshIndicator(
+        onRefresh: () async {
+          // 刷新数据
+          _loadWikiItems();
+        },
+        child: Obx(() {
+          // 在 Obx 内部访问 observable 变量
+          if (filteredWikiItems.isEmpty && searchKeyword.value.isNotEmpty) {
+            // 搜索无结果
+            return _buildWikiEmptyState();
+          }
 
-    // 返回包含进度条和WebView的组件
-    return Column(
-      children: [
-        // 加载进度条，仅在加载过程中显示
-        Obx(
-          () =>
-              webViewProgress.value < 100 && webViewProgress.value > 0
-                  ? LinearProgressIndicator(
-                    value: webViewProgress.value / 100,
-                    backgroundColor: Colors.grey[200],
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      const Color(0xFF2563EB),
-                    ),
-                    minHeight: 3,
-                  )
-                  : const SizedBox.shrink(),
-        ),
-        // WebView组件
-        Expanded(
-          child:
-              _webViewController == null
-                  ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        CircularProgressIndicator(
-                          color: const Color(0xFF2563EB),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          '正在加载...',
-                          style: TextStyle(color: Colors.grey[600]),
-                        ),
-                      ],
-                    ),
-                  )
-                  : Stack(
-                    children: [
-                      WebViewWidget(controller: _webViewController!),
-                      // 错误视图 - 只在初始加载时显示网络错误
-                      Obx(
-                        () =>
-                            !isNetworkAvailable.value &&
-                                    currentTabIndex.value == 3 &&
-                                    webViewProgress.value == 0
-                                ? Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.wifi_off,
-                                        size: 64,
-                                        color: Colors.grey[400],
-                                      ),
-                                      const SizedBox(height: 16),
-                                      Text(
-                                        '网络连接错误',
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.grey[700],
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        '无法连接到服务器，请检查您的网络连接',
-                                        style: TextStyle(
-                                          color: Colors.grey[600],
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                      const SizedBox(height: 24),
-                                      ElevatedButton.icon(
-                                        onPressed: () {
-                                          // 重新加载WebView
-                                          webViewProgress.value =
-                                              1; // 重置进度以显示加载状态
-                                          isNetworkAvailable.value =
-                                              true; // 重置网络状态
-                                          _webViewController?.reload();
-                                        },
-                                        icon: const Icon(
-                                          Icons.refresh,
-                                          color: Colors.white,
-                                        ),
-                                        label: const Text(
-                                          '重试',
-                                          style: TextStyle(color: Colors.white),
-                                        ),
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: const Color(
-                                            0xFF2563EB,
-                                          ),
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 24,
-                                            vertical: 12,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                )
-                                : const SizedBox.shrink(),
-                      ),
-                    ],
+          if (filteredWikiItems.isEmpty) {
+            // 无数据
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.article_outlined,
+                    size: 48,
+                    color: Colors.grey[400],
                   ),
+                  const SizedBox(height: 16),
+                  Text(
+                    '暂无内容',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '暂时没有相关项目',
+                    style: TextStyle(color: Colors.grey[600]),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            );
+          }
+
+          // 显示列表
+          return ListView.builder(
+            padding: const EdgeInsets.only(bottom: 100), // 为底部发布按钮留出更多空间
+            itemCount: filteredWikiItems.length + 1, // 添加一个footer item
+            itemBuilder: (context, index) {
+              // 如果是最后一个item，返回footer
+              if (index == filteredWikiItems.length) {
+                return const SizedBox(height: 20); // Footer占位符，确保最后一个item完全显示
+              }
+              return _buildWikiCard(filteredWikiItems[index]);
+            },
+          );
+        }),
+      ),
+    );
+  }
+
+  // 加密百科无结果页面
+  Widget _buildWikiEmptyState() {
+    return Container(
+      color: const Color(0xFFF4F7FD),
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 100),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Image.asset(
+                'assets/images/search_result.png',
+                width: 120,
+                height: 120,
+              ),
+              const SizedBox(height: 20),
+              Text(
+                '没有符合的项目',
+                style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
         ),
-      ],
+      ),
+    );
+  }
+
+  // 加密百科卡片
+  Widget _buildWikiCard(WikiItem item) {
+    return InkWell(
+      onTap: () {
+        // TODO: 导航到详情页面
+        // 后续可以添加点击事件
+      },
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 左侧Logo
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: item.logo.startsWith('http')
+                    ? Image.network(
+                        item.logo,
+                        width: 56,
+                        height: 56,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            width: 56,
+                            height: 56,
+                            color: Colors.grey[200],
+                            child: Icon(
+                              Icons.image_not_supported,
+                              color: Colors.grey[400],
+                              size: 24,
+                            ),
+                          );
+                        },
+                      )
+                    : Image.asset(
+                        item.logo,
+                        width: 56,
+                        height: 56,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            width: 56,
+                            height: 56,
+                            color: Colors.grey[200],
+                            child: Icon(
+                              Icons.image_not_supported,
+                              color: Colors.grey[400],
+                              size: 24,
+                            ),
+                          );
+                        },
+                      ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            // 右侧标题和描述
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 标题
+                  Text(
+                    item.title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 8),
+                  // 描述
+                  Text(
+                    item.description,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[700],
+                      height: 1.4,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -1384,4 +1473,19 @@ String _formatTime(int timestamp) {
   } else {
     return '刚刚';
   }
+}
+
+// 加密百科数据模型
+class WikiItem {
+  final int id;
+  final String logo;
+  final String title;
+  final String description;
+
+  WikiItem({
+    required this.id,
+    required this.logo,
+    required this.title,
+    required this.description,
+  });
 }
