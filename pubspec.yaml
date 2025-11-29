@@ -50,7 +50,7 @@ dependencies:
   country_picker: ^2.0.27
   app_links: ^6.3.2
   permission_handler: ^11.0.1
-  getwidget: ^6.0.0
+  getwidget: ^7.0.0
   google_sign_in: ^6.1.5
   sign_in_with_apple: ^6.0.0
   image_picker: ^1.1.2
