@@ -239,6 +239,13 @@ abstract class RestClient {
     @Query('PLATFORM') String platform,
   );
 
+  @GET('/version/detail')
+  Future<WikiDetailResponse> getWikiDetail(
+    @Query('slug') String slug,
+    @Query('lang') int lang,
+    @Query('PLATFORM') String platform,
+  );
+
   @GET('/job/index/job_list')
   Future<JobListResponse> getJobList(
     @Query('PLATFORM') String platform, {

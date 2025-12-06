@@ -1,18 +1,83 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:cryptosquare/theme/app_theme.dart';
+import 'package:cryptosquare/rest_service/rest_client.dart';
+import 'package:cryptosquare/model/wiki_list.dart';
+import 'package:cryptosquare/util/storage.dart';
+import 'dart:io';
 
-class WikiDetailView extends StatelessWidget {
-  final String wikiName;
+class WikiDetailView extends StatefulWidget {
+  final String slug;
 
-  const WikiDetailView({Key? key, required this.wikiName}) : super(key: key);
+  const WikiDetailView({Key? key, required this.slug}) : super(key: key);
+
+  @override
+  State<WikiDetailView> createState() => _WikiDetailViewState();
+}
+
+class _WikiDetailViewState extends State<WikiDetailView> {
+  final RestClient _restClient = RestClient();
+  WikiDetailData? _wikiData;
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadWikiDetail();
+  }
+
+  Future<void> _loadWikiDetail() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      // 获取平台信息
+      String platform = 'ios';
+      if (Platform.isAndroid) {
+        platform = 'android';
+      } else if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+        platform = 'pc';
+      }
+
+      // 获取语言设置
+      int lang = GStorage().getLanguageCN() ? 1 : 0;
+
+      // 调用API获取Wiki详情
+      final response = await _restClient.getWikiDetail(
+        widget.slug,
+        lang,
+        platform,
+      );
+
+      if (response.code == 0 && response.data != null) {
+        setState(() {
+          _wikiData = response.data;
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = response.message ?? '加载失败';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = '加载失败: $e';
+      });
+      print('加载Wiki详情失败: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text(wikiName),
+        title: Text(_wikiData?.name ?? '加载中...'),
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
@@ -20,78 +85,151 @@ class WikiDetailView extends StatelessWidget {
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 顶部：Logo + 标题 + 副标题
-            _buildHeader(),
+      body: _isLoading
+          ? const Center(
+              child: CircularProgressIndicator(
+                color: AppTheme.primaryColor,
+              ),
+            )
+          : _errorMessage != null
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        size: 64,
+                        color: Colors.grey[400],
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        _errorMessage!,
+                        style: TextStyle(color: Colors.grey[600]),
+                      ),
+                      const SizedBox(height: 24),
+                      ElevatedButton(
+                        onPressed: _loadWikiDetail,
+                        child: const Text('重试'),
+                      ),
+                    ],
+                  ),
+                )
+              : _wikiData == null
+                  ? const Center(child: Text('暂无数据'))
+                  : SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // 顶部：Logo + 标题 + 副标题
+                          _buildHeader(),
 
-            const SizedBox(height: 24),
+                          const SizedBox(height: 24),
 
-            // 描述
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: _buildDescription(),
-            ),
+                          // 描述
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: _buildDescription(),
+                          ),
 
-            const SizedBox(height: 24),
+                          const SizedBox(height: 24),
 
-            // 标签按钮
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: _buildTags(),
-            ),
+                          // 标签按钮
+                          if (_wikiData!.tags != null &&
+                              _wikiData!.tags!.isNotEmpty)
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
+                              child: _buildTags(),
+                            ),
 
-            const SizedBox(height: 32),
+                          if (_wikiData!.tags != null &&
+                              _wikiData!.tags!.isNotEmpty)
+                            const SizedBox(height: 32),
 
-            // 投资人/机构
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: _buildInvestorsSection(),
-            ),
+                          // 投资人/机构
+                          if (_wikiData!.investors != null &&
+                              _wikiData!.investors!.isNotEmpty)
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
+                              child: _buildInvestorsSection(),
+                            ),
 
-            const SizedBox(height: 32),
+                          if (_wikiData!.investors != null &&
+                              _wikiData!.investors!.isNotEmpty)
+                            const SizedBox(height: 32),
 
-            // 团队成员
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: _buildTeamMembersSection(),
-            ),
+                          // 团队成员
+                          if (_wikiData!.members != null &&
+                              _wikiData!.members!.isNotEmpty)
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
+                              child: _buildTeamMembersSection(),
+                            ),
 
-            const SizedBox(height: 32),
+                          if (_wikiData!.members != null &&
+                              _wikiData!.members!.isNotEmpty)
+                            const SizedBox(height: 32),
 
-            // 投资项目
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: _buildInvestmentsSection(),
-            ),
+                          // 投资项目
+                          if (_wikiData!.portfolio != null &&
+                              _wikiData!.portfolio!.isNotEmpty)
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
+                              child: _buildInvestmentsSection(),
+                            ),
 
-            const SizedBox(height: 32),
+                          if (_wikiData!.portfolio != null &&
+                              _wikiData!.portfolio!.isNotEmpty)
+                            const SizedBox(height: 32),
 
-            // 社交链接
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: _buildSocialLinks(),
-            ),
+                          // 社交链接
+                          if (_wikiData!.social != null &&
+                              _hasSocialLinks(_wikiData!.social!))
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
+                              child: _buildSocialLinks(),
+                            ),
 
-            const SizedBox(height: 24),
+                          if (_wikiData!.social != null &&
+                              _hasSocialLinks(_wikiData!.social!))
+                            const SizedBox(height: 24),
 
-            // 网址
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: _buildWebsite(),
-            ),
+                          // 网址
+                          if (_wikiData!.webSite != null &&
+                              _wikiData!.webSite!.isNotEmpty)
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
+                              child: _buildWebsite(),
+                            ),
 
-            const SizedBox(height: 32),
-          ],
-        ),
-      ),
+                          const SizedBox(height: 32),
+                        ],
+                      ),
+                    ),
     );
+  }
+
+  bool _hasSocialLinks(SocialLinks social) {
+    return (social.twitter != null && social.twitter!.isNotEmpty) ||
+        (social.medium != null && social.medium!.isNotEmpty) ||
+        (social.linkedin != null && social.linkedin!.isNotEmpty) ||
+        (social.github != null && social.github!.isNotEmpty) ||
+        (social.telegram != null && social.telegram!.isNotEmpty) ||
+        (social.youtube != null && social.youtube!.isNotEmpty) ||
+        (social.reddit != null && social.reddit!.isNotEmpty);
   }
 
   // 顶部Header：Logo + 标题 + 副标题
   Widget _buildHeader() {
+    final logoUrl = _wikiData?.logoUrl ?? _wikiData?.img;
+    final name = _wikiData?.name ?? '';
+    final intro = _wikiData?.intro ?? '';
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
       child: Row(
@@ -105,18 +243,41 @@ class WikiDetailView extends StatelessWidget {
               color: const Color(0xFF1E3A8A), // 深蓝色
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Center(
-              child: Text(
-                'STARKWARE',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.5,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
+            child: logoUrl != null && logoUrl.isNotEmpty
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(
+                      logoUrl,
+                      width: 80,
+                      height: 80,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          color: const Color(0xFF1E3A8A),
+                          child: Center(
+                            child: Text(
+                              name.isNotEmpty ? name[0].toUpperCase() : 'W',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  )
+                : Center(
+                    child: Text(
+                      name.isNotEmpty ? name[0].toUpperCase() : 'W',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
           ),
           const SizedBox(width: 16),
           // 标题和副标题
@@ -125,21 +286,23 @@ class WikiDetailView extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  wikiName,
+                  name,
                   style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
                   ),
                 ),
-                const SizedBox(height: 4),
-                const Text(
-                  '区块链隐私解决方案提供商',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey,
+                if (intro.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    intro,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey,
+                    ),
                   ),
-                ),
+                ],
               ],
             ),
           ),
@@ -149,14 +312,7 @@ class WikiDetailView extends StatelessWidget {
   }
 
   Widget _buildDescription() {
-    String description = '';
-    if (wikiName == 'StarkWare') {
-      description = '''区块链隐私解决方案提供商 StarkWare，总部位于以色列内坦亚 Netanya，公司两位联合创始人 Eli Ben-Sasson 和 Alessandro Chiesa 也是 ZCash 创始人。其主要目标是进一步推广以色列理工学院研发的 zk-Starks 突破性区块链隐私解决方案。其延续了零知识证明协议保护区块链上的信息隐私，一方面可以支持将海量数据压缩成为更小的样本，另一方面也比量子计算更高效、透明和安全。一大优势就是在证明隐私信息的同时，确保计算完整性且无需耗费大量算力。
-
-投资方包括 Pantera、Floodgate、Polychain Capital、MetaStable、Naval Ravikant、ZCash、比特大陆，以及以太坊联合创始人 Vitalik Buterin 等。''';
-    } else {
-      description = '关于 $wikiName 的详细信息...';
-    }
+    final description = _wikiData?.description ?? '';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -184,14 +340,13 @@ class WikiDetailView extends StatelessWidget {
 
   // 标签按钮
   Widget _buildTags() {
+    final tags = _wikiData?.tags ?? [];
+    if (tags.isEmpty) return const SizedBox.shrink();
+
     return Wrap(
       spacing: 8,
       runSpacing: 8,
-      children: [
-        _buildTagButton('Coinbase'),
-        _buildTagButton('匿名隐私'),
-        _buildTagButton('Rollup'),
-      ],
+      children: tags.map((tag) => _buildTagButton(tag.name ?? '')).toList(),
     );
   }
 
@@ -214,6 +369,9 @@ class WikiDetailView extends StatelessWidget {
 
   // 投资人/机构部分
   Widget _buildInvestorsSection() {
+    final investors = _wikiData?.investors ?? [];
+    if (investors.isEmpty) return const SizedBox.shrink();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -226,18 +384,18 @@ class WikiDetailView extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        ..._getInvestors().map((item) => _buildInvestorItem(item)),
+        ...investors.map((item) => _buildInvestorItem(item)),
       ],
     );
   }
 
-  Widget _buildInvestorItem(InvestorItem item) {
+  Widget _buildInvestorItem(InvestorDetailItem item) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
       child: InkWell(
-        onTap: item.url != null
+        onTap: item.webSite != null && item.webSite!.isNotEmpty
             ? () async {
-                final uri = Uri.parse(item.url!);
+                final uri = Uri.parse(item.webSite!);
                 if (await canLaunchUrl(uri)) {
                   await launchUrl(uri, mode: LaunchMode.externalApplication);
                 }
@@ -246,7 +404,7 @@ class WikiDetailView extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Logo占位符
+            // Logo
             Container(
               width: 56,
               height: 56,
@@ -254,11 +412,11 @@ class WikiDetailView extends StatelessWidget {
                 color: Colors.grey[200],
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: item.logoUrl != null
+              child: item.img != null && item.img!.isNotEmpty
                   ? ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: Image.network(
-                        item.logoUrl!,
+                        item.img!,
                         width: 56,
                         height: 56,
                         fit: BoxFit.cover,
@@ -287,29 +445,29 @@ class WikiDetailView extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    item.name,
+                    item.name ?? '',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
-                      color: item.url != null
+                      color: item.webSite != null && item.webSite!.isNotEmpty
                           ? AppTheme.primaryColor
                           : Colors.black87,
                     ),
                   ),
-                  if (item.url != null) ...[
+                  if (item.webSite != null && item.webSite!.isNotEmpty) ...[
                     const SizedBox(height: 4),
                     Text(
-                      item.url!,
+                      item.webSite!,
                       style: const TextStyle(
                         fontSize: 13,
                         color: Colors.grey,
                       ),
                     ),
                   ],
-                  if (item.description != null) ...[
+                  if (item.intro != null && item.intro!.isNotEmpty) ...[
                     const SizedBox(height: 6),
                     Text(
-                      item.description!,
+                      item.intro!,
                       style: const TextStyle(
                         fontSize: 14,
                         color: Colors.grey,
@@ -328,6 +486,9 @@ class WikiDetailView extends StatelessWidget {
 
   // 团队成员部分
   Widget _buildTeamMembersSection() {
+    final members = _wikiData?.members ?? [];
+    if (members.isEmpty) return const SizedBox.shrink();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -340,18 +501,18 @@ class WikiDetailView extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        ..._getTeamMembers().map((member) => _buildTeamMemberItem(member)),
+        ...members.map((member) => _buildTeamMemberItem(member)),
       ],
     );
   }
 
-  Widget _buildTeamMemberItem(TeamMember member) {
+  Widget _buildTeamMemberItem(MemberDetailItem member) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 头像占位符
+          // 头像
           Container(
             width: 56,
             height: 56,
@@ -359,11 +520,11 @@ class WikiDetailView extends StatelessWidget {
               color: Colors.grey[200],
               borderRadius: BorderRadius.circular(28),
             ),
-            child: member.avatarUrl != null
+            child: member.img != null && member.img!.isNotEmpty
                 ? ClipRRect(
                     borderRadius: BorderRadius.circular(28),
                     child: Image.network(
-                      member.avatarUrl!,
+                      member.img!,
                       width: 56,
                       height: 56,
                       fit: BoxFit.cover,
@@ -392,17 +553,17 @@ class WikiDetailView extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  member.name,
+                  member.name ?? '',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
                     color: Colors.black87,
                   ),
                 ),
-                if (member.title != null) ...[
+                if (member.intro != null && member.intro!.isNotEmpty) ...[
                   const SizedBox(height: 4),
                   Text(
-                    member.title!,
+                    member.intro!,
                     style: const TextStyle(
                       fontSize: 14,
                       color: Colors.grey,
@@ -419,6 +580,9 @@ class WikiDetailView extends StatelessWidget {
 
   // 投资项目部分
   Widget _buildInvestmentsSection() {
+    final portfolio = _wikiData?.portfolio ?? [];
+    if (portfolio.isEmpty) return const SizedBox.shrink();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -431,18 +595,18 @@ class WikiDetailView extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        ..._getInvestments().map((item) => _buildInvestmentItem(item)),
+        ...portfolio.map((item) => _buildInvestmentItem(item)),
       ],
     );
   }
 
-  Widget _buildInvestmentItem(InvestmentItem item) {
+  Widget _buildInvestmentItem(PortfolioItem item) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
       child: InkWell(
-        onTap: item.url != null
+        onTap: item.webSite != null && item.webSite!.isNotEmpty
             ? () async {
-                final uri = Uri.parse(item.url!);
+                final uri = Uri.parse(item.webSite!);
                 if (await canLaunchUrl(uri)) {
                   await launchUrl(uri, mode: LaunchMode.externalApplication);
                 }
@@ -451,7 +615,7 @@ class WikiDetailView extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Logo占位符
+            // Logo
             Container(
               width: 56,
               height: 56,
@@ -459,11 +623,11 @@ class WikiDetailView extends StatelessWidget {
                 color: Colors.grey[200],
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: item.logoUrl != null
+              child: item.img != null && item.img!.isNotEmpty
                   ? ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: Image.network(
-                        item.logoUrl!,
+                        item.img!,
                         width: 56,
                         height: 56,
                         fit: BoxFit.cover,
@@ -492,29 +656,29 @@ class WikiDetailView extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    item.name,
+                    item.name ?? '',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
-                      color: item.url != null
+                      color: item.webSite != null && item.webSite!.isNotEmpty
                           ? AppTheme.primaryColor
                           : Colors.black87,
                     ),
                   ),
-                  if (item.url != null) ...[
+                  if (item.webSite != null && item.webSite!.isNotEmpty) ...[
                     const SizedBox(height: 4),
                     Text(
-                      item.url!,
+                      item.webSite!,
                       style: const TextStyle(
                         fontSize: 13,
                         color: Colors.grey,
                       ),
                     ),
                   ],
-                  if (item.description != null) ...[
+                  if (item.intro != null && item.intro!.isNotEmpty) ...[
                     const SizedBox(height: 6),
                     Text(
-                      item.description!,
+                      item.intro!,
                       style: const TextStyle(
                         fontSize: 14,
                         color: Colors.grey,
@@ -533,6 +697,63 @@ class WikiDetailView extends StatelessWidget {
 
   // 社交链接 - 椭圆形按钮，带图标和文字
   Widget _buildSocialLinks() {
+    final social = _wikiData?.social;
+    if (social == null) return const SizedBox.shrink();
+
+    final socialButtons = <Widget>[];
+
+    if (social.linkedin != null && social.linkedin!.isNotEmpty) {
+      socialButtons.add(_buildSocialButton(
+        'Linkedin',
+        Icons.business,
+        social.linkedin!,
+      ));
+    }
+    if (social.medium != null && social.medium!.isNotEmpty) {
+      socialButtons.add(_buildSocialButton(
+        'Medium',
+        Icons.article,
+        social.medium!,
+      ));
+    }
+    if (social.twitter != null && social.twitter!.isNotEmpty) {
+      socialButtons.add(_buildSocialButton(
+        'Twitter',
+        Icons.chat_bubble_outline,
+        social.twitter!,
+      ));
+    }
+    if (social.github != null && social.github!.isNotEmpty) {
+      socialButtons.add(_buildSocialButton(
+        'Github',
+        Icons.code,
+        social.github!,
+      ));
+    }
+    if (social.telegram != null && social.telegram!.isNotEmpty) {
+      socialButtons.add(_buildSocialButton(
+        'Telegram',
+        Icons.send,
+        social.telegram!,
+      ));
+    }
+    if (social.youtube != null && social.youtube!.isNotEmpty) {
+      socialButtons.add(_buildSocialButton(
+        'Youtube',
+        Icons.play_circle_outline,
+        social.youtube!,
+      ));
+    }
+    if (social.reddit != null && social.reddit!.isNotEmpty) {
+      socialButtons.add(_buildSocialButton(
+        'Reddit',
+        Icons.forum,
+        social.reddit!,
+      ));
+    }
+
+    if (socialButtons.isEmpty) return const SizedBox.shrink();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -548,28 +769,7 @@ class WikiDetailView extends StatelessWidget {
         Wrap(
           spacing: 12,
           runSpacing: 12,
-          children: [
-            _buildSocialButton(
-              'Linkedin',
-              Icons.business,
-              'https://www.linkedin.com/company/starkware',
-            ),
-            _buildSocialButton(
-              'Medium',
-              Icons.article,
-              'https://medium.com/starkware',
-            ),
-            _buildSocialButton(
-              'Twitter',
-              Icons.chat_bubble_outline,
-              'https://twitter.com/starkwareltd',
-            ),
-            _buildSocialButton(
-              'Github',
-              Icons.code,
-              'https://github.com/starkware-libs',
-            ),
-          ],
+          children: socialButtons,
         ),
       ],
     );
@@ -614,6 +814,9 @@ class WikiDetailView extends StatelessWidget {
 
   // 网址
   Widget _buildWebsite() {
+    final webSite = _wikiData?.webSite;
+    if (webSite == null || webSite.isEmpty) return const SizedBox.shrink();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -628,15 +831,14 @@ class WikiDetailView extends StatelessWidget {
         const SizedBox(height: 12),
         InkWell(
           onTap: () async {
-            const url = 'https://www.starkware.co/';
-            final uri = Uri.parse(url);
+            final uri = Uri.parse(webSite);
             if (await canLaunchUrl(uri)) {
               await launchUrl(uri, mode: LaunchMode.externalApplication);
             }
           },
-          child: const Text(
-            'https://www.starkware.co/',
-            style: TextStyle(
+          child: Text(
+            webSite,
+            style: const TextStyle(
               fontSize: 16,
               color: AppTheme.primaryColor,
               decoration: TextDecoration.underline,
@@ -646,138 +848,4 @@ class WikiDetailView extends StatelessWidget {
       ],
     );
   }
-
-  // Hardcode 数据方法
-  List<InvestorItem> _getInvestors() {
-    return [
-      InvestorItem(
-        name: 'Zcash',
-        description: '首个使用零知识证明的区块链系统，隐藏链上交易相关信息。',
-        url: 'https://z.cash/',
-      ),
-      InvestorItem(
-        name: 'Pantera Capital',
-        description: 'Dan Morehead 创办，专注于区块链的早期投资。',
-        url: 'https://panteracapital.com/firm/',
-      ),
-      InvestorItem(
-        name: 'Polychain Capital',
-        description: '通过积极管理区块链资产的投资组合，带给投资者丰厚回报。',
-        url: 'http://polychain.capital',
-      ),
-      InvestorItem(
-        name: 'MetaStable',
-        description: 'Naval Ravikant 参与创办的加密数字对冲基金。',
-        url: 'http://www.metastablecapital.com/',
-      ),
-      InvestorItem(
-        name: 'Paradigm',
-        description: 'Coinbase 联合创始人 Fred Ehrsam 组建的加密投资基金。',
-        url: 'https://paradigm.xyz/',
-      ),
-      InvestorItem(
-        name: 'Coinbase Ventures',
-        description: '隶属于 Coinbase 的风险投资基金。',
-        url: 'https://ventures.coinbase.com/',
-      ),
-      InvestorItem(
-        name: '比特大陆',
-        description: '加密货币挖矿领域无可争议的世界领导者。',
-        url: 'https://www.bitmain.com/',
-      ),
-    ];
-  }
-
-  List<TeamMember> _getTeamMembers() {
-    return [
-      TeamMember(
-        name: 'Louis Guthmann',
-        title: 'StarkWare 产品经理',
-      ),
-      TeamMember(
-        name: 'Michael Riabzev',
-        title: 'StarkWare 联合创始人兼首席架构师',
-      ),
-      TeamMember(
-        name: 'Uri Kolodny',
-        title: 'Co-Founder & CEO of StarkWare',
-      ),
-    ];
-  }
-
-  List<InvestmentItem> _getInvestments() {
-    return [
-      InvestmentItem(
-        name: 'dYdX',
-        description: '去中心化数字资产衍生品交易平台。',
-        url: 'https://dydx.exchange/',
-      ),
-      InvestmentItem(
-        name: 'STARKEx',
-        description: '支持可扩展的非托管交易。',
-        url: 'https://starkware.co/product/starkex/',
-      ),
-      InvestmentItem(
-        name: 'XMTP',
-        description: 'web3加密通信协议与网络。',
-        url: 'https://xmtp.com',
-      ),
-      InvestmentItem(
-        name: 'StarkNet',
-        description: '无需许可的去中心化 ZK-Rollup',
-        url: 'https://starknet.io/',
-      ),
-      InvestmentItem(
-        name: 'zkLend',
-        description: 'Layer 2 DeFi 协议。',
-        url: 'https://zklend.com/',
-      ),
-      InvestmentItem(
-        name: 'StarkGate',
-        description: 'StarkNet大桥。',
-        url: 'https://starkgate.starknet.io/',
-      ),
-    ];
-  }
-}
-
-// 数据模型
-class InvestorItem {
-  final String name;
-  final String? description;
-  final String? url;
-  final String? logoUrl;
-
-  InvestorItem({
-    required this.name,
-    this.description,
-    this.url,
-    this.logoUrl,
-  });
-}
-
-class TeamMember {
-  final String name;
-  final String? title;
-  final String? avatarUrl;
-
-  TeamMember({
-    required this.name,
-    this.title,
-    this.avatarUrl,
-  });
-}
-
-class InvestmentItem {
-  final String name;
-  final String? description;
-  final String? url;
-  final String? logoUrl;
-
-  InvestmentItem({
-    required this.name,
-    this.description,
-    this.url,
-    this.logoUrl,
-  });
 }

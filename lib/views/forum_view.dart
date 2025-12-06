@@ -1132,15 +1132,17 @@ class _ForumViewState extends State<ForumView>
   Widget _buildWikiCard(WikiItem item) {
     return InkWell(
       onTap: () {
-        // 导航到Wiki详情页面
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => WikiDetailView(
-              wikiName: item.name ?? '',
+        // 导航到Wiki详情页面，传递slug
+        if (item.slug != null && item.slug!.isNotEmpty) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => WikiDetailView(
+                slug: item.slug!,
+              ),
             ),
-          ),
-        );
+          );
+        }
       },
       child: Container(
         margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
