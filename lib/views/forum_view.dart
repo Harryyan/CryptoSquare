@@ -11,6 +11,7 @@ import 'package:cryptosquare/rest_service/rest_client.dart';
 import 'package:cryptosquare/model/article_list.dart';
 import 'package:cryptosquare/model/wiki_list.dart';
 import 'package:cryptosquare/controllers/article_controller.dart';
+import 'package:cryptosquare/views/wiki_detail_view.dart';
 import 'package:cryptosquare/controllers/user_controller.dart';
 import 'package:cryptosquare/views/post_create_view.dart';
 import 'package:flutter/rendering.dart';
@@ -1131,8 +1132,15 @@ class _ForumViewState extends State<ForumView>
   Widget _buildWikiCard(WikiItem item) {
     return InkWell(
       onTap: () {
-        // TODO: 导航到详情页面
-        // 后续可以添加点击事件
+        // 导航到Wiki详情页面
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => WikiDetailView(
+              wikiName: item.name ?? '',
+            ),
+          ),
+        );
       },
       child: Container(
         margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
