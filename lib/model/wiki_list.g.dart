@@ -205,3 +205,63 @@ Map<String, dynamic> _$TagItemToJson(TagItem instance) => <String, dynamic>{
   'name': instance.name,
   'slug': instance.slug,
 };
+
+WikiSearchResponse _$WikiSearchResponseFromJson(Map<String, dynamic> json) =>
+    WikiSearchResponse(
+      message: json['message'] as String?,
+      code: (json['code'] as num?)?.toInt(),
+      data:
+          json['data'] == null
+              ? null
+              : WikiSearchData.fromJson(json['data'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$WikiSearchResponseToJson(WikiSearchResponse instance) =>
+    <String, dynamic>{
+      'message': instance.message,
+      'code': instance.code,
+      'data': instance.data,
+    };
+
+WikiSearchData _$WikiSearchDataFromJson(Map<String, dynamic> json) =>
+    WikiSearchData(
+      total: (json['total'] as num?)?.toInt(),
+      currentPage: (json['current_page'] as num?)?.toInt(),
+      data:
+          (json['data'] as List<dynamic>?)
+              ?.map((e) => WikiSearchItem.fromJson(e as Map<String, dynamic>))
+              .toList(),
+    );
+
+Map<String, dynamic> _$WikiSearchDataToJson(WikiSearchData instance) =>
+    <String, dynamic>{
+      'total': instance.total,
+      'current_page': instance.currentPage,
+      'data': instance.data,
+    };
+
+WikiSearchItem _$WikiSearchItemFromJson(Map<String, dynamic> json) =>
+    WikiSearchItem(
+      name: json['name'] as String?,
+      slug: json['slug'] as String?,
+      descs: json['descs'] as String?,
+      intro: json['intro'] as String?,
+      img: json['img'] as String?,
+      url: json['url'] as String?,
+      category: (json['category'] as num?)?.toInt(),
+      lang: (json['lang'] as num?)?.toInt(),
+      link: json['link'] as String?,
+    );
+
+Map<String, dynamic> _$WikiSearchItemToJson(WikiSearchItem instance) =>
+    <String, dynamic>{
+      'name': instance.name,
+      'slug': instance.slug,
+      'descs': instance.descs,
+      'intro': instance.intro,
+      'img': instance.img,
+      'url': instance.url,
+      'category': instance.category,
+      'lang': instance.lang,
+      'link': instance.link,
+    };

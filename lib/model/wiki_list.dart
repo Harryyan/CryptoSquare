@@ -324,3 +324,97 @@ class TagItem {
   Map<String, dynamic> toJson() => _$TagItemToJson(this);
 }
 
+@JsonSerializable()
+class WikiSearchResponse extends BaseResponse<WikiSearchData> {
+  const WikiSearchResponse({String? message, int? code, WikiSearchData? data})
+      : super(message: message, code: code, data: data);
+
+  factory WikiSearchResponse.fromJson(Map<String, dynamic> json) {
+    return WikiSearchResponse(
+      message: json['message'] as String?,
+      code: json['code'] as int?,
+      data: json['data'] == null
+          ? null
+          : WikiSearchData.fromJson(json['data'] as Map<String, dynamic>),
+    );
+  }
+
+  @override
+  Map<String, dynamic> toJson(Object? Function(WikiSearchData) toJsonT) =>
+      <String, dynamic>{
+        'message': message,
+        'code': code,
+        'data': data != null ? toJsonT(data as WikiSearchData) : null,
+      };
+}
+
+@JsonSerializable()
+class WikiSearchData {
+  const WikiSearchData({
+    this.total,
+    this.currentPage,
+    this.data,
+  });
+
+  factory WikiSearchData.fromJson(Map<String, dynamic> json) =>
+      _$WikiSearchDataFromJson(json);
+
+  @JsonKey(name: 'total')
+  final int? total;
+
+  @JsonKey(name: 'current_page')
+  final int? currentPage;
+
+  @JsonKey(name: 'data')
+  final List<WikiSearchItem>? data;
+
+  Map<String, dynamic> toJson() => _$WikiSearchDataToJson(this);
+}
+
+@JsonSerializable()
+class WikiSearchItem {
+  const WikiSearchItem({
+    this.name,
+    this.slug,
+    this.descs,
+    this.intro,
+    this.img,
+    this.url,
+    this.category,
+    this.lang,
+    this.link,
+  });
+
+  factory WikiSearchItem.fromJson(Map<String, dynamic> json) =>
+      _$WikiSearchItemFromJson(json);
+
+  @JsonKey(name: 'name')
+  final String? name;
+
+  @JsonKey(name: 'slug')
+  final String? slug;
+
+  @JsonKey(name: 'descs')
+  final String? descs;
+
+  @JsonKey(name: 'intro')
+  final String? intro;
+
+  @JsonKey(name: 'img')
+  final String? img;
+
+  @JsonKey(name: 'url')
+  final String? url;
+
+  @JsonKey(name: 'category')
+  final int? category;
+
+  @JsonKey(name: 'lang')
+  final int? lang;
+
+  @JsonKey(name: 'link')
+  final String? link;
+
+  Map<String, dynamic> toJson() => _$WikiSearchItemToJson(this);
+}
+

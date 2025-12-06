@@ -38,10 +38,14 @@ class _ForumViewState extends State<ForumView>
   Timer? _debounce;
 
   // 加密百科数据
-  final RxList<WikiItem> wikiItems = <WikiItem>[].obs;
-  final RxList<WikiItem> filteredWikiItems = <WikiItem>[].obs;
+  final RxList<WikiItem> wikiItems = <WikiItem>[].obs; // 默认列表数据
+  final RxList<WikiSearchItem> wikiSearchItems = <WikiSearchItem>[].obs; // 搜索结果数据
+  final RxList<WikiItem> filteredWikiItems = <WikiItem>[].obs; // 用于兼容旧代码
   final RxBool isWikiLoading = false.obs;
   final RxBool wikiInitialized = false.obs; // 是否已初始化
+  final RxInt wikiSearchPage = 1.obs; // 搜索当前页码
+  final RxBool hasMoreWikiSearchData = true.obs; // 是否有更多搜索结果
+  final RxBool isWikiSearchLoadingMore = false.obs; // 是否正在加载更多搜索结果
 
   // 论坛文章数据 - 全部
   final RxList<ArticleItem> forumArticles = <ArticleItem>[].obs;
@@ -150,17 +154,72 @@ class _ForumViewState extends State<ForumView>
     }
   }
 
-  // 过滤加密百科数据
-  void _filterWikiItems() {
+  // 过滤加密百科数据 - 如果有搜索关键词，使用搜索API
+  Future<void> _filterWikiItems() async {
     if (searchKeyword.value.isEmpty) {
+      // 没有搜索关键词，显示默认列表
       filteredWikiItems.value = List.from(wikiItems);
+      wikiSearchItems.clear();
     } else {
-      final keyword = searchKeyword.value.toLowerCase();
-      filteredWikiItems.value = wikiItems
-          .where((item) =>
-              (item.name?.toLowerCase().contains(keyword) ?? false) ||
-              (item.intro?.toLowerCase().contains(keyword) ?? false))
-          .toList();
+      // 有搜索关键词，调用搜索API
+      await _searchWikiItems();
+    }
+  }
+
+  // 搜索加密百科
+  Future<void> _searchWikiItems({bool loadMore = false}) async {
+    try {
+      if (!loadMore) {
+        isWikiLoading.value = true;
+        wikiSearchPage.value = 1;
+        wikiSearchItems.clear();
+      } else {
+        isWikiSearchLoadingMore.value = true;
+      }
+
+      // 获取平台信息
+      String platform = 'ios';
+      if (Platform.isAndroid) {
+        platform = 'android';
+      }
+
+      // 获取语言设置
+      int lang = GStorage().getLanguageCN() ? 1 : 0;
+
+      // 调用搜索API
+      final response = await _restClient.searchWiki(
+        searchKeyword.value,
+        lang,
+        wikiSearchPage.value,
+        50, // page_size
+        platform,
+      );
+
+      // 处理响应数据
+      if (response.data != null && response.data!.data != null) {
+        if (loadMore) {
+          wikiSearchItems.addAll(response.data!.data!);
+        } else {
+          wikiSearchItems.value = response.data!.data!;
+        }
+
+        // 更新分页信息
+        final total = response.data!.total ?? 0;
+        hasMoreWikiSearchData.value = wikiSearchItems.length < total;
+      } else {
+        if (!loadMore) {
+          wikiSearchItems.clear();
+        }
+        hasMoreWikiSearchData.value = false;
+      }
+    } catch (e) {
+      print('搜索加密百科失败: $e');
+      if (!loadMore) {
+        wikiSearchItems.clear();
+      }
+    } finally {
+      isWikiLoading.value = false;
+      isWikiSearchLoadingMore.value = false;
     }
   }
 
@@ -491,7 +550,11 @@ class _ForumViewState extends State<ForumView>
         break;
       case 3: // 加密百科
         // 重新加载数据
-        _loadWikiItems();
+        if (searchKeyword.value.isEmpty) {
+          _loadWikiItems();
+        } else {
+          _filterWikiItems();
+        }
         break;
     }
 
@@ -525,6 +588,15 @@ class _ForumViewState extends State<ForumView>
         casualCurrentPage.value++;
         // 加载更多数据
         await _loadCasualArticles();
+        break;
+      case 3: // 加密百科
+        // 如果有搜索关键词，加载更多搜索结果
+        if (searchKeyword.value.isNotEmpty) {
+          if (isWikiSearchLoadingMore.value || !hasMoreWikiSearchData.value) return;
+          wikiSearchPage.value++;
+          await _searchWikiItems(loadMore: true);
+        }
+        // 默认列表不支持load more（因为API没有分页）
         break;
     }
 
@@ -610,7 +682,12 @@ class _ForumViewState extends State<ForumView>
                         // 如果输入为空，重置搜索
                         if (value.isEmpty) {
                           searchKeyword.value = '';
-                          _resetSearch();
+                          if (currentTabIndex.value == 3) {
+                            // 加密百科重置搜索
+                            _filterWikiItems();
+                          } else {
+                            _resetSearch();
+                          }
                           return;
                         }
 
@@ -1023,11 +1100,20 @@ class _ForumViewState extends State<ForumView>
       child: RefreshIndicator(
         onRefresh: () async {
           // 刷新数据
-          _loadWikiItems();
+          if (searchKeyword.value.isEmpty) {
+            _loadWikiItems();
+          } else {
+            _filterWikiItems();
+          }
         },
         child: Obx(() {
+          // 判断是否显示搜索结果还是默认列表
+          final isSearchMode = searchKeyword.value.isNotEmpty;
+          final displaySearchItems = isSearchMode ? wikiSearchItems : <WikiSearchItem>[];
+          final displayDefaultItems = !isSearchMode ? filteredWikiItems : <WikiItem>[];
+
           // 在 Obx 内部访问 observable 变量
-          if (isWikiLoading.value && wikiItems.isEmpty) {
+          if (isWikiLoading.value && displaySearchItems.isEmpty && displayDefaultItems.isEmpty) {
             // 首次加载显示加载指示器
             return Center(
               child: Column(
@@ -1046,13 +1132,13 @@ class _ForumViewState extends State<ForumView>
             );
           }
 
-          if (filteredWikiItems.isEmpty && searchKeyword.value.isNotEmpty) {
-            // 搜索无结果
+          // 搜索无结果
+          if (isSearchMode && displaySearchItems.isEmpty && !isWikiLoading.value) {
             return _buildWikiEmptyState();
           }
 
-          if (filteredWikiItems.isEmpty) {
-            // 无数据
+          // 默认列表无数据
+          if (!isSearchMode && displayDefaultItems.isEmpty) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -1083,15 +1169,51 @@ class _ForumViewState extends State<ForumView>
           }
 
           // 显示列表
+          final itemCount = isSearchMode ? displaySearchItems.length : displayDefaultItems.length;
+          final hasMore = isSearchMode ? hasMoreWikiSearchData.value : false;
+          final isLoadingMore = isSearchMode ? isWikiSearchLoadingMore.value : false;
+
+          // 计算总item数：列表项 + (如果有更多数据则显示"加载更多"按钮) + Footer
+          final totalItemCount = itemCount + (hasMore ? 1 : 0) + 1;
+
           return ListView.builder(
             padding: const EdgeInsets.only(bottom: 100), // 为底部发布按钮留出更多空间
-            itemCount: filteredWikiItems.length + 1, // 添加一个footer item
+            itemCount: totalItemCount,
             itemBuilder: (context, index) {
-              // 如果是最后一个item，返回footer
-              if (index == filteredWikiItems.length) {
-                return const SizedBox(height: 20); // Footer占位符，确保最后一个item完全显示
+              // Load more按钮（在列表项之后）
+              if (isSearchMode && hasMore && index == itemCount) {
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: isLoadingMore
+                        ? const CircularProgressIndicator()
+                        : TextButton(
+                            onPressed: () {
+                              wikiSearchPage.value++;
+                              _searchWikiItems(loadMore: true);
+                            },
+                            child: const Text('加载更多'),
+                          ),
+                  ),
+                );
               }
-              return _buildWikiCard(filteredWikiItems[index]);
+
+              // Footer占位符（最后一个item）
+              if (index == totalItemCount - 1) {
+                return const SizedBox(height: 20);
+              }
+
+              // 显示搜索结果或默认列表（确保index在有效范围内）
+              if (index < itemCount) {
+                if (isSearchMode) {
+                  return _buildWikiSearchCard(displaySearchItems[index]);
+                } else {
+                  return _buildWikiCard(displayDefaultItems[index]);
+                }
+              }
+
+              // 不应该到达这里，但为了安全返回空widget
+              return const SizedBox.shrink();
             },
           );
         }),
@@ -1123,6 +1245,113 @@ class _ForumViewState extends State<ForumView>
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  // 加密百科搜索结果卡片
+  Widget _buildWikiSearchCard(WikiSearchItem item) {
+    return InkWell(
+      onTap: () {
+        // 导航到Wiki详情页面，传递slug
+        if (item.slug != null && item.slug!.isNotEmpty) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => WikiDetailView(
+                slug: item.slug!,
+              ),
+            ),
+          );
+        }
+      },
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 左侧Logo
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: (item.img != null && item.img!.isNotEmpty && item.img!.startsWith('http'))
+                    ? Image.network(
+                        item.img!,
+                        width: 56,
+                        height: 56,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: Colors.grey[200],
+                            child: Icon(
+                              Icons.article_outlined,
+                              color: Colors.grey[400],
+                              size: 24,
+                            ),
+                          );
+                        },
+                      )
+                    : Container(
+                        color: Colors.grey[200],
+                        child: Icon(
+                          Icons.article_outlined,
+                          color: Colors.grey[400],
+                          size: 24,
+                        ),
+                      ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            // 右侧内容
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 标题
+                  Text(
+                    item.name ?? '',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  // 描述
+                  Text(
+                    item.intro ?? item.descs ?? '',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -1304,7 +1533,7 @@ class _ForumViewState extends State<ForumView>
                     ClipRRect(
                       borderRadius: BorderRadius.circular(6),
                       child: Image.network(
-                        imageUrl!,
+                        imageUrl,
                         height: 80,
                         width: 120,
                         fit: BoxFit.cover,
@@ -1367,7 +1596,7 @@ class _ForumViewState extends State<ForumView>
                         ClipRRect(
                           borderRadius: BorderRadius.circular(12),
                           child: Image.network(
-                            avatarUrl!,
+                            avatarUrl,
                             width: 24,
                             height: 24,
                             fit: BoxFit.cover,

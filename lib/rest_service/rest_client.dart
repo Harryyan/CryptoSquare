@@ -131,9 +131,9 @@ abstract class RestClient {
     _dio ??= Dio();
 
     // 配置超时时间
-    _dio?.options.connectTimeout = const Duration(seconds: 10);
-    _dio?.options.receiveTimeout = const Duration(seconds: 10);
-    _dio?.options.sendTimeout = const Duration(seconds: 10);
+    _dio?.options.connectTimeout = const Duration(seconds: 30);
+    _dio?.options.receiveTimeout = const Duration(seconds: 30);
+    _dio?.options.sendTimeout = const Duration(seconds: 30);
 
     // 添加重试拦截器
     _dio?.interceptors.add(
@@ -243,6 +243,15 @@ abstract class RestClient {
   Future<WikiDetailResponse> getWikiDetail(
     @Query('slug') String slug,
     @Query('lang') int lang,
+    @Query('PLATFORM') String platform,
+  );
+
+  @GET('/v2/wiki')
+  Future<WikiSearchResponse> searchWiki(
+    @Query('keyword') String keyword,
+    @Query('lang') int lang,
+    @Query('page') int page,
+    @Query('page_size') int pageSize,
     @Query('PLATFORM') String platform,
   );
 
