@@ -128,7 +128,7 @@ class _BitpushNewsClient implements BitpushNewsClient {
     try {
       _value = BitpushNewsResponse.fromJson(_result.data!);
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, _result);
       rethrow;
     }
     return _value;

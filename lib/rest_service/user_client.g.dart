@@ -40,7 +40,7 @@ class _UserRestClient implements UserRestClient {
     try {
       _value = CSUserResp.fromJson(_result.data!);
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, _result);
       rethrow;
     }
     return _value;
@@ -77,7 +77,7 @@ class _UserRestClient implements UserRestClient {
     try {
       _value = CSUserLoginResp.fromJson(_result.data!);
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, _result);
       rethrow;
     }
     return _value;
@@ -114,7 +114,7 @@ class _UserRestClient implements UserRestClient {
     try {
       _value = CSUserLoginResp.fromJson(_result.data!);
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, _result);
       rethrow;
     }
     return _value;
@@ -141,7 +141,7 @@ class _UserRestClient implements UserRestClient {
     try {
       _value = CSUserResp.fromJson(_result.data!);
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, _result);
       rethrow;
     }
     return _value;
@@ -178,7 +178,7 @@ class _UserRestClient implements UserRestClient {
     try {
       _value = CSUserLoginResp.fromJson(_result.data!);
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, _result);
       rethrow;
     }
     return _value;
@@ -215,7 +215,7 @@ class _UserRestClient implements UserRestClient {
     try {
       _value = CSUserLoginResp.fromJson(_result.data!);
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, _result);
       rethrow;
     }
     return _value;
@@ -247,7 +247,7 @@ class _UserRestClient implements UserRestClient {
     try {
       _value = CSUserLoginResp.fromJson(_result.data!);
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, _result);
       rethrow;
     }
     return _value;
@@ -274,7 +274,7 @@ class _UserRestClient implements UserRestClient {
     try {
       _value = CSUserResp.fromJson(_result.data!);
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, _result);
       rethrow;
     }
     return _value;
@@ -301,7 +301,7 @@ class _UserRestClient implements UserRestClient {
     try {
       _value = UserProfileResp.fromJson(_result.data!);
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, _result);
       rethrow;
     }
     return _value;
@@ -328,7 +328,7 @@ class _UserRestClient implements UserRestClient {
     try {
       _value = CheckInStateResp.fromJson(_result.data!);
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, _result);
       rethrow;
     }
     return _value;
@@ -375,7 +375,7 @@ class _UserRestClient implements UserRestClient {
     try {
       _value = CSUserAvatarResp.fromJson(_result.data!);
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, _result);
       rethrow;
     }
     return _value;
@@ -402,7 +402,7 @@ class _UserRestClient implements UserRestClient {
     try {
       _value = JobCollectListResp.fromJson(_result.data!);
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, _result);
       rethrow;
     }
     return _value;
@@ -437,7 +437,7 @@ class _UserRestClient implements UserRestClient {
     try {
       _value = CollectedPostResp.fromJson(_result.data!);
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, _result);
       rethrow;
     }
     return _value;
@@ -464,7 +464,7 @@ class _UserRestClient implements UserRestClient {
     try {
       _value = PostActionResp.fromJson(_result.data!);
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, _result);
       rethrow;
     }
     return _value;
@@ -499,7 +499,7 @@ class _UserRestClient implements UserRestClient {
     try {
       _value = UserPostResp.fromJson(_result.data!);
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, _result);
       rethrow;
     }
     return _value;

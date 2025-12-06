@@ -979,7 +979,7 @@ class _RestClient implements RestClient {
                 : List.empty(),
       );
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, _result);
       rethrow;
     }
     return _value;
@@ -1012,7 +1012,7 @@ class _RestClient implements RestClient {
     try {
       _value = FeaturedJobResponse.fromJson(_result.data!);
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, _result);
       rethrow;
     }
     return _value;
@@ -1042,7 +1042,7 @@ class _RestClient implements RestClient {
     try {
       _value = BannerResponse.fromJson(_result.data!);
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, _result);
       rethrow;
     }
     return _value;
@@ -1080,7 +1080,7 @@ class _RestClient implements RestClient {
                 : List.empty(),
       );
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, _result);
       rethrow;
     }
     return _value;
@@ -1117,7 +1117,7 @@ class _RestClient implements RestClient {
         (json) => JobDetailData.fromJson(json as Map<String, dynamic>),
       );
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, _result);
       rethrow;
     }
     return _value;
@@ -1147,7 +1147,7 @@ class _RestClient implements RestClient {
         (json) => JobCollectData.fromJson(json as Map<String, dynamic>),
       );
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, _result);
       rethrow;
     }
     return _value;
@@ -1184,7 +1184,7 @@ class _RestClient implements RestClient {
         (json) => ArticleDetailData.fromJson(json as Map<String, dynamic>),
       );
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, _result);
       rethrow;
     }
     return _value;
@@ -1218,7 +1218,7 @@ class _RestClient implements RestClient {
     try {
       _value = ArticleCommentResponse.fromJson(_result.data!);
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, _result);
       rethrow;
     }
     return _value;
@@ -1260,7 +1260,7 @@ class _RestClient implements RestClient {
     try {
       _value = ArticleListResponse.fromJson(_result.data!);
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, _result);
       rethrow;
     }
     return _value;
@@ -1290,7 +1290,7 @@ class _RestClient implements RestClient {
     try {
       _value = WikiListResponse.fromJson(_result.data!);
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, _result);
       rethrow;
     }
     return _value;
@@ -1325,7 +1325,7 @@ class _RestClient implements RestClient {
     try {
       _value = WikiDetailResponse.fromJson(_result.data!);
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, _result);
       rethrow;
     }
     return _value;
@@ -1364,7 +1364,7 @@ class _RestClient implements RestClient {
     try {
       _value = WikiSearchResponse.fromJson(_result.data!);
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, _result);
       rethrow;
     }
     return _value;
@@ -1409,7 +1409,7 @@ class _RestClient implements RestClient {
     try {
       _value = JobListResponse.fromJson(_result.data!);
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, _result);
       rethrow;
     }
     return _value;
@@ -1436,7 +1436,7 @@ class _RestClient implements RestClient {
     try {
       _value = ScoreConfigResponse.fromJson(_result.data!);
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, _result);
       rethrow;
     }
     return _value;
@@ -1476,7 +1476,7 @@ class _RestClient implements RestClient {
     try {
       _value = ArticleCommentPostResponse.fromJson(_result.data!);
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, _result);
       rethrow;
     }
     return _value;
@@ -1519,7 +1519,7 @@ class _RestClient implements RestClient {
     try {
       _value = PostCreateResp.fromJson(_result.data!);
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, _result);
       rethrow;
     }
     return _value;
@@ -1563,7 +1563,7 @@ class _RestClient implements RestClient {
     try {
       _value = PostCreateResp.fromJson(_result.data!);
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, _result);
       rethrow;
     }
     return _value;
@@ -1593,7 +1593,7 @@ class _RestClient implements RestClient {
         (json) => json as dynamic,
       );
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, _result);
       rethrow;
     }
     return _value;
@@ -1620,7 +1620,7 @@ class _RestClient implements RestClient {
     try {
       _value = CSBBSCategoryResp.fromJson(_result.data!);
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, _result);
       rethrow;
     }
     return _value;
@@ -1647,7 +1647,7 @@ class _RestClient implements RestClient {
     try {
       _value = StudentViewResponse.fromJson(_result.data!);
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, _result);
       rethrow;
     }
     return _value;
@@ -1674,7 +1674,7 @@ class _RestClient implements RestClient {
     try {
       _value = CourseListResponse.fromJson(_result.data!);
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, _result);
       rethrow;
     }
     return _value;
@@ -1701,7 +1701,7 @@ class _RestClient implements RestClient {
     try {
       _value = ServerIntroResponse.fromJson(_result.data!);
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, _result);
       rethrow;
     }
     return _value;
